@@ -2,14 +2,19 @@ import React, { useState } from 'react';
 import InvoiceForm from '../components/InvoiceForm';
 import InvoicePreview from '../components/InvoicePreview';
 import ClientManagement from '../components/ClientManagement';
+import ServiceManagement from '../components/ServiceManagement';
 import InvoiceHistoryTable from '../components/InvoiceHistoryTable';
 import Navigation from '../components/Navigation';
 import { InvoiceData } from '../types/invoice';
+import { Client } from '../types/client';
+import { Service } from '../types/service';
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'history'>('invoice');
+  const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history'>('invoice');
   const [currentInvoice, setCurrentInvoice] = useState<InvoiceData | null>(null);
   const [language, setLanguage] = useState<'de' | 'en' | 'he' | 'fr'>('de');
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
 
   const handleInvoiceGenerated = (invoice: InvoiceData) => {
     setCurrentInvoice(invoice);
@@ -38,10 +43,29 @@ const Index = () => {
             onInvoiceGenerated={handleInvoiceGenerated}
             language={language}
             onLanguageChange={setLanguage}
+            selectedClient={selectedClient}
+            selectedService={selectedService}
+            onClientClear={() => setSelectedClient(null)}
+            onServiceClear={() => setSelectedService(null)}
           />
         )}
         {currentView === 'clients' && (
-          <ClientManagement language={language} />
+          <ClientManagement 
+            language={language} 
+            onClientSelect={(client) => {
+              setSelectedClient(client);
+              setCurrentView('invoice');
+            }}
+          />
+        )}
+        {currentView === 'services' && (
+          <ServiceManagement 
+            language={language} 
+            onServiceSelect={(service) => {
+              setSelectedService(service);
+              setCurrentView('invoice');
+            }}
+          />
         )}
         {currentView === 'history' && (
           <InvoiceHistoryTable language={language} />

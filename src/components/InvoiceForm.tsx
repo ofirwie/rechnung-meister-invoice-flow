@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import { format } from 'date-fns';
+import { de } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Users } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon, Plus, Trash2, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { InvoiceData, InvoiceService } from '../types/invoice';
 import { Client } from '../types/client';
+import { Service } from '../types/service';
 import { InvoiceHistory } from '../types/invoiceHistory';
 import { translations } from '../utils/translations';
 import { generateInvoiceNumber, calculateDueDate } from '../utils/formatters';
@@ -18,20 +24,30 @@ interface InvoiceFormProps {
   onInvoiceGenerated: (invoice: InvoiceData) => void;
   language: 'de' | 'en' | 'he' | 'fr';
   onLanguageChange: (language: 'de' | 'en' | 'he' | 'fr') => void;
-  onShowClients?: () => void;
+  selectedClient?: Client | null;
+  selectedService?: Service | null;
+  onClientClear?: () => void;
+  onServiceClear?: () => void;
 }
 
-export default function InvoiceForm({ onInvoiceGenerated, language, onLanguageChange, onShowClients }: InvoiceFormProps) {
+export default function InvoiceForm({ 
+  onInvoiceGenerated, 
+  language, 
+  onLanguageChange, 
+  selectedClient, 
+  selectedService, 
+  onClientClear, 
+  onServiceClear 
+}: InvoiceFormProps) {
   const t = translations[language];
   
   const [clients] = useLocalStorage<Client[]>('invoice-clients', []);
   const [invoiceHistory] = useLocalStorage<InvoiceHistory[]>('invoice-history', []);
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   
   const [formData, setFormData] = useState<Partial<InvoiceData>>({
     invoiceDate: new Date().toISOString().split('T')[0],
-    servicePeriodFrom: '',
-    servicePeriodTo: '',
+    servicePeriodStart: '',
+    servicePeriodEnd: '',
     dueDate: '',
     language: language,
     currency: 'EUR',
@@ -46,20 +62,49 @@ export default function InvoiceForm({ onInvoiceGenerated, language, onLanguageCh
   // Auto-calculate due date when invoice date changes
   useEffect(() => {
     if (formData.invoiceDate) {
-      const dueDate = calculateDueDate(formData.invoiceDate);
-      setFormData(prev => ({ ...prev, dueDate }));
+      const invoiceDate = new Date(formData.invoiceDate);
+      const dueDate = new Date(invoiceDate);
+      dueDate.setDate(dueDate.getDate() + 10);
+      setFormData(prev => ({ ...prev, dueDate: dueDate.toISOString().split('T')[0] }));
     }
   }, [formData.invoiceDate]);
 
   // Auto-generate invoice number when client company changes
   useEffect(() => {
     if (formData.clientCompany) {
-      const invoiceNumber = generateInvoiceNumber(formData.clientCompany);
+      const invoiceNumber = `${formData.clientCompany}-1`;
       setFormData(prev => ({ ...prev, invoiceNumber }));
     }
-  }, [formData.clientCompany]);
+  }, [formData.clientCompany, invoiceHistory]);
 
-  const handleInputChange = (field: keyof InvoiceData, value: string) => {
+  // Update form when client is selected
+  useEffect(() => {
+    if (selectedClient) {
+      setFormData(prev => ({
+        ...prev,
+        clientCompany: selectedClient.companyName,
+        clientAddress: selectedClient.address,
+        clientCity: selectedClient.city,
+        clientCountry: selectedClient.country
+      }));
+    }
+  }, [selectedClient]);
+
+  // Update form when service is selected
+  useEffect(() => {
+    if (selectedService) {
+      const newService: InvoiceService = {
+        id: Date.now().toString(),
+        description: selectedService.description,
+        hours: 1,
+        rate: selectedService.hourlyRate,
+        amount: selectedService.hourlyRate
+      };
+      setServices(prev => [...prev.slice(0, -1), newService, { id: Date.now().toString() + '1', description: '', hours: 0, rate: 0, amount: 0 }]);
+    }
+  }, [selectedService]);
+
+  const handleInputChange = (field: keyof InvoiceData, value: string | Date) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -118,8 +163,8 @@ export default function InvoiceForm({ onInvoiceGenerated, language, onLanguageCh
   const resetForm = () => {
     setFormData({
       invoiceDate: new Date().toISOString().split('T')[0],
-      servicePeriodFrom: '',
-      servicePeriodTo: '',
+      servicePeriodStart: '',
+      servicePeriodEnd: '',
       dueDate: '',
       language: language,
       currency: 'EUR',
@@ -143,6 +188,7 @@ export default function InvoiceForm({ onInvoiceGenerated, language, onLanguageCh
             <SelectItem value="de">Deutsch</SelectItem>
             <SelectItem value="en">English</SelectItem>
             <SelectItem value="he">עברית</SelectItem>
+            <SelectItem value="fr">Français</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -166,42 +212,81 @@ export default function InvoiceForm({ onInvoiceGenerated, language, onLanguageCh
             </div>
             <div>
               <Label htmlFor="invoiceDate">{t.invoiceDate} *</Label>
-              <Input
-                id="invoiceDate"
-                type="date"
-                value={formData.invoiceDate || ''}
-                onChange={(e) => handleInputChange('invoiceDate', e.target.value)}
-                required
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !formData.invoiceDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.invoiceDate ? format(new Date(formData.invoiceDate), "dd.MM.yyyy", { locale: de }) : <span>{t.invoiceDate}</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={formData.invoiceDate ? new Date(formData.invoiceDate) : undefined}
+                    onSelect={(date) => setFormData({ ...formData, invoiceDate: date?.toISOString().split('T')[0] || '' })}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             <div>
-              <Label htmlFor="dueDate">{t.dueDate}</Label>
-              <Input
-                id="dueDate"
-                type="date"
-                value={formData.dueDate || ''}
-                onChange={(e) => handleInputChange('dueDate', e.target.value)}
-              />
+              <Label htmlFor="servicePeriodStart">{t.servicePeriodStart} *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !formData.servicePeriodStart && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.servicePeriodStart ? format(new Date(formData.servicePeriodStart), "dd.MM.yyyy", { locale: de }) : <span>{t.servicePeriodStart}</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={formData.servicePeriodStart ? new Date(formData.servicePeriodStart) : undefined}
+                    onSelect={(date) => setFormData({ ...formData, servicePeriodStart: date?.toISOString().split('T')[0] || '' })}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             <div>
-              <Label htmlFor="servicePeriodFrom">{t.servicePeriod} {t.from} *</Label>
-              <Input
-                id="servicePeriodFrom"
-                type="date"
-                value={formData.servicePeriodFrom || ''}
-                onChange={(e) => handleInputChange('servicePeriodFrom', e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="servicePeriodTo">{t.servicePeriod} {t.to} *</Label>
-              <Input
-                id="servicePeriodTo"
-                type="date"
-                value={formData.servicePeriodTo || ''}
-                onChange={(e) => handleInputChange('servicePeriodTo', e.target.value)}
-                required
-              />
+              <Label htmlFor="servicePeriodEnd">{t.servicePeriodEnd} *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !formData.servicePeriodEnd && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.servicePeriodEnd ? format(new Date(formData.servicePeriodEnd), "dd.MM.yyyy", { locale: de }) : <span>{t.servicePeriodEnd}</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={formData.servicePeriodEnd ? new Date(formData.servicePeriodEnd) : undefined}
+                    onSelect={(date) => setFormData({ ...formData, servicePeriodEnd: date?.toISOString().split('T')[0] || '' })}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </CardContent>
         </Card>
@@ -213,13 +298,34 @@ export default function InvoiceForm({ onInvoiceGenerated, language, onLanguageCh
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
-              <Label htmlFor="clientCompany">{t.clientCompany} *</Label>
-              <Input
-                id="clientCompany"
-                value={formData.clientCompany || ''}
-                onChange={(e) => handleInputChange('clientCompany', e.target.value)}
-                required
-              />
+              <div className="space-y-2">
+                <Label htmlFor="clientCompany">{t.clientCompany} *</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="clientCompany"
+                    value={formData.clientCompany || ''}
+                    onChange={(e) => setFormData({ ...formData, clientCompany: e.target.value })}
+                    required
+                    className="flex-1"
+                  />
+                  {selectedClient && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={onClientClear}
+                      className="px-2"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+                {selectedClient && (
+                  <p className="text-xs text-muted-foreground">
+                    {t.selectClient}: {selectedClient.companyName}
+                  </p>
+                )}
+              </div>
             </div>
             <div>
               <Label htmlFor="clientAddress">{t.clientAddress} *</Label>
@@ -261,12 +367,31 @@ export default function InvoiceForm({ onInvoiceGenerated, language, onLanguageCh
 
         {/* Services */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-corporate-blue">{t.services}</CardTitle>
-            <Button type="button" onClick={addService} variant="outline" size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              {t.addService}
-            </Button>
+          <CardHeader>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">{t.services}</h3>
+              <div className="flex gap-2">
+                <Button type="button" onClick={addService} variant="outline" size="sm">
+                  {t.addService}
+                </Button>
+                {selectedService && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={onServiceClear}
+                    className="px-2"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+            {selectedService && (
+              <p className="text-xs text-muted-foreground mb-4">
+                שירות שנבחר: {selectedService.name}
+              </p>
+            )}
           </CardHeader>
           <CardContent className="space-y-4">
             {services.map((service, index) => (

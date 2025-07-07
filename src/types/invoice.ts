@@ -1,8 +1,8 @@
 export interface InvoiceData {
   invoiceNumber: string;
   invoiceDate: string;
-  servicePeriodFrom: string;
-  servicePeriodTo: string;
+  servicePeriodStart: string;
+  servicePeriodEnd: string;
   dueDate: string;
   language: 'de' | 'en' | 'he' | 'fr';
   currency: 'EUR';
