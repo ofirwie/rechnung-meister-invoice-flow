@@ -40,7 +40,7 @@ export default function ServiceManagement({ language, onServiceSelect, searchTer
     <div className={`space-y-6 ${isRTL ? 'rtl' : 'ltr'}`}>
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-corporate-blue">{t.serviceManagement}</h2>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-corporate-blue hover:bg-corporate-blue-dark" onClick={openAddDialog}>
               <Plus className="w-4 h-4 mr-2" />
