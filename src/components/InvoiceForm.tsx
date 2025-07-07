@@ -201,9 +201,16 @@ export default function InvoiceForm({
     const subtotal = services
       .filter(service => service.addedToInvoice)
       .reduce((sum, service) => {
+        console.log('=== calculateTotals Debug ===');
+        console.log('Service:', service.description, 'Amount:', service.amount, 'Added:', service.addedToInvoice);
         // Amount is already in EUR after calculateServiceAmount
         return sum + service.amount;
       }, 0);
+    
+    console.log('Final subtotal:', subtotal);
+    console.log('Services count:', services.length);
+    console.log('Added services:', services.filter(s => s.addedToInvoice).length);
+    
     return {
       subtotal,
       vatAmount: 0, // VAT-exempt for Germany to Israel

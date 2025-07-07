@@ -30,7 +30,7 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, langua
         <div className="max-w-4xl mx-auto flex justify-between items-center">
           <Button variant="outline" onClick={onBack}>
             <ArrowLeft className="w-4 h-4 mr-2" />
-            {t.reset}
+            {t.home}
           </Button>
           <Button onClick={handlePrint} className="bg-corporate-blue hover:bg-corporate-blue-dark">
             <Printer className="w-4 h-4 mr-2" />

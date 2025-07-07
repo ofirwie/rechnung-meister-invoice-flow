@@ -46,6 +46,7 @@ export const translations = {
     generateInvoice: 'Rechnung erstellen',
     print: 'Drucken',
     reset: 'Zurücksetzen',
+    home: 'Startseite',
     
     // New features
     clients: 'Kunden',
@@ -145,6 +146,7 @@ export const translations = {
     generateInvoice: 'Generate Invoice',
     print: 'Print',
     reset: 'Reset',
+    home: 'Home',
     
     // New features
     clients: 'Clients',
@@ -244,6 +246,7 @@ export const translations = {
     generateInvoice: 'צור חשבונית',
     print: 'הדפס',
     reset: 'איפוס',
+    home: 'בית',
     
     // New features
     clients: 'לקוחות',
