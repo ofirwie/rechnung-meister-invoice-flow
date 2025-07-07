@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { Service, ServiceFormData } from '../types/service';
 import { useLocalStorage } from './useLocalStorage';
 
-export function useServiceManagement() {
+export function useServiceManagement(externalSearchTerm?: string, onSearchChange?: (term: string) => void) {
   const [services, setServices] = useLocalStorage<Service[]>('invoice-services', []);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(externalSearchTerm || '');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [formData, setFormData] = useState<ServiceFormData>({
@@ -15,10 +15,22 @@ export function useServiceManagement() {
     category: ''
   });
 
+  // Use external search term if provided
+  const currentSearchTerm = externalSearchTerm !== undefined ? externalSearchTerm : searchTerm;
+  
+  // Update search term handler
+  const handleSearchChange = (term: string) => {
+    if (onSearchChange) {
+      onSearchChange(term);
+    } else {
+      setSearchTerm(term);
+    }
+  };
+
   const filteredServices = services.filter(service =>
-    service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    service.category.toLowerCase().includes(searchTerm.toLowerCase())
+    service.name.toLowerCase().includes(currentSearchTerm.toLowerCase()) ||
+    service.description.toLowerCase().includes(currentSearchTerm.toLowerCase()) ||
+    service.category.toLowerCase().includes(currentSearchTerm.toLowerCase())
   );
 
   const resetForm = () => {
@@ -104,8 +116,8 @@ export function useServiceManagement() {
   return {
     services,
     filteredServices,
-    searchTerm,
-    setSearchTerm,
+    searchTerm: currentSearchTerm,
+    setSearchTerm: handleSearchChange,
     isDialogOpen,
     setIsDialogOpen,
     editingService,

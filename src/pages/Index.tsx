@@ -15,6 +15,7 @@ const Index = () => {
   const [language, setLanguage] = useState<'de' | 'en' | 'he' | 'fr'>('de');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [serviceSearchTerm, setServiceSearchTerm] = useState('');
 
   const handleInvoiceGenerated = (invoice: InvoiceData) => {
     setCurrentInvoice(invoice);
@@ -86,6 +87,8 @@ const Index = () => {
               setSelectedService(service);
               setCurrentView('invoice');
             }}
+            searchTerm={serviceSearchTerm}
+            onSearchChange={setServiceSearchTerm}
           />
         )}
         {currentView === 'history' && (

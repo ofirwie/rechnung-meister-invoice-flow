@@ -13,9 +13,11 @@ import ServiceTable from './ServiceTable';
 interface ServiceManagementProps {
   language: 'de' | 'en' | 'he' | 'fr';
   onServiceSelect?: (service: Service) => void;
+  searchTerm?: string;
+  onSearchChange?: (term: string) => void;
 }
 
-export default function ServiceManagement({ language, onServiceSelect }: ServiceManagementProps) {
+export default function ServiceManagement({ language, onServiceSelect, searchTerm: externalSearchTerm, onSearchChange }: ServiceManagementProps) {
   const t = translations[language];
   const isRTL = language === 'he';
   
@@ -32,7 +34,7 @@ export default function ServiceManagement({ language, onServiceSelect }: Service
     handleEdit,
     handleDelete,
     openAddDialog
-  } = useServiceManagement();
+  } = useServiceManagement(externalSearchTerm, onSearchChange);
 
   return (
     <div className={`space-y-6 ${isRTL ? 'rtl' : 'ltr'}`}>
