@@ -5,13 +5,16 @@ import { InvoiceData } from '../types/invoice';
 import { translations } from '../utils/translations';
 import { businessInfo } from '../utils/businessInfo';
 import { formatGermanDate, formatCurrency } from '../utils/formatters';
+import InvoiceWorkflow from './InvoiceWorkflow';
 
 interface InvoicePreviewProps {
   invoice: InvoiceData;
   onBack: () => void;
+  onStatusChange?: (newStatus: InvoiceData['status']) => void;
+  language?: 'de' | 'en' | 'he' | 'fr';
 }
 
-export default function InvoicePreview({ invoice, onBack }: InvoicePreviewProps) {
+export default function InvoicePreview({ invoice, onBack, onStatusChange, language }: InvoicePreviewProps) {
   const t = translations[invoice.language];
   const isRTL = invoice.language === 'he';
 
@@ -34,6 +37,17 @@ export default function InvoicePreview({ invoice, onBack }: InvoicePreviewProps)
           </Button>
         </div>
       </div>
+
+      {/* Workflow - Only shown if onStatusChange is provided */}
+      {onStatusChange && (
+        <div className="max-w-4xl mx-auto px-8 print:hidden">
+          <InvoiceWorkflow 
+            invoice={invoice} 
+            language={language || invoice.language} 
+            onStatusChange={onStatusChange} 
+          />
+        </div>
+      )}
 
       {/* Invoice Document */}
       <div className="max-w-4xl mx-auto bg-white p-8 print:p-6 print:max-w-none print:mx-0">
@@ -79,8 +93,8 @@ export default function InvoicePreview({ invoice, onBack }: InvoicePreviewProps)
               <p>{formatGermanDate(invoice.invoiceDate)}</p>
             </div>
             <div>
-              <p className="font-semibold text-corporate-blue">{t.servicePeriod}</p>
-              <p>{formatGermanDate(invoice.servicePeriodFrom)} - {formatGermanDate(invoice.servicePeriodTo)}</p>
+              <p className="font-semibold text-corporate-blue">{t.servicePeriodStart} - {t.servicePeriodEnd}</p>
+              <p>{formatGermanDate(invoice.servicePeriodStart)} - {formatGermanDate(invoice.servicePeriodEnd)}</p>
             </div>
             <div>
               <p className="font-semibold text-corporate-blue">{t.dueDate}</p>

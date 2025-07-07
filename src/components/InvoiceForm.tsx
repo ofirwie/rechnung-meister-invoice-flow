@@ -28,6 +28,7 @@ interface InvoiceFormProps {
   selectedService?: Service | null;
   onClientClear?: () => void;
   onServiceClear?: () => void;
+  onSelectClient?: () => void;
 }
 
 export default function InvoiceForm({ 
@@ -37,7 +38,8 @@ export default function InvoiceForm({
   selectedClient, 
   selectedService, 
   onClientClear, 
-  onServiceClear 
+  onServiceClear,
+  onSelectClient 
 }: InvoiceFormProps) {
   const t = translations[language];
   
@@ -301,7 +303,7 @@ export default function InvoiceForm({
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => window.dispatchEvent(new CustomEvent('openClientSelector'))}
+              onClick={onSelectClient}
             >
               {t.selectClientFromList}
             </Button>
