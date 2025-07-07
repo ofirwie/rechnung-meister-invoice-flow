@@ -34,6 +34,8 @@ export default function ClientManagement({ language, onClientSelect }: ClientMan
     phone: '',
     taxId: ''
   });
+  const [pasteText, setPasteText] = useState('');
+  const [openAiKey, setOpenAiKey] = useState('');
 
   const filteredClients = clients.filter(client =>
     client.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -54,6 +56,76 @@ export default function ClientManagement({ language, onClientSelect }: ClientMan
       taxId: ''
     });
     setEditingClient(null);
+    setPasteText('');
+  };
+
+  const parseClientInfo = async (text: string) => {
+    if (!text.trim()) return;
+
+    // Basic regex parsing
+    const emailRegex = /[\w\.-]+@[\w\.-]+\.\w+/;
+    const phoneRegex = /[\+]?[\d\-\(\)\s]{10,}/;
+    const companyNameRegex = /^([^\n]+)/;
+
+    let parsedData: Partial<ClientFormData> = {};
+
+    // Extract email
+    const emailMatch = text.match(emailRegex);
+    if (emailMatch) parsedData.email = emailMatch[0];
+
+    // Extract phone
+    const phoneMatch = text.match(phoneRegex);
+    if (phoneMatch) parsedData.phone = phoneMatch[0].replace(/\s+/g, ' ').trim();
+
+    // Use OpenAI if key is provided
+    if (openAiKey && openAiKey.trim()) {
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-3.5-turbo',
+            messages: [
+              {
+                role: 'system',
+                content: 'Extract client information from the given text and return a JSON object with these fields: companyName, contactName, address, city, postalCode, email, phone, taxId. Only include fields that are clearly identifiable. Return only valid JSON.'
+              },
+              {
+                role: 'user',
+                content: text
+              }
+            ],
+            temperature: 0.1,
+            max_tokens: 500
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const aiResult = JSON.parse(data.choices[0].message.content);
+          parsedData = { ...parsedData, ...aiResult };
+        }
+      } catch (error) {
+        console.error('OpenAI parsing failed, using basic parsing:', error);
+      }
+    }
+
+    // Basic parsing fallback
+    if (!parsedData.companyName) {
+      const lines = text.split('\n').filter(line => line.trim());
+      if (lines.length > 0) parsedData.companyName = lines[0].trim();
+    }
+
+    // Update form data with parsed information
+    setFormData(prev => ({
+      ...prev,
+      ...Object.fromEntries(
+        Object.entries(parsedData).filter(([_, value]) => value && value.toString().trim())
+      )
+    }));
   };
 
   const handleInputChange = (field: keyof ClientFormData, value: string) => {
@@ -110,6 +182,37 @@ export default function ClientManagement({ language, onClientSelect }: ClientMan
 
   const ClientForm = () => (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Smart Paste Section */}
+      <Card className="bg-muted/50">
+        <CardContent className="p-4">
+          <Label htmlFor="pasteText">הדבק פרטי לקוח (Copy & Paste)</Label>
+          <textarea
+            id="pasteText"
+            className="w-full h-24 p-2 border rounded-md resize-none mt-2"
+            placeholder="הדבק כאן כתובת מייל, פרטי איש קשר או כל מידע על הלקוח..."
+            value={pasteText}
+            onChange={(e) => setPasteText(e.target.value)}
+          />
+          <div className="flex gap-2 mt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => parseClientInfo(pasteText)}
+            >
+              נתח פרטים
+            </Button>
+            <Input
+              type="password"
+              placeholder="OpenAI API Key (אופציונלי)"
+              value={openAiKey}
+              onChange={(e) => setOpenAiKey(e.target.value)}
+              className="flex-1"
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="md:col-span-2">
           <Label htmlFor="companyName">{t.clientCompany} *</Label>
