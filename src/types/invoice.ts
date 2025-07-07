@@ -40,6 +40,7 @@ export interface InvoiceService {
   rate: number;
   currency: 'EUR' | 'ILS';
   amount: number;
+  addedToInvoice?: boolean;
 }
 
 export interface BusinessInfo {

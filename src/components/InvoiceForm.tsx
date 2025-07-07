@@ -60,7 +60,7 @@ export default function InvoiceForm({
   });
 
   const [services, setServices] = useState<InvoiceService[]>([
-    { id: '1', description: '', hours: 0, rate: 0, currency: 'EUR', amount: 0 }
+    { id: '1', description: '', hours: 0, rate: 0, currency: 'EUR', amount: 0, addedToInvoice: false }
   ]);
 
   const [exchangeRate, setExchangeRate] = useState<number>(3.91);
@@ -114,9 +114,10 @@ export default function InvoiceForm({
         hours: 1,
         rate: selectedService.hourlyRate,
         currency: selectedService.currency,
-        amount: 1 * selectedService.hourlyRate // Calculate amount properly
+        amount: 1 * selectedService.hourlyRate, // Calculate amount properly
+        addedToInvoice: false
       };
-      setServices(prev => [...prev.slice(0, -1), newService, { id: Date.now().toString() + '1', description: '', hours: 0, rate: 0, currency: 'EUR', amount: 0 }]);
+      setServices(prev => [...prev.slice(0, -1), newService, { id: Date.now().toString() + '1', description: '', hours: 0, rate: 0, currency: 'EUR', amount: 0, addedToInvoice: false }]);
     }
   }, [selectedService]);
 
@@ -131,9 +132,24 @@ export default function InvoiceForm({
       hours: 0,
       rate: 0,
       currency: 'EUR',
-      amount: 0
+      amount: 0,
+      addedToInvoice: false
     };
     setServices(prev => [...prev, newService]);
+  };
+
+  const addServiceToInvoice = (serviceId: string) => {
+    setServices(prev => prev.map(service => {
+      if (service.id === serviceId) {
+        const calculatedAmount = Number(service.hours) * Number(service.rate);
+        return {
+          ...service,
+          amount: calculatedAmount,
+          addedToInvoice: true
+        };
+      }
+      return service;
+    }));
   };
 
   const removeService = (id: string) => {
@@ -196,7 +212,7 @@ export default function InvoiceForm({
       clientCountry: 'Israel',
       services: []
     });
-    setServices([{ id: '1', description: '', hours: 0, rate: 0, currency: 'EUR', amount: 0 }]);
+    setServices([{ id: '1', description: '', hours: 0, rate: 0, currency: 'EUR', amount: 0, addedToInvoice: false }]);
   };
 
   const totals = calculateTotals();
@@ -464,7 +480,7 @@ export default function InvoiceForm({
           </CardHeader>
           <CardContent className="space-y-4">
             {services.map((service, index) => (
-              <div key={service.id} className="grid grid-cols-1 md:grid-cols-7 gap-4 p-4 border rounded-lg">
+              <div key={service.id} className={`grid grid-cols-1 md:grid-cols-8 gap-4 p-4 border rounded-lg ${service.addedToInvoice ? 'bg-green-50 border-green-200' : ''}`}>
                 <div className="md:col-span-2">
                   <Label>{t.serviceDescription} *</Label>
                   <Textarea
@@ -472,7 +488,8 @@ export default function InvoiceForm({
                     onChange={(e) => updateService(service.id, 'description', e.target.value)}
                     placeholder={t.serviceDescription}
                     required
-                    className="min-h-[80px]"
+                    disabled={service.addedToInvoice}
+                    className={`min-h-[80px] ${service.addedToInvoice ? 'bg-muted' : ''}`}
                   />
                 </div>
                 <div>
@@ -484,6 +501,8 @@ export default function InvoiceForm({
                     value={service.hours}
                     onChange={(e) => updateService(service.id, 'hours', parseFloat(e.target.value) || 0)}
                     required
+                    disabled={service.addedToInvoice}
+                    className={service.addedToInvoice ? 'bg-muted' : ''}
                   />
                 </div>
                 <div>
@@ -495,6 +514,8 @@ export default function InvoiceForm({
                     value={service.rate}
                     onChange={(e) => updateService(service.id, 'rate', parseFloat(e.target.value) || 0)}
                     required
+                    disabled={service.addedToInvoice}
+                    className={service.addedToInvoice ? 'bg-muted' : ''}
                   />
                 </div>
                 <div>
@@ -502,8 +523,9 @@ export default function InvoiceForm({
                   <Select 
                     value={service.currency} 
                     onValueChange={(value: 'EUR' | 'ILS') => updateService(service.id, 'currency', value)}
+                    disabled={service.addedToInvoice}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={service.addedToInvoice ? 'bg-muted' : ''}>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -521,15 +543,37 @@ export default function InvoiceForm({
                       disabled
                       className="bg-muted"
                     />
-                    {service.currency === 'ILS' && service.hours > 0 && service.rate > 0 && (
-                      <div className="text-xs text-muted-foreground space-y-1">
+                    {service.addedToInvoice && service.currency === 'ILS' && (
+                      <div className="text-xs text-green-700 space-y-1">
                         <p>{service.hours} שעות × {service.rate} ש"ח = {service.amount.toFixed(2)} ש"ח</p>
                         <p>≈ €{(service.amount / exchangeRate).toFixed(2)} (שער: {exchangeRate})</p>
                       </div>
                     )}
+                    {!service.addedToInvoice && service.currency === 'ILS' && service.hours > 0 && service.rate > 0 && (
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <p>{service.hours} שעות × {service.rate} ש"ח = {(service.hours * service.rate).toFixed(2)} ש"ח</p>
+                        <p>≈ €{((service.hours * service.rate) / exchangeRate).toFixed(2)} (שער: {exchangeRate})</p>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-end">
+                <div className="flex flex-col items-end gap-2">
+                  {!service.addedToInvoice && service.description && service.hours > 0 && service.rate > 0 && (
+                    <Button
+                      type="button"
+                      variant="default"
+                      size="sm"
+                      onClick={() => addServiceToInvoice(service.id)}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      הוסף לחשבונית
+                    </Button>
+                  )}
+                  {service.addedToInvoice && (
+                    <div className="text-xs text-green-600 font-medium">
+                      ✓ נוסף לחשבונית
+                    </div>
+                  )}
                   {services.length > 1 && (
                     <Button
                       type="button"
@@ -537,6 +581,7 @@ export default function InvoiceForm({
                       size="sm"
                       onClick={() => removeService(service.id)}
                       className="text-red-600 hover:text-red-700"
+                      disabled={service.addedToInvoice}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
