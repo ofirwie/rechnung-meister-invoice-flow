@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ServiceFormData, Service } from '../types/service';
 import { translations } from '../utils/translations';
 
@@ -55,7 +56,7 @@ export default function ServiceForm({
           />
         </div>
         <div>
-          <Label htmlFor="hourlyRate">{t.hourlyRate} (EUR) *</Label>
+          <Label htmlFor="hourlyRate">{t.hourlyRate} *</Label>
           <Input
             id="hourlyRate"
             type="number"
@@ -65,6 +66,21 @@ export default function ServiceForm({
             onChange={(e) => onInputChange('hourlyRate', parseFloat(e.target.value) || 0)}
             required
           />
+        </div>
+        <div>
+          <Label htmlFor="currency">{t.currency} *</Label>
+          <Select 
+            value={formData.currency} 
+            onValueChange={(value: 'EUR' | 'ILS') => onInputChange('currency', value)}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="EUR">EUR (€)</SelectItem>
+              <SelectItem value="ILS">ILS (₪)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
       

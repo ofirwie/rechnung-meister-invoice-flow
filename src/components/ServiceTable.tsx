@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Edit, Trash2 } from 'lucide-react';
 import { Service } from '../types/service';
@@ -38,6 +39,7 @@ export default function ServiceTable({
           <TableHead>{t.category}</TableHead>
           <TableHead>{t.serviceDescription}</TableHead>
           <TableHead>{t.hourlyRate}</TableHead>
+          <TableHead>{t.currency}</TableHead>
           <TableHead className="text-right">{t.actions}</TableHead>
         </TableRow>
       </TableHeader>
@@ -57,7 +59,12 @@ export default function ServiceTable({
               {service.description}
             </TableCell>
             <TableCell onClick={() => onServiceSelect?.(service)}>
-              €{service.hourlyRate.toFixed(2)}
+              {service.currency === 'EUR' ? '€' : '₪'}{service.hourlyRate.toFixed(2)}
+            </TableCell>
+            <TableCell onClick={() => onServiceSelect?.(service)}>
+              <Badge variant={service.currency === 'EUR' ? "default" : "secondary"}>
+                {service.currency}
+              </Badge>
             </TableCell>
             <TableCell className="text-right">
               <div className="flex justify-end space-x-2">

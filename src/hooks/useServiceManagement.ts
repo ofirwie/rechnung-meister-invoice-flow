@@ -11,6 +11,7 @@ export function useServiceManagement() {
     name: '',
     description: '',
     hourlyRate: 0,
+    currency: 'EUR',
     category: ''
   });
 
@@ -25,6 +26,7 @@ export function useServiceManagement() {
       name: '',
       description: '',
       hourlyRate: 0,
+      currency: 'EUR',
       category: ''
     });
     setEditingService(null);
@@ -52,6 +54,7 @@ export function useServiceManagement() {
       const newService: Service = {
         id: Date.now().toString(),
         ...formData,
+        isActive: true,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -68,6 +71,7 @@ export function useServiceManagement() {
       name: service.name,
       description: service.description,
       hourlyRate: service.hourlyRate,
+      currency: service.currency,
       category: service.category
     });
     setIsDialogOpen(true);

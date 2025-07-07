@@ -85,7 +85,11 @@ export const translations = {
     backToDraft: 'Zurück zum Entwurf',
     invoiceStatus: 'Rechnungsstatus',
     dashboard: 'Dashboard',
-    overview: 'Übersicht'
+    overview: 'Übersicht',
+    currency: 'Währung',
+    exchangeRate: 'Wechselkurs',
+    exchangeRateValue: 'Wechselkurs-Wert',
+    exchangeRateHelp: 'Beispiel: 350 ILS ÷ 3.91 = €89.51'
   },
   
   en: {
@@ -174,7 +178,11 @@ export const translations = {
     backToDraft: 'Back to Draft',
     invoiceStatus: 'Invoice Status',
     dashboard: 'Dashboard',
-    overview: 'Overview'
+    overview: 'Overview',
+    currency: 'Currency',
+    exchangeRate: 'Exchange Rate',
+    exchangeRateValue: 'Exchange Rate Value',
+    exchangeRateHelp: 'Example: 350 ILS ÷ 3.91 = €89.51'
   },
   
   he: {
@@ -263,7 +271,11 @@ export const translations = {
     backToDraft: 'חזור לטיוטה',
     invoiceStatus: 'סטטוס חשבונית',
     dashboard: 'לוח בקרה',
-    overview: 'סקירה כללית'
+    overview: 'סקירה כללית',
+    currency: 'מטבע',
+    exchangeRate: 'שער המטבע',
+    exchangeRateValue: 'ערך שער המטבע',
+    exchangeRateHelp: 'דוגמה: 350 ש"ח ÷ 3.91 = €89.51'
   },
   
   fr: {
@@ -352,6 +364,10 @@ export const translations = {
     backToDraft: 'Retour au Brouillon',
     invoiceStatus: 'Statut de la Facture',
     dashboard: 'Tableau de Bord',
-    overview: 'Aperçu'
+    overview: 'Aperçu',
+    currency: 'Devise',
+    exchangeRate: 'Taux de change',
+    exchangeRateValue: 'Valeur du taux de change',
+    exchangeRateHelp: 'Exemple: 350 ILS ÷ 3.91 = €89.51'
   }
 };

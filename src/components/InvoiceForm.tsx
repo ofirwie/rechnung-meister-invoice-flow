@@ -58,8 +58,10 @@ export default function InvoiceForm({
   });
 
   const [services, setServices] = useState<InvoiceService[]>([
-    { id: '1', description: '', hours: 0, rate: 0, amount: 0 }
+    { id: '1', description: '', hours: 0, rate: 0, currency: 'EUR', amount: 0 }
   ]);
+
+  const [exchangeRate, setExchangeRate] = useState<number>(3.91);
 
   // Auto-calculate due date when invoice date changes
   useEffect(() => {
@@ -87,6 +89,7 @@ export default function InvoiceForm({
         clientCompany: selectedClient.companyName,
         clientAddress: selectedClient.address,
         clientCity: selectedClient.city,
+        clientPostalCode: selectedClient.postalCode,
         clientCountry: selectedClient.country
       }));
     }
@@ -100,9 +103,10 @@ export default function InvoiceForm({
         description: selectedService.description,
         hours: 1,
         rate: selectedService.hourlyRate,
+        currency: selectedService.currency,
         amount: selectedService.hourlyRate
       };
-      setServices(prev => [...prev.slice(0, -1), newService, { id: Date.now().toString() + '1', description: '', hours: 0, rate: 0, amount: 0 }]);
+      setServices(prev => [...prev.slice(0, -1), newService, { id: Date.now().toString() + '1', description: '', hours: 0, rate: 0, currency: 'EUR', amount: 0 }]);
     }
   }, [selectedService]);
 
@@ -116,6 +120,7 @@ export default function InvoiceForm({
       description: '',
       hours: 0,
       rate: 0,
+      currency: 'EUR',
       amount: 0
     };
     setServices(prev => [...prev, newService]);
@@ -141,7 +146,10 @@ export default function InvoiceForm({
   };
 
   const calculateTotals = () => {
-    const subtotal = services.reduce((sum, service) => sum + service.amount, 0);
+    const subtotal = services.reduce((sum, service) => {
+      const amount = service.currency === 'ILS' ? service.amount / exchangeRate : service.amount;
+      return sum + amount;
+    }, 0);
     return {
       subtotal,
       vatAmount: 0, // VAT-exempt for Germany to Israel
@@ -152,11 +160,13 @@ export default function InvoiceForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const totals = calculateTotals();
+    const hasILSServices = services.some(service => service.currency === 'ILS');
     
     const invoice: InvoiceData = {
       ...formData as InvoiceData,
       services,
       ...totals,
+      ...(hasILSServices && { exchangeRate }),
       status: 'draft',
       createdAt: new Date().toISOString()
     };
@@ -175,7 +185,7 @@ export default function InvoiceForm({
       clientCountry: 'Israel',
       services: []
     });
-    setServices([{ id: '1', description: '', hours: 0, rate: 0, amount: 0 }]);
+    setServices([{ id: '1', description: '', hours: 0, rate: 0, currency: 'EUR', amount: 0 }]);
   };
 
   const totals = calculateTotals();
@@ -377,6 +387,34 @@ export default function InvoiceForm({
           </CardContent>
         </Card>
 
+        {/* Exchange Rate */}
+        {services.some(service => service.currency === 'ILS') && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-corporate-blue">{t.exchangeRate}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="exchangeRate">{t.exchangeRateValue} (ILS/EUR) *</Label>
+                  <Input
+                    id="exchangeRate"
+                    type="number"
+                    step="0.0001"
+                    min="0"
+                    value={exchangeRate}
+                    onChange={(e) => setExchangeRate(parseFloat(e.target.value) || 3.91)}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t.exchangeRateHelp}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Services */}
         <Card>
           <CardHeader>
@@ -407,7 +445,7 @@ export default function InvoiceForm({
           </CardHeader>
           <CardContent className="space-y-4">
             {services.map((service, index) => (
-              <div key={service.id} className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 border rounded-lg">
+              <div key={service.id} className="grid grid-cols-1 md:grid-cols-7 gap-4 p-4 border rounded-lg">
                 <div className="md:col-span-2">
                   <Label>{t.serviceDescription} *</Label>
                   <Textarea
@@ -441,13 +479,33 @@ export default function InvoiceForm({
                   />
                 </div>
                 <div>
+                  <Label>{t.currency}</Label>
+                  <Select 
+                    value={service.currency} 
+                    onValueChange={(value: 'EUR' | 'ILS') => updateService(service.id, 'currency', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="EUR">EUR</SelectItem>
+                      <SelectItem value="ILS">ILS</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
                   <Label>{t.amount}</Label>
                   <Input
                     type="text"
-                    value={service.amount.toFixed(2)}
+                    value={`${service.amount.toFixed(2)} ${service.currency}`}
                     disabled
                     className="bg-muted"
                   />
+                  {service.currency === 'ILS' && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      ≈ €{(service.amount / exchangeRate).toFixed(2)}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-end">
                   {services.length > 1 && (

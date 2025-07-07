@@ -17,6 +17,9 @@ export interface InvoiceData {
   // Services
   services: InvoiceService[];
   
+  // Exchange rate (when converting from ILS to EUR)
+  exchangeRate?: number;
+  
   // Calculated totals
   subtotal: number;
   vatAmount: number;
@@ -35,6 +38,7 @@ export interface InvoiceService {
   description: string;
   hours: number;
   rate: number;
+  currency: 'EUR' | 'ILS';
   amount: number;
 }
 
