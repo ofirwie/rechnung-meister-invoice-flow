@@ -154,7 +154,9 @@ export default function InvoiceForm({
     const invoice: InvoiceData = {
       ...formData as InvoiceData,
       services,
-      ...totals
+      ...totals,
+      status: 'draft',
+      createdAt: new Date().toISOString()
     };
     
     onInvoiceGenerated(invoice);
@@ -293,8 +295,16 @@ export default function InvoiceForm({
 
         {/* Client Information */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-corporate-blue">{t.clientInfo}</CardTitle>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => window.dispatchEvent(new CustomEvent('openClientSelector'))}
+            >
+              {t.selectClientFromList}
+            </Button>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">

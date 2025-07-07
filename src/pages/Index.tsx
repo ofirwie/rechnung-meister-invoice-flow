@@ -20,12 +20,31 @@ const Index = () => {
     setCurrentInvoice(invoice);
   };
 
+  const handleInvoiceStatusChange = (newStatus: InvoiceData['status']) => {
+    if (currentInvoice) {
+      const updatedInvoice = { 
+        ...currentInvoice, 
+        status: newStatus,
+        ...(newStatus === 'approved' && { approvedAt: new Date().toISOString() }),
+        ...(newStatus === 'issued' && { issuedAt: new Date().toISOString() })
+      };
+      setCurrentInvoice(updatedInvoice);
+    }
+  };
+
   const handleBackToForm = () => {
     setCurrentInvoice(null);
   };
 
   if (currentInvoice) {
-    return <InvoicePreview invoice={currentInvoice} onBack={handleBackToForm} />;
+    return (
+      <InvoicePreview 
+        invoice={currentInvoice} 
+        onBack={handleBackToForm}
+        onStatusChange={handleInvoiceStatusChange}
+        language={language}
+      />
+    );
   }
 
   return (
@@ -47,6 +66,7 @@ const Index = () => {
             selectedService={selectedService}
             onClientClear={() => setSelectedClient(null)}
             onServiceClear={() => setSelectedService(null)}
+            onSelectClient={() => setCurrentView('clients')}
           />
         )}
         {currentView === 'clients' && (

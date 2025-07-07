@@ -21,6 +21,13 @@ export interface InvoiceData {
   subtotal: number;
   vatAmount: number;
   total: number;
+  
+  // Draft and approval workflow
+  status: 'draft' | 'pending_approval' | 'approved' | 'issued';
+  createdAt: string;
+  approvedAt?: string;
+  approvedBy?: string;
+  issuedAt?: string;
 }
 
 export interface InvoiceService {
