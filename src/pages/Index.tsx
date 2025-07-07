@@ -12,7 +12,7 @@ import { Service } from '../types/service';
 const Index = () => {
   const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history'>('invoice');
   const [currentInvoice, setCurrentInvoice] = useState<InvoiceData | null>(null);
-  const [language, setLanguage] = useState<'de' | 'en' | 'he' | 'fr'>('de');
+  const [language, setLanguage] = useState<'de' | 'en' | 'he' | 'fr'>('en');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [serviceSearchTerm, setServiceSearchTerm] = useState('');

@@ -10,7 +10,7 @@ export const formatGermanDate = (dateString: string): string => {
 };
 
 // Format currency for German business standards
-export const formatCurrency = (amount: number, language: string = 'de'): string => {
+export const formatCurrency = (amount: number, language: string = 'en'): string => {
   return new Intl.NumberFormat(language === 'de' ? 'de-DE' : 'en-US', {
     style: 'currency',
     currency: 'EUR',
