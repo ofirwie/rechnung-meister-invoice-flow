@@ -138,13 +138,24 @@ export default function InvoiceForm({
     setServices(prev => [...prev, newService]);
   };
 
-  const addServiceToInvoice = (serviceId: string) => {
+  const calculateServiceAmount = (serviceId: string) => {
     setServices(prev => prev.map(service => {
       if (service.id === serviceId) {
         const calculatedAmount = Number(service.hours) * Number(service.rate);
         return {
           ...service,
-          amount: calculatedAmount,
+          amount: calculatedAmount
+        };
+      }
+      return service;
+    }));
+  };
+
+  const addServiceToInvoice = (serviceId: string) => {
+    setServices(prev => prev.map(service => {
+      if (service.id === serviceId) {
+        return {
+          ...service,
           addedToInvoice: true
         };
       }
@@ -558,7 +569,21 @@ export default function InvoiceForm({
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  {!service.addedToInvoice && service.description && service.hours > 0 && service.rate > 0 && (
+                  {/* Calculate button */}
+                  {!service.addedToInvoice && service.description && service.hours > 0 && service.rate > 0 && service.amount === 0 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => calculateServiceAmount(service.id)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      חשב
+                    </Button>
+                  )}
+                  
+                  {/* Add to invoice button */}
+                  {!service.addedToInvoice && service.amount > 0 && (
                     <Button
                       type="button"
                       variant="default"
@@ -569,11 +594,15 @@ export default function InvoiceForm({
                       הוסף לחשבונית
                     </Button>
                   )}
+                  
+                  {/* Status display */}
                   {service.addedToInvoice && (
                     <div className="text-xs text-green-600 font-medium">
                       ✓ נוסף לחשבונית
                     </div>
                   )}
+                  
+                  {/* Remove button */}
                   {services.length > 1 && (
                     <Button
                       type="button"
