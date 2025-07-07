@@ -82,7 +82,14 @@ export function useServiceManagement() {
   };
 
   const openAddDialog = () => {
-    resetForm();
+    setEditingService(null);
+    setFormData({
+      name: '',
+      description: '',
+      hourlyRate: 0,
+      currency: 'EUR',
+      category: ''
+    });
     setIsDialogOpen(true);
   };
 
