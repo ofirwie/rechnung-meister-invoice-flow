@@ -141,10 +141,14 @@ export default function InvoiceForm({
   const calculateServiceAmount = (serviceId: string) => {
     setServices(prev => prev.map(service => {
       if (service.id === serviceId) {
-        const calculatedAmount = Number(service.hours) * Number(service.rate);
+        const originalAmount = Number(service.hours) * Number(service.rate);
+        const finalAmount = service.currency === 'ILS' ? originalAmount / exchangeRate : originalAmount;
+        
         return {
           ...service,
-          amount: calculatedAmount
+          amount: finalAmount,
+          originalAmount: originalAmount,
+          exchangeRateUsed: service.currency === 'ILS' ? exchangeRate : undefined
         };
       }
       return service;
@@ -184,10 +188,12 @@ export default function InvoiceForm({
   };
 
   const calculateTotals = () => {
-    const subtotal = services.reduce((sum, service) => {
-      const amount = service.currency === 'ILS' ? service.amount / exchangeRate : service.amount;
-      return sum + amount;
-    }, 0);
+    const subtotal = services
+      .filter(service => service.addedToInvoice)
+      .reduce((sum, service) => {
+        // Amount is already in EUR after calculateServiceAmount
+        return sum + service.amount;
+      }, 0);
     return {
       subtotal,
       vatAmount: 0, // VAT-exempt for Germany to Israel
@@ -548,18 +554,18 @@ export default function InvoiceForm({
                 <div>
                   <Label>{t.amount}</Label>
                   <div className="space-y-1">
-                    <Input
-                      type="text"
-                      value={`${service.amount.toFixed(2)} ${service.currency}`}
-                      disabled
-                      className="bg-muted"
-                    />
-                    {service.addedToInvoice && service.currency === 'ILS' && (
-                      <div className="text-xs text-green-700 space-y-1">
-                        <p>{service.hours} שעות × {service.rate} ש"ח = {service.amount.toFixed(2)} ש"ח</p>
-                        <p>≈ €{(service.amount / exchangeRate).toFixed(2)} (שער: {exchangeRate})</p>
-                      </div>
-                    )}
+                     <Input
+                       type="text"
+                       value={`${service.amount.toFixed(2)} EUR`}
+                       disabled
+                       className="bg-muted"
+                     />
+                     {service.addedToInvoice && service.currency === 'ILS' && service.originalAmount && (
+                       <div className="text-xs text-green-700 space-y-1">
+                         <p>{service.hours} שעות × {service.rate} ש"ח = {service.originalAmount.toFixed(2)} ש"ח</p>
+                         <p>≈ €{service.amount.toFixed(2)} (שער: {service.exchangeRateUsed || exchangeRate})</p>
+                       </div>
+                     )}
                     {!service.addedToInvoice && service.currency === 'ILS' && service.hours > 0 && service.rate > 0 && (
                       <div className="text-xs text-muted-foreground space-y-1">
                         <p>{service.hours} שעות × {service.rate} ש"ח = {(service.hours * service.rate).toFixed(2)} ש"ח</p>

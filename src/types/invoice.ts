@@ -39,7 +39,9 @@ export interface InvoiceService {
   hours: number;
   rate: number;
   currency: 'EUR' | 'ILS';
-  amount: number;
+  amount: number; // Always in EUR for the invoice
+  originalAmount?: number; // Original amount in service currency
+  exchangeRateUsed?: number; // Exchange rate used for conversion
   addedToInvoice?: boolean;
 }
 

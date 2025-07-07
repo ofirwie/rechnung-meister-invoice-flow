@@ -123,8 +123,10 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, langua
                 <tr key={service.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                   <td className="border border-invoice-border p-3">{service.description}</td>
                   <td className="border border-invoice-border p-3 text-center">{service.hours.toFixed(2)}</td>
-                  <td className="border border-invoice-border p-3 text-right">{formatCurrency(service.rate, invoice.language)}</td>
-                  <td className="border border-invoice-border p-3 text-right font-semibold">{formatCurrency(service.amount, invoice.language)}</td>
+                   <td className="border border-invoice-border p-3 text-right">
+                     {service.currency === 'ILS' ? `${service.rate} ILS` : formatCurrency(service.rate, invoice.language)}
+                   </td>
+                   <td className="border border-invoice-border p-3 text-right font-semibold">{formatCurrency(service.amount, invoice.language)}</td>
                 </tr>
               ))}
             </tbody>
