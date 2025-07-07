@@ -82,7 +82,7 @@ export default function PendingInvoicesTable({ language, onInvoiceView }: Pendin
   };
 
   const canBeCancelled = (status: InvoiceHistory['status']) => {
-    return status === 'draft' || status === 'sent';
+    return status === 'draft';
   };
 
   return (
