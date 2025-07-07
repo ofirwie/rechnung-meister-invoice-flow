@@ -187,9 +187,9 @@ export default function InvoiceForm({
     setServices(prev => prev.map(service => {
       if (service.id === id) {
         const updated = { ...service, [field]: value };
-        // Recalculate amount when hours, rate, or currency changes
+        // Reset amount to 0 when hours, rate, or currency changes to force recalculation
         if (field === 'hours' || field === 'rate' || field === 'currency') {
-          updated.amount = Number(updated.hours) * Number(updated.rate);
+          updated.amount = 0;
         }
         return updated;
       }
