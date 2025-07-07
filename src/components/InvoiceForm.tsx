@@ -5,19 +5,28 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Users } from 'lucide-react';
 import { InvoiceData, InvoiceService } from '../types/invoice';
+import { Client } from '../types/client';
+import { InvoiceHistory } from '../types/invoiceHistory';
 import { translations } from '../utils/translations';
 import { generateInvoiceNumber, calculateDueDate } from '../utils/formatters';
+import { getNextInvoiceNumber } from '../utils/invoiceNumberManager';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface InvoiceFormProps {
   onInvoiceGenerated: (invoice: InvoiceData) => void;
-  language: 'de' | 'en' | 'he';
-  onLanguageChange: (language: 'de' | 'en' | 'he') => void;
+  language: 'de' | 'en' | 'he' | 'fr';
+  onLanguageChange: (language: 'de' | 'en' | 'he' | 'fr') => void;
+  onShowClients?: () => void;
 }
 
-export default function InvoiceForm({ onInvoiceGenerated, language, onLanguageChange }: InvoiceFormProps) {
+export default function InvoiceForm({ onInvoiceGenerated, language, onLanguageChange, onShowClients }: InvoiceFormProps) {
   const t = translations[language];
+  
+  const [clients] = useLocalStorage<Client[]>('invoice-clients', []);
+  const [invoiceHistory] = useLocalStorage<InvoiceHistory[]>('invoice-history', []);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   
   const [formData, setFormData] = useState<Partial<InvoiceData>>({
     invoiceDate: new Date().toISOString().split('T')[0],

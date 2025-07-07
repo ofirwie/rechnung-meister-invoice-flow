@@ -44,7 +44,31 @@ export const translations = {
     // Actions
     generateInvoice: 'Rechnung erstellen',
     print: 'Drucken',
-    reset: 'Zurücksetzen'
+    reset: 'Zurücksetzen',
+    
+    // New features
+    clients: 'Kunden',
+    addClient: 'Kunde hinzufügen',
+    editClient: 'Kunde bearbeiten',
+    clientManagement: 'Kundenverwaltung',
+    invoiceHistory: 'Rechnungshistorie',
+    selectClient: 'Kunde auswählen',
+    contactName: 'Ansprechpartner',
+    phone: 'Telefon',
+    email: 'E-Mail',
+    taxId: 'Steuer-ID',
+    save: 'Speichern',
+    cancel: 'Abbrechen',
+    edit: 'Bearbeiten',
+    delete: 'Löschen',
+    status: 'Status',
+    createdAt: 'Erstellt am',
+    actions: 'Aktionen',
+    search: 'Suchen',
+    noClients: 'Keine Kunden gefunden',
+    noInvoices: 'Keine Rechnungen gefunden',
+    dashboard: 'Dashboard',
+    overview: 'Übersicht'
   },
   
   en: {
@@ -92,7 +116,31 @@ export const translations = {
     // Actions
     generateInvoice: 'Generate Invoice',
     print: 'Print',
-    reset: 'Reset'
+    reset: 'Reset',
+    
+    // New features
+    clients: 'Clients',
+    addClient: 'Add Client',
+    editClient: 'Edit Client',
+    clientManagement: 'Client Management',
+    invoiceHistory: 'Invoice History',
+    selectClient: 'Select Client',
+    contactName: 'Contact Name',
+    phone: 'Phone',
+    email: 'Email',
+    taxId: 'Tax ID',
+    save: 'Save',
+    cancel: 'Cancel',
+    edit: 'Edit',
+    delete: 'Delete',
+    status: 'Status',
+    createdAt: 'Created At',
+    actions: 'Actions',
+    search: 'Search',
+    noClients: 'No clients found',
+    noInvoices: 'No invoices found',
+    dashboard: 'Dashboard',
+    overview: 'Overview'
   },
   
   he: {
@@ -140,6 +188,102 @@ export const translations = {
     // Actions
     generateInvoice: 'צור חשבונית',
     print: 'הדפס',
-    reset: 'איפוס'
+    reset: 'איפוס',
+    
+    // New features
+    clients: 'לקוחות',
+    addClient: 'הוסף לקוח',
+    editClient: 'ערוך לקוח',
+    clientManagement: 'ניהול לקוחות',
+    invoiceHistory: 'היסטוריית חשבוניות',
+    selectClient: 'בחר לקוח',
+    contactName: 'איש קשר',
+    phone: 'טלפון',
+    email: 'אימייל',
+    taxId: 'ת.ז. עוסק',
+    save: 'שמור',
+    cancel: 'ביטול',
+    edit: 'ערוך',
+    delete: 'מחק',
+    status: 'סטטוס',
+    createdAt: 'נוצר ב',
+    actions: 'פעולות',
+    search: 'חיפוש',
+    noClients: 'לא נמצאו לקוחות',
+    noInvoices: 'לא נמצאו חשבוניות',
+    dashboard: 'לוח בקרה',
+    overview: 'סקירה כללית'
+  },
+  
+  fr: {
+    // Header
+    title: 'Générateur de Factures',
+    invoice: 'FACTURE',
+    
+    // Form labels
+    invoiceNumber: 'Numéro de Facture',
+    invoiceDate: 'Date de Facture',
+    servicePeriod: 'Période de Service',
+    from: 'Du',
+    to: 'Au',
+    dueDate: 'Date d\'Échéance',
+    language: 'Langue',
+    
+    // Client section
+    clientInfo: 'Informations Client',
+    clientCompany: 'Nom de l\'Entreprise',
+    clientAddress: 'Adresse',
+    clientCity: 'Ville',
+    postalCode: 'Code Postal',
+    country: 'Pays',
+    
+    // Services
+    services: 'Services',
+    addService: 'Ajouter un Service',
+    serviceDescription: 'Description du Service',
+    hours: 'Heures',
+    hourlyRate: 'Tarif Horaire (EUR)',
+    amount: 'Montant',
+    
+    // Invoice display
+    billTo: 'Facturer à:',
+    invoiceDetails: 'Détails de la Facture',
+    subtotal: 'Sous-total',
+    vatExempt: 'Service exonéré de TVA selon § 4 Nr. 8b UStG (lieu de service est Israël)',
+    total: 'Montant Total',
+    paymentTerms: 'Conditions de Paiement',
+    paymentText: 'Veuillez virer le montant de la facture dans les 10 jours, en mentionnant le numéro de facture au compte bancaire spécifié ci-dessous.',
+    bankDetails: 'Coordonnées Bancaires',
+    thankYou: 'Merci pour votre confiance!',
+    archivalNote: 'Obligation d\'archivage: 10 ans pour audit fiscal',
+    
+    // Actions
+    generateInvoice: 'Générer la Facture',
+    print: 'Imprimer',
+    reset: 'Réinitialiser',
+    
+    // New features
+    clients: 'Clients',
+    addClient: 'Ajouter un Client',
+    editClient: 'Modifier le Client',
+    clientManagement: 'Gestion des Clients',
+    invoiceHistory: 'Historique des Factures',
+    selectClient: 'Sélectionner un Client',
+    contactName: 'Nom du Contact',
+    phone: 'Téléphone',
+    email: 'Email',
+    taxId: 'Numéro TVA',
+    save: 'Enregistrer',
+    cancel: 'Annuler',
+    edit: 'Modifier',
+    delete: 'Supprimer',
+    status: 'Statut',
+    createdAt: 'Créé le',
+    actions: 'Actions',
+    search: 'Rechercher',
+    noClients: 'Aucun client trouvé',
+    noInvoices: 'Aucune facture trouvée',
+    dashboard: 'Tableau de Bord',
+    overview: 'Aperçu'
   }
 };
