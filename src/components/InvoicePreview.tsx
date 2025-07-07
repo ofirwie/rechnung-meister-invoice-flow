@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Printer, ArrowLeft } from 'lucide-react';
+import { Printer, ArrowLeft, Check } from 'lucide-react';
 import { InvoiceData } from '../types/invoice';
 import { translations } from '../utils/translations';
 import { businessInfo } from '../utils/businessInfo';
@@ -11,10 +11,11 @@ interface InvoicePreviewProps {
   invoice: InvoiceData;
   onBack: () => void;
   onStatusChange?: (newStatus: InvoiceData['status']) => void;
-  language?: 'de' | 'en' | 'he' | 'fr';
+  language?: 'de' | 'en' | 'he';
+  fromPending?: boolean;
 }
 
-export default function InvoicePreview({ invoice, onBack, onStatusChange, language }: InvoicePreviewProps) {
+export default function InvoicePreview({ invoice, onBack, onStatusChange, language, fromPending }: InvoicePreviewProps) {
   const t = translations[invoice.language];
   const isRTL = invoice.language === 'he';
 
@@ -49,12 +50,44 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, langua
         </div>
       )}
 
+      {/* Special Approval Button for Pending View */}
+      {fromPending && onStatusChange && (invoice.status === 'draft' || !invoice.status) && (
+        <div className="max-w-4xl mx-auto px-8 print:hidden mb-6">
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-orange-800">{t.approvalRequired}</h3>
+                <p className="text-sm text-orange-600">
+                  {language === 'de' ? 'Diese Rechnung wartet auf Ihre Genehmigung.' :
+                   language === 'he' ? 'חשבונית זו ממתינה לאישור שלך.' :
+                   'This invoice is waiting for your approval.'}
+                </p>
+              </div>
+              <Button
+                onClick={() => onStatusChange('sent' as any)}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Check className="w-4 h-4 mr-2" />
+                {t.approveInvoice}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Invoice Document */}
       <div className="max-w-4xl mx-auto bg-white p-8 print:p-6 print:max-w-none print:mx-0">
         {/* Header */}
         <div className="flex justify-between items-start mb-8">
-          <div className={`${isRTL ? 'text-right' : 'text-left'}`}>
-            <h1 className="text-4xl font-bold text-invoice-header mb-2">{t.invoice}</h1>
+          <div className={`${isRTL ? 'text-right' : 'text-left'} relative`}>
+            <div className="flex items-center gap-4">
+              <h1 className="text-4xl font-bold text-invoice-header mb-2">{t.invoice}</h1>
+              {(invoice.status === 'draft' || !invoice.status) && (
+                <div className="bg-red-100 border border-red-400 text-red-800 px-3 py-1 rounded-lg text-lg font-bold">
+                  DRAFT
+                </div>
+              )}
+            </div>
             <div className="text-sm text-muted-foreground">
               <p><strong>{t.invoiceNumber}:</strong> {invoice.invoiceNumber}</p>
               <p><strong>{t.invoiceDate}:</strong> {formatGermanDate(invoice.invoiceDate)}</p>

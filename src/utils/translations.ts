@@ -90,7 +90,10 @@ export const translations = {
     currency: 'Währung',
     exchangeRate: 'Wechselkurs',
     exchangeRateValue: 'Wechselkurs-Wert',
-    exchangeRateHelp: 'Beispiel: 350 ILS ÷ 3.91 = €89.51'
+    exchangeRateHelp: 'Beispiel: 350 ILS ÷ 3.91 = €89.51',
+    pendingInvoices: 'Rechnungen warten auf Genehmigung',
+    approvalRequired: 'Genehmigung erforderlich',
+    viewInvoice: 'Rechnung anzeigen'
   },
   
   en: {
@@ -184,7 +187,10 @@ export const translations = {
     currency: 'Currency',
     exchangeRate: 'Exchange Rate',
     exchangeRateValue: 'Exchange Rate Value',
-    exchangeRateHelp: 'Example: 350 ILS ÷ 3.91 = €89.51'
+    exchangeRateHelp: 'Example: 350 ILS ÷ 3.91 = €89.51',
+    pendingInvoices: 'Pending Approval',
+    approvalRequired: 'Approval Required',
+    viewInvoice: 'View Invoice'
   },
   
   he: {
@@ -278,100 +284,9 @@ export const translations = {
     currency: 'מטבע',
     exchangeRate: 'שער המטבע',
     exchangeRateValue: 'ערך שער המטבע',
-    exchangeRateHelp: 'דוגמה: 350 ש"ח ÷ 3.91 = €89.51'
-  },
-  
-  fr: {
-    // Header
-    title: 'Générateur de Factures',
-    invoice: 'FACTURE',
-    
-    // Form labels
-    invoiceNumber: 'Numéro de Facture',
-    invoiceDate: 'Date de Facture',
-    servicePeriodStart: 'Du (Période de Service)',
-    servicePeriodEnd: 'Au (Période de Service)',
-    from: 'Du',
-    to: 'Au',
-    dueDate: 'Date d\'Échéance',
-    language: 'Langue',
-    
-    // Client section
-    clientInfo: 'Informations Client',
-    clientCompany: 'Nom de l\'Entreprise',
-    clientAddress: 'Adresse',
-    clientCity: 'Ville',
-    postalCode: 'Code Postal',
-    country: 'Pays',
-    
-    // Services
-    services: 'Services',
-    addService: 'Ajouter un Service',
-    serviceDescription: 'Description du Service',
-    hours: 'Heures',
-    hourlyRate: 'Tarif Horaire (EUR)',
-    amount: 'Montant',
-    
-    // Invoice display
-    billTo: 'Facturer à:',
-    invoiceDetails: 'Détails de la Facture',
-    subtotal: 'Sous-total',
-    vatExempt: 'Service exonéré de TVA selon § 4 Nr. 8b UStG (lieu de service est Israël)',
-    total: 'Montant Total',
-    paymentTerms: 'Conditions de Paiement',
-    paymentText: 'Veuillez virer le montant de la facture dans les 10 jours, en mentionnant le numéro de facture au compte bancaire spécifié ci-dessous.',
-    bankDetails: 'Coordonnées Bancaires',
-    thankYou: 'Merci pour votre confiance!',
-    archivalNote: 'Obligation d\'archivage: 10 ans pour audit fiscal',
-    
-    // Actions
-    generateInvoice: 'Générer la Facture',
-    print: 'Imprimer',
-    reset: 'Réinitialiser',
-    
-    // New features
-    clients: 'Clients',
-    addClient: 'Ajouter un Client',
-    editClient: 'Modifier le Client',
-    clientManagement: 'Gestion des Clients',
-    invoiceHistory: 'Historique des Factures',
-    selectClient: 'Sélectionner un Client',
-    contactName: 'Nom du Contact',
-    phone: 'Téléphone',
-    email: 'Email',
-    taxId: 'Numéro TVA',
-    save: 'Enregistrer',
-    cancel: 'Annuler',
-    edit: 'Modifier',
-    delete: 'Supprimer',
-    status: 'Statut',
-    createdAt: 'Créé le',
-    actions: 'Actions',
-    search: 'Rechercher',
-    noClients: 'Aucun client trouvé',
-    noInvoices: 'Aucune facture trouvée',
-    noServices: 'Aucun service trouvé',
-    serviceName: 'Nom du Service',
-    category: 'Catégorie',
-    serviceManagement: 'Gestion des Services',
-    editService: 'Modifier le Service',
-    createInvoice: 'Créer une Facture',
-    selectClientFromList: 'Sélectionner un Client de la Liste',
-    selectServiceFromList: 'Sélectionner un service dans la liste',
-    draft: 'Brouillon',
-    pendingApproval: 'En Attente d\'Approbation',
-    approved: 'Approuvé',
-    issued: 'Émis',
-    submitForApproval: 'Soumettre pour Approbation',
-    approveInvoice: 'Approuver la Facture',
-    issueInvoice: 'Émettre la Facture',
-    backToDraft: 'Retour au Brouillon',
-    invoiceStatus: 'Statut de la Facture',
-    dashboard: 'Tableau de Bord',
-    overview: 'Aperçu',
-    currency: 'Devise',
-    exchangeRate: 'Taux de change',
-    exchangeRateValue: 'Valeur du taux de change',
-    exchangeRateHelp: 'Exemple: 350 ILS ÷ 3.91 = €89.51'
+    exchangeRateHelp: 'דוגמה: 350 ש"ח ÷ 3.91 = €89.51',
+    pendingInvoices: 'ממתינות לאישור',
+    approvalRequired: 'דורש אישור',
+    viewInvoice: 'הצג חשבונית'
   }
 };

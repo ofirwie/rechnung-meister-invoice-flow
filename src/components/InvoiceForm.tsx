@@ -22,14 +22,14 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface InvoiceFormProps {
   onInvoiceGenerated: (invoice: InvoiceData) => void;
-  language: 'de' | 'en' | 'he' | 'fr';
-  onLanguageChange: (language: 'de' | 'en' | 'he' | 'fr') => void;
+  language: 'de' | 'en' | 'he';
+  onLanguageChange: (language: 'de' | 'en' | 'he') => void;
   selectedClient?: Client | null;
   selectedService?: Service | null;
   onClientClear?: () => void;
   onServiceClear?: () => void;
   onSelectClient?: () => void;
-  setCurrentView?: (view: 'invoice' | 'clients' | 'services' | 'history') => void;
+  setCurrentView?: (view: 'invoice' | 'clients' | 'services' | 'history' | 'pending') => void;
 }
 
 export default function InvoiceForm({ 
@@ -256,7 +256,6 @@ export default function InvoiceForm({
             <SelectItem value="de">Deutsch</SelectItem>
             <SelectItem value="en">English</SelectItem>
             <SelectItem value="he">עברית</SelectItem>
-            <SelectItem value="fr">Français</SelectItem>
           </SelectContent>
         </Select>
       </div>

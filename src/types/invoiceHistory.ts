@@ -10,5 +10,5 @@ export interface InvoiceHistory {
   dueDate: string;
   servicePeriodFrom: string;
   servicePeriodTo: string;
-  language: 'de' | 'en' | 'he' | 'fr';
+  language: 'de' | 'en' | 'he';
 }

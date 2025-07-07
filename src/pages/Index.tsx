@@ -4,15 +4,16 @@ import InvoicePreview from '../components/InvoicePreview';
 import ClientManagement from '../components/ClientManagement';
 import ServiceManagement from '../components/ServiceManagement';
 import InvoiceHistoryTable from '../components/InvoiceHistoryTable';
+import PendingInvoicesTable from '../components/PendingInvoicesTable';
 import Navigation from '../components/Navigation';
 import { InvoiceData } from '../types/invoice';
 import { Client } from '../types/client';
 import { Service } from '../types/service';
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history'>('invoice');
+  const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history' | 'pending'>('invoice');
   const [currentInvoice, setCurrentInvoice] = useState<InvoiceData | null>(null);
-  const [language, setLanguage] = useState<'de' | 'en' | 'he' | 'fr'>('en');
+  const [language, setLanguage] = useState<'de' | 'en' | 'he'>('en');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [serviceSearchTerm, setServiceSearchTerm] = useState('');
@@ -93,6 +94,9 @@ const Index = () => {
         )}
         {currentView === 'history' && (
           <InvoiceHistoryTable language={language} />
+        )}
+        {currentView === 'pending' && (
+          <PendingInvoicesTable language={language} />
         )}
       </div>
     </div>

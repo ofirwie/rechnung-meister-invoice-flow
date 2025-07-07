@@ -11,7 +11,7 @@ import ClientForm from './ClientForm';
 import ClientTable from './ClientTable';
 
 interface ClientManagementProps {
-  language: 'de' | 'en' | 'he' | 'fr';
+  language: 'de' | 'en' | 'he';
   onClientSelect?: (client: Client) => void;
 }
 

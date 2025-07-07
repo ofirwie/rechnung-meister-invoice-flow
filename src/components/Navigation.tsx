@@ -5,10 +5,10 @@ import { FileText, Users, History, Briefcase } from 'lucide-react';
 import { translations } from '../utils/translations';
 
 interface NavigationProps {
-  currentView: 'invoice' | 'clients' | 'services' | 'history';
-  onViewChange: (view: 'invoice' | 'clients' | 'services' | 'history') => void;
-  language: 'de' | 'en' | 'he' | 'fr';
-  onLanguageChange: (language: 'de' | 'en' | 'he' | 'fr') => void;
+  currentView: 'invoice' | 'clients' | 'services' | 'history' | 'pending';
+  onViewChange: (view: 'invoice' | 'clients' | 'services' | 'history' | 'pending') => void;
+  language: 'de' | 'en' | 'he';
+  onLanguageChange: (language: 'de' | 'en' | 'he') => void;
 }
 
 export default function Navigation({ currentView, onViewChange, language, onLanguageChange }: NavigationProps) {
@@ -50,6 +50,14 @@ export default function Navigation({ currentView, onViewChange, language, onLang
             <History className="w-4 h-4 mr-2" />
             {t.invoiceHistory}
           </Button>
+          <Button
+            variant={currentView === 'pending' ? 'default' : 'outline'}
+            onClick={() => onViewChange('pending')}
+            className={`flex items-center ${currentView === 'pending' ? 'bg-corporate-blue hover:bg-corporate-blue-dark' : ''}`}
+          >
+            <History className="w-4 h-4 mr-2" />
+            {t.pendingInvoices}
+          </Button>
         </div>
         
         <Select value={language} onValueChange={onLanguageChange}>
@@ -60,7 +68,6 @@ export default function Navigation({ currentView, onViewChange, language, onLang
             <SelectItem value="de">Deutsch</SelectItem>
             <SelectItem value="en">English</SelectItem>
             <SelectItem value="he">עברית</SelectItem>
-            <SelectItem value="fr">Français</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -4,27 +4,27 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Eye, Download } from 'lucide-react';
+import { Search, Eye, Check } from 'lucide-react';
 import { InvoiceHistory } from '../types/invoiceHistory';
 import { translations } from '../utils/translations';
 import { formatGermanDate, formatCurrency } from '../utils/formatters';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
-interface InvoiceHistoryTableProps {
+interface PendingInvoicesTableProps {
   language: 'de' | 'en' | 'he';
-  onInvoiceView?: (invoice: InvoiceHistory) => void;
+  onInvoiceView?: (invoice: InvoiceHistory, fromPending?: boolean) => void;
 }
 
-export default function InvoiceHistoryTable({ language, onInvoiceView }: InvoiceHistoryTableProps) {
+export default function PendingInvoicesTable({ language, onInvoiceView }: PendingInvoicesTableProps) {
   const t = translations[language];
   const isRTL = language === 'he';
   
-  const [invoices] = useLocalStorage<InvoiceHistory[]>('invoice-history', []);
+  const [invoices, setInvoices] = useLocalStorage<InvoiceHistory[]>('invoice-history', []);
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredInvoices = invoices.filter(invoice =>
-    invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    invoice.clientName.toLowerCase().includes(searchTerm.toLowerCase())
+    (invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     invoice.clientName.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const getStatusColor = (status: InvoiceHistory['status']) => {
@@ -36,7 +36,7 @@ export default function InvoiceHistoryTable({ language, onInvoiceView }: Invoice
       case 'overdue':
         return 'bg-red-100 text-red-800';
       case 'draft':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -57,10 +57,22 @@ export default function InvoiceHistoryTable({ language, onInvoiceView }: Invoice
     }
   };
 
+  const handleApproveInvoice = (invoiceId: string) => {
+    setInvoices(prev => prev.map(invoice => 
+      invoice.id === invoiceId 
+        ? { ...invoice, status: 'sent' as const }
+        : invoice
+    ));
+  };
+
+  const needsApproval = (status: InvoiceHistory['status']) => {
+    return status === 'draft';
+  };
+
   return (
     <div className={`space-y-6 ${isRTL ? 'rtl' : 'ltr'}`}>
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-corporate-blue">{t.invoiceHistory}</h2>
+        <h2 className="text-2xl font-bold text-corporate-blue">{t.pendingInvoices}</h2>
       </div>
 
       {/* Search */}
@@ -124,20 +136,22 @@ export default function InvoiceHistoryTable({ language, onInvoiceView }: Invoice
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => onInvoiceView?.(invoice)}
+                          onClick={() => onInvoiceView?.(invoice, true)}
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-4 h-4 mr-1" />
+                          {t.viewInvoice}
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            // Future: Add PDF download functionality
-                            console.log('Download invoice:', invoice.invoiceNumber);
-                          }}
-                        >
-                          <Download className="w-4 h-4" />
-                        </Button>
+                        {needsApproval(invoice.status) && (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => handleApproveInvoice(invoice.id)}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <Check className="w-4 h-4 mr-1" />
+                            {t.approveInvoice}
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -163,11 +177,19 @@ export default function InvoiceHistoryTable({ language, onInvoiceView }: Invoice
                 </div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-green-600">
-                  {filteredInvoices.filter(i => i.status === 'paid').length}
+                <div className="text-2xl font-bold text-orange-600">
+                  {filteredInvoices.filter(i => i.status === 'draft').length}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  {getStatusText('paid')}
+                  {t.approvalRequired}
+                </div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-green-600">
+                  {filteredInvoices.filter(i => i.status === 'sent').length}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {getStatusText('sent')}
                 </div>
               </div>
               <div>
@@ -176,18 +198,6 @@ export default function InvoiceHistoryTable({ language, onInvoiceView }: Invoice
                 </div>
                 <div className="text-sm text-muted-foreground">
                   {getStatusText('overdue')}
-                </div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-corporate-blue">
-                  {formatCurrency(
-                    filteredInvoices.reduce((sum, invoice) => sum + invoice.amount, 0),
-                    language
-                  )}
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  {language === 'de' ? 'Gesamtwert' : 
-                   language === 'he' ? 'ערך כולל' : 'Total Value'}
                 </div>
               </div>
             </div>

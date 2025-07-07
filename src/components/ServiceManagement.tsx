@@ -11,7 +11,7 @@ import ServiceForm from './ServiceForm';
 import ServiceTable from './ServiceTable';
 
 interface ServiceManagementProps {
-  language: 'de' | 'en' | 'he' | 'fr';
+  language: 'de' | 'en' | 'he';
   onServiceSelect?: (service: Service) => void;
   searchTerm?: string;
   onSearchChange?: (term: string) => void;
