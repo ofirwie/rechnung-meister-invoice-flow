@@ -1,13 +1,35 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import React, { useState } from 'react';
+import InvoiceForm from '../components/InvoiceForm';
+import InvoicePreview from '../components/InvoicePreview';
+import { InvoiceData } from '../types/invoice';
 
 const Index = () => {
+  const [currentInvoice, setCurrentInvoice] = useState<InvoiceData | null>(null);
+  const [language, setLanguage] = useState<'de' | 'en' | 'he'>('de');
+
+  const handleInvoiceGenerated = (invoice: InvoiceData) => {
+    setCurrentInvoice(invoice);
+  };
+
+  const handleBackToForm = () => {
+    setCurrentInvoice(null);
+  };
+
+  if (currentInvoice) {
+    return (
+      <InvoicePreview 
+        invoice={currentInvoice} 
+        onBack={handleBackToForm}
+      />
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <InvoiceForm 
+      onInvoiceGenerated={handleInvoiceGenerated}
+      language={language}
+      onLanguageChange={setLanguage}
+    />
   );
 };
 

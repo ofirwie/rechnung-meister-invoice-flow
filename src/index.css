@@ -2,14 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+/* German Invoice Generator Design System
+Professional corporate styling with German business standards
 All colors MUST be HSL.
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 0 0% 98%;
+    --foreground: 215 25% 15%;
+    
+    /* Corporate blue theme for German business */
+    --corporate-blue: 213 100% 40%;
+    --corporate-blue-light: 213 100% 92%;
+    --corporate-blue-dark: 213 100% 30%;
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -17,17 +23,27 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 213 100% 40%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 213 100% 92%;
+    --secondary-foreground: 213 100% 30%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 215 15% 50%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 213 100% 40%;
+    --accent-foreground: 0 0% 100%;
+    
+    /* Professional form colors */
+    --form-background: 0 0% 100%;
+    --form-border: 215 20% 85%;
+    --form-focus: 213 100% 40%;
+    
+    /* Invoice colors */
+    --invoice-header: 213 100% 40%;
+    --invoice-border: 215 20% 85%;
+    --invoice-background: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;

@@ -52,6 +52,22 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				// German business theme colors
+				corporate: {
+					blue: 'hsl(var(--corporate-blue))',
+					'blue-light': 'hsl(var(--corporate-blue-light))',
+					'blue-dark': 'hsl(var(--corporate-blue-dark))'
+				},
+				form: {
+					background: 'hsl(var(--form-background))',
+					border: 'hsl(var(--form-border))',
+					focus: 'hsl(var(--form-focus))'
+				},
+				invoice: {
+					header: 'hsl(var(--invoice-header))',
+					border: 'hsl(var(--invoice-border))',
+					background: 'hsl(var(--invoice-background))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
