@@ -106,7 +106,7 @@ export default function InvoiceForm({
         hours: 1,
         rate: selectedService.hourlyRate,
         currency: selectedService.currency,
-        amount: selectedService.hourlyRate
+        amount: 1 * selectedService.hourlyRate // Calculate amount properly
       };
       setServices(prev => [...prev.slice(0, -1), newService, { id: Date.now().toString() + '1', description: '', hours: 0, rate: 0, currency: 'EUR', amount: 0 }]);
     }
@@ -138,7 +138,8 @@ export default function InvoiceForm({
     setServices(prev => prev.map(service => {
       if (service.id === id) {
         const updated = { ...service, [field]: value };
-        if (field === 'hours' || field === 'rate') {
+        // Recalculate amount when hours, rate, or currency changes
+        if (field === 'hours' || field === 'rate' || field === 'currency') {
           updated.amount = Number(updated.hours) * Number(updated.rate);
         }
         return updated;
