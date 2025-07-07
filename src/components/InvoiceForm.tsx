@@ -142,7 +142,17 @@ export default function InvoiceForm({
     setServices(prev => prev.map(service => {
       if (service.id === serviceId) {
         const originalAmount = Number(service.hours) * Number(service.rate);
+        console.log('=== Debug calculateServiceAmount ===');
+        console.log('Service ID:', serviceId);
+        console.log('Hours:', service.hours);
+        console.log('Rate:', service.rate);
+        console.log('Currency:', service.currency);
+        console.log('Original amount:', originalAmount);
+        console.log('Exchange rate:', exchangeRate);
+        
         const finalAmount = service.currency === 'ILS' ? originalAmount / exchangeRate : originalAmount;
+        console.log('Final amount (EUR):', finalAmount);
+        console.log('==============================');
         
         return {
           ...service,
