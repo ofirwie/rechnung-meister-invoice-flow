@@ -61,7 +61,15 @@ export function useServiceManagement() {
       setServices(prev => [...prev, newService]);
     }
     
-    resetForm();
+    // Reset form and close dialog
+    setFormData({
+      name: '',
+      description: '',
+      hourlyRate: 0,
+      currency: 'EUR',
+      category: ''
+    });
+    setEditingService(null);
     setIsDialogOpen(false);
   };
 
