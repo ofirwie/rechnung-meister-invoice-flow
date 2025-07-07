@@ -37,6 +37,8 @@ export default function InvoiceHistoryTable({ language, onInvoiceView }: Invoice
         return 'bg-red-100 text-red-800';
       case 'draft':
         return 'bg-gray-100 text-gray-800';
+      case 'cancelled':
+        return 'bg-gray-600 text-white';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -52,6 +54,8 @@ export default function InvoiceHistoryTable({ language, onInvoiceView }: Invoice
         return language === 'de' ? 'Überfällig' : language === 'he' ? 'באיחור' : 'Overdue';
       case 'draft':
         return language === 'de' ? 'Entwurf' : language === 'he' ? 'טיוטה' : 'Draft';
+      case 'cancelled':
+        return t.cancelled;
       default:
         return status;
     }
@@ -152,7 +156,7 @@ export default function InvoiceHistoryTable({ language, onInvoiceView }: Invoice
       {filteredInvoices.length > 0 && (
         <Card>
           <CardContent className="p-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold text-corporate-blue">
                   {filteredInvoices.length}
@@ -176,6 +180,14 @@ export default function InvoiceHistoryTable({ language, onInvoiceView }: Invoice
                 </div>
                 <div className="text-sm text-muted-foreground">
                   {getStatusText('overdue')}
+                </div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-gray-600">
+                  {filteredInvoices.filter(i => i.status === 'cancelled').length}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {getStatusText('cancelled')}
                 </div>
               </div>
               <div>

@@ -26,7 +26,7 @@ export interface InvoiceData {
   total: number;
   
   // Draft and approval workflow
-  status: 'draft' | 'pending_approval' | 'approved' | 'issued';
+  status: 'draft' | 'pending_approval' | 'approved' | 'issued' | 'cancelled';
   createdAt: string;
   approvedAt?: string;
   approvedBy?: string;

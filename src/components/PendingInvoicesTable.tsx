@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Eye, Check } from 'lucide-react';
+import { Search, Eye, Check, X } from 'lucide-react';
 import { InvoiceHistory } from '../types/invoiceHistory';
 import { translations } from '../utils/translations';
 import { formatGermanDate, formatCurrency } from '../utils/formatters';
@@ -37,6 +37,8 @@ export default function PendingInvoicesTable({ language, onInvoiceView }: Pendin
         return 'bg-red-100 text-red-800';
       case 'draft':
         return 'bg-orange-100 text-orange-800';
+      case 'cancelled':
+        return 'bg-gray-600 text-white';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -52,6 +54,8 @@ export default function PendingInvoicesTable({ language, onInvoiceView }: Pendin
         return language === 'de' ? 'Überfällig' : language === 'he' ? 'באיחור' : 'Overdue';
       case 'draft':
         return language === 'de' ? 'Entwurf' : language === 'he' ? 'טיוטה' : 'Draft';
+      case 'cancelled':
+        return t.cancelled;
       default:
         return status;
     }
@@ -65,8 +69,20 @@ export default function PendingInvoicesTable({ language, onInvoiceView }: Pendin
     ));
   };
 
+  const handleCancelInvoice = (invoiceId: string) => {
+    setInvoices(prev => prev.map(invoice => 
+      invoice.id === invoiceId 
+        ? { ...invoice, status: 'cancelled' as const }
+        : invoice
+    ));
+  };
+
   const needsApproval = (status: InvoiceHistory['status']) => {
     return status === 'draft';
+  };
+
+  const canBeCancelled = (status: InvoiceHistory['status']) => {
+    return status === 'draft' || status === 'sent';
   };
 
   return (
@@ -150,6 +166,16 @@ export default function PendingInvoicesTable({ language, onInvoiceView }: Pendin
                           >
                             <Check className="w-4 h-4 mr-1" />
                             {t.approveInvoice}
+                          </Button>
+                        )}
+                        {canBeCancelled(invoice.status) && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleCancelInvoice(invoice.id)}
+                          >
+                            <X className="w-4 h-4 mr-1" />
+                            {t.cancelInvoice}
                           </Button>
                         )}
                       </div>

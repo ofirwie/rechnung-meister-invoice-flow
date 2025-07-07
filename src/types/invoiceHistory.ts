@@ -5,7 +5,7 @@ export interface InvoiceHistory {
   clientName: string;
   amount: number;
   currency: string;
-  status: 'draft' | 'sent' | 'paid' | 'overdue';
+  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
   createdAt: string;
   dueDate: string;
   servicePeriodFrom: string;

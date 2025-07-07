@@ -93,7 +93,9 @@ export const translations = {
     exchangeRateHelp: 'Beispiel: 350 ILS ÷ 3.91 = €89.51',
     pendingInvoices: 'Rechnungen warten auf Genehmigung',
     approvalRequired: 'Genehmigung erforderlich',
-    viewInvoice: 'Rechnung anzeigen'
+    viewInvoice: 'Rechnung anzeigen',
+    cancelled: 'Storniert',
+    cancelInvoice: 'Rechnung stornieren'
   },
   
   en: {
@@ -190,7 +192,9 @@ export const translations = {
     exchangeRateHelp: 'Example: 350 ILS ÷ 3.91 = €89.51',
     pendingInvoices: 'Pending Approval',
     approvalRequired: 'Approval Required',
-    viewInvoice: 'View Invoice'
+    viewInvoice: 'View Invoice',
+    cancelled: 'Cancelled',
+    cancelInvoice: 'Cancel Invoice'
   },
   
   he: {
@@ -287,6 +291,8 @@ export const translations = {
     exchangeRateHelp: 'דוגמה: 350 ש"ח ÷ 3.91 = €89.51',
     pendingInvoices: 'ממתינות לאישור',
     approvalRequired: 'דורש אישור',
-    viewInvoice: 'הצג חשבונית'
+    viewInvoice: 'הצג חשבונית',
+    cancelled: 'מבוטל',
+    cancelInvoice: 'בטל חשבונית'
   }
 };
