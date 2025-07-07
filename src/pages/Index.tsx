@@ -67,6 +67,7 @@ const Index = () => {
             onClientClear={() => setSelectedClient(null)}
             onServiceClear={() => setSelectedService(null)}
             onSelectClient={() => setCurrentView('clients')}
+            setCurrentView={setCurrentView}
           />
         )}
         {currentView === 'clients' && (

@@ -29,6 +29,7 @@ interface InvoiceFormProps {
   onClientClear?: () => void;
   onServiceClear?: () => void;
   onSelectClient?: () => void;
+  setCurrentView?: (view: 'invoice' | 'clients' | 'services' | 'history') => void;
 }
 
 export default function InvoiceForm({ 
@@ -39,7 +40,8 @@ export default function InvoiceForm({
   selectedService, 
   onClientClear, 
   onServiceClear,
-  onSelectClient 
+  onSelectClient,
+  setCurrentView 
 }: InvoiceFormProps) {
   const t = translations[language];
   
@@ -423,6 +425,14 @@ export default function InvoiceForm({
               <div className="flex gap-2">
                 <Button type="button" onClick={addService} variant="outline" size="sm">
                   {t.addService}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentView('services')}
+                >
+                  {t.selectServiceFromList}
                 </Button>
                 {selectedService && (
                   <Button
