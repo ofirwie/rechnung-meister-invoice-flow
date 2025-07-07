@@ -75,6 +75,14 @@ export default function InvoiceForm({
     }
   }, [formData.invoiceDate]);
 
+  // Recalculate all service amounts when exchange rate changes
+  useEffect(() => {
+    setServices(prev => prev.map(service => ({
+      ...service,
+      amount: Number(service.hours) * Number(service.rate)
+    })));
+  }, [exchangeRate]);
+
   // Auto-generate invoice number when client company changes
   useEffect(() => {
     if (formData.clientCompany) {
@@ -506,17 +514,20 @@ export default function InvoiceForm({
                 </div>
                 <div>
                   <Label>{t.amount}</Label>
-                  <Input
-                    type="text"
-                    value={`${service.amount.toFixed(2)} ${service.currency}`}
-                    disabled
-                    className="bg-muted"
-                  />
-                  {service.currency === 'ILS' && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      ≈ €{(service.amount / exchangeRate).toFixed(2)}
-                    </p>
-                  )}
+                  <div className="space-y-1">
+                    <Input
+                      type="text"
+                      value={`${service.amount.toFixed(2)} ${service.currency}`}
+                      disabled
+                      className="bg-muted"
+                    />
+                    {service.currency === 'ILS' && service.hours > 0 && service.rate > 0 && (
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <p>{service.hours} שעות × {service.rate} ש"ח = {service.amount.toFixed(2)} ש"ח</p>
+                        <p>≈ €{(service.amount / exchangeRate).toFixed(2)} (שער: {exchangeRate})</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-end">
                   {services.length > 1 && (
