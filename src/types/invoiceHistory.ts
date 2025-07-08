@@ -5,10 +5,10 @@ export interface InvoiceHistory {
   clientName: string;
   amount: number;
   currency: string;
-  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
+  status: 'draft' | 'pending_approval' | 'approved' | 'issued' | 'cancelled';
   createdAt: string;
   dueDate: string;
   servicePeriodFrom: string;
   servicePeriodTo: string;
-  language: 'de' | 'en' | 'he';
+  language: 'de' | 'en';
 }

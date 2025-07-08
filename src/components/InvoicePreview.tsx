@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Printer, ArrowLeft, Check } from 'lucide-react';
 import { InvoiceData } from '../types/invoice';
+import { InvoiceHistory } from '../types/invoiceHistory';
 import { translations } from '../utils/translations';
 import { businessInfo } from '../utils/businessInfo';
 import { formatGermanDate, formatCurrency } from '../utils/formatters';
 import InvoiceWorkflow from './InvoiceWorkflow';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface InvoicePreviewProps {
   invoice: InvoiceData;
@@ -18,6 +20,42 @@ interface InvoicePreviewProps {
 export default function InvoicePreview({ invoice, onBack, onStatusChange, language, fromPending }: InvoicePreviewProps) {
   const t = translations[invoice.language];
   const isRTL = false;
+  const [invoiceHistory, setInvoiceHistory] = useLocalStorage<InvoiceHistory[]>('invoice-history', []);
+
+  // Convert InvoiceData to InvoiceHistory format
+  const convertToHistory = (invoiceData: InvoiceData): InvoiceHistory => {
+    return {
+      id: invoiceData.invoiceNumber,
+      invoiceNumber: invoiceData.invoiceNumber,
+      clientId: invoiceData.invoiceNumber, // Using invoice number as client ID for now
+      clientName: invoiceData.clientCompany,
+      amount: invoiceData.total,
+      currency: invoiceData.currency,
+      status: invoiceData.status,
+      createdAt: invoiceData.createdAt,
+      dueDate: invoiceData.dueDate,
+      servicePeriodFrom: invoiceData.servicePeriodStart,
+      servicePeriodTo: invoiceData.servicePeriodEnd,
+      language: invoiceData.language,
+    };
+  };
+
+  // Save invoice to history when created or updated
+  useEffect(() => {
+    const historyItem = convertToHistory(invoice);
+    setInvoiceHistory(prev => {
+      const existingIndex = prev.findIndex(item => item.invoiceNumber === invoice.invoiceNumber);
+      if (existingIndex >= 0) {
+        // Update existing invoice
+        const updated = [...prev];
+        updated[existingIndex] = historyItem;
+        return updated;
+      } else {
+        // Add new invoice
+        return [...prev, historyItem];
+      }
+    });
+  }, [invoice, setInvoiceHistory]);
 
   const handlePrint = () => {
     window.print();
@@ -63,7 +101,7 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, langua
                 </p>
               </div>
               <Button
-                onClick={() => onStatusChange('sent' as any)}
+                onClick={() => onStatusChange('approved')}
                 className="bg-green-600 hover:bg-green-700 text-white"
               >
                 <Check className="w-4 h-4 mr-2" />

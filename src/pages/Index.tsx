@@ -7,6 +7,7 @@ import InvoiceHistoryTable from '../components/InvoiceHistoryTable';
 import PendingInvoicesTable from '../components/PendingInvoicesTable';
 import Navigation from '../components/Navigation';
 import { InvoiceData } from '../types/invoice';
+import { InvoiceHistory } from '../types/invoiceHistory';
 import { Client } from '../types/client';
 import { Service } from '../types/service';
 
@@ -96,7 +97,33 @@ const Index = () => {
           <InvoiceHistoryTable language={language} />
         )}
         {currentView === 'pending' && (
-          <PendingInvoicesTable language={language} />
+          <PendingInvoicesTable 
+            language={language} 
+            onInvoiceView={(invoice: InvoiceHistory) => {
+              // Convert InvoiceHistory back to InvoiceData for viewing
+              const invoiceData: InvoiceData = {
+                invoiceNumber: invoice.invoiceNumber,
+                invoiceDate: invoice.createdAt.split('T')[0],
+                servicePeriodStart: invoice.servicePeriodFrom,
+                servicePeriodEnd: invoice.servicePeriodTo,
+                dueDate: invoice.dueDate,
+                language: invoice.language,
+                currency: 'EUR',
+                clientCompany: invoice.clientName,
+                clientAddress: '',
+                clientCity: '',
+                clientPostalCode: '',
+                clientCountry: '',
+                services: [],
+                subtotal: invoice.amount,
+                vatAmount: 0,
+                total: invoice.amount,
+                status: invoice.status,
+                createdAt: invoice.createdAt,
+              };
+              setCurrentInvoice(invoiceData);
+            }}
+          />
         )}
       </div>
     </div>

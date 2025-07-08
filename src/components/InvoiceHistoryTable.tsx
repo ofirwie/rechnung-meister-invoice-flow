@@ -29,12 +29,12 @@ export default function InvoiceHistoryTable({ language, onInvoiceView }: Invoice
 
   const getStatusColor = (status: InvoiceHistory['status']) => {
     switch (status) {
-      case 'paid':
+      case 'issued':
         return 'bg-green-100 text-green-800';
-      case 'sent':
+      case 'approved':
         return 'bg-blue-100 text-blue-800';
-      case 'overdue':
-        return 'bg-red-100 text-red-800';
+      case 'pending_approval':
+        return 'bg-yellow-100 text-yellow-800';
       case 'draft':
         return 'bg-gray-100 text-gray-800';
       case 'cancelled':
@@ -46,12 +46,12 @@ export default function InvoiceHistoryTable({ language, onInvoiceView }: Invoice
 
   const getStatusText = (status: InvoiceHistory['status']) => {
     switch (status) {
-      case 'paid':
-        return language === 'de' ? 'Bezahlt' : 'Paid';
-      case 'sent':
-        return language === 'de' ? 'Gesendet' : 'Sent';
-      case 'overdue':
-        return language === 'de' ? 'Überfällig' : 'Overdue';
+      case 'issued':
+        return language === 'de' ? 'Ausgestellt' : 'Issued';
+      case 'approved':
+        return language === 'de' ? 'Genehmigt' : 'Approved';
+      case 'pending_approval':
+        return language === 'de' ? 'Zur Genehmigung' : 'Pending Approval';
       case 'draft':
         return language === 'de' ? 'Entwurf' : 'Draft';
       case 'cancelled':
@@ -167,18 +167,18 @@ export default function InvoiceHistoryTable({ language, onInvoiceView }: Invoice
               </div>
               <div>
                 <div className="text-2xl font-bold text-green-600">
-                  {filteredInvoices.filter(i => i.status === 'paid').length}
+                  {filteredInvoices.filter(i => i.status === 'issued').length}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  {getStatusText('paid')}
+                  {getStatusText('issued')}
                 </div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-red-600">
-                  {filteredInvoices.filter(i => i.status === 'overdue').length}
+                <div className="text-2xl font-bold text-yellow-600">
+                  {filteredInvoices.filter(i => i.status === 'pending_approval').length}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  {getStatusText('overdue')}
+                  {getStatusText('pending_approval')}
                 </div>
               </div>
               <div>
