@@ -4,7 +4,7 @@ export interface InvoiceData {
   servicePeriodStart: string;
   servicePeriodEnd: string;
   dueDate: string;
-  language: 'de' | 'en' | 'he';
+  language: 'de' | 'en';
   currency: 'EUR';
   
   // Client information

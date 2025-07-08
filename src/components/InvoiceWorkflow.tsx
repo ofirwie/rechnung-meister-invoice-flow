@@ -8,7 +8,7 @@ import { translations } from '../utils/translations';
 
 interface InvoiceWorkflowProps {
   invoice: InvoiceData;
-  language: 'de' | 'en' | 'he';
+  language: 'de' | 'en';
   onStatusChange: (newStatus: InvoiceData['status']) => void;
 }
 

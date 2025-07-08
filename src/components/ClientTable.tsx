@@ -6,7 +6,7 @@ import { Client } from '../types/client';
 import { translations } from '../utils/translations';
 
 interface ClientTableProps {
-  language: 'de' | 'en' | 'he';
+  language: 'de' | 'en';
   clients: Client[];
   onClientSelect: (client: Client) => void;
   onEdit: (client: Client) => void;

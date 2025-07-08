@@ -8,7 +8,7 @@ import { translations } from '../utils/translations';
 import { useClientParser } from '../hooks/useClientParser';
 
 interface ClientFormProps {
-  language: 'de' | 'en' | 'he';
+  language: 'de' | 'en';
   formData: ClientFormData;
   editingClient: Client | null;
   onInputChange: (field: keyof ClientFormData, value: string) => void;

@@ -11,13 +11,13 @@ interface InvoicePreviewProps {
   invoice: InvoiceData;
   onBack: () => void;
   onStatusChange?: (newStatus: InvoiceData['status']) => void;
-  language?: 'de' | 'en' | 'he';
+  language?: 'de' | 'en';
   fromPending?: boolean;
 }
 
 export default function InvoicePreview({ invoice, onBack, onStatusChange, language, fromPending }: InvoicePreviewProps) {
   const t = translations[invoice.language];
-  const isRTL = invoice.language === 'he';
+  const isRTL = false;
 
   const handlePrint = () => {
     window.print();
@@ -59,7 +59,6 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, langua
                 <h3 className="text-lg font-semibold text-orange-800">{t.approvalRequired}</h3>
                 <p className="text-sm text-orange-600">
                   {language === 'de' ? 'Diese Rechnung wartet auf Ihre Genehmigung.' :
-                   language === 'he' ? 'חשבונית זו ממתינה לאישור שלך.' :
                    'This invoice is waiting for your approval.'}
                 </p>
               </div>

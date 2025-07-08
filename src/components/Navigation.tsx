@@ -7,8 +7,8 @@ import { translations } from '../utils/translations';
 interface NavigationProps {
   currentView: 'invoice' | 'clients' | 'services' | 'history' | 'pending';
   onViewChange: (view: 'invoice' | 'clients' | 'services' | 'history' | 'pending') => void;
-  language: 'de' | 'en' | 'he';
-  onLanguageChange: (language: 'de' | 'en' | 'he') => void;
+  language: 'de' | 'en';
+  onLanguageChange: (language: 'de' | 'en') => void;
 }
 
 export default function Navigation({ currentView, onViewChange, language, onLanguageChange }: NavigationProps) {
@@ -67,7 +67,6 @@ export default function Navigation({ currentView, onViewChange, language, onLang
           <SelectContent>
             <SelectItem value="de">Deutsch</SelectItem>
             <SelectItem value="en">English</SelectItem>
-            <SelectItem value="he">עברית</SelectItem>
           </SelectContent>
         </Select>
       </div>

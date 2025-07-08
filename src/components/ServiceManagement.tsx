@@ -11,7 +11,7 @@ import ServiceForm from './ServiceForm';
 import ServiceTable from './ServiceTable';
 
 interface ServiceManagementProps {
-  language: 'de' | 'en' | 'he';
+  language: 'de' | 'en';
   onServiceSelect?: (service: Service) => void;
   searchTerm?: string;
   onSearchChange?: (term: string) => void;
@@ -19,7 +19,7 @@ interface ServiceManagementProps {
 
 export default function ServiceManagement({ language, onServiceSelect, searchTerm: externalSearchTerm, onSearchChange }: ServiceManagementProps) {
   const t = translations[language];
-  const isRTL = language === 'he';
+  const isRTL = false;
   
   const {
     filteredServices,

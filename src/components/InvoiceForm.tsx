@@ -22,8 +22,8 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface InvoiceFormProps {
   onInvoiceGenerated: (invoice: InvoiceData) => void;
-  language: 'de' | 'en' | 'he';
-  onLanguageChange: (language: 'de' | 'en' | 'he') => void;
+  language: 'de' | 'en';
+  onLanguageChange: (language: 'de' | 'en') => void;
   selectedClient?: Client | null;
   selectedService?: Service | null;
   onClientClear?: () => void;
@@ -252,7 +252,7 @@ export default function InvoiceForm({
   const totals = calculateTotals();
 
   return (
-    <div className={`max-w-4xl mx-auto p-6 space-y-6 ${language === 'he' ? 'rtl' : 'ltr'}`}>
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-corporate-blue">{t.title}</h1>
         <Select value={language} onValueChange={onLanguageChange}>
@@ -262,7 +262,6 @@ export default function InvoiceForm({
           <SelectContent>
             <SelectItem value="de">Deutsch</SelectItem>
             <SelectItem value="en">English</SelectItem>
-            <SelectItem value="he">עברית</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -303,7 +302,7 @@ export default function InvoiceForm({
                   <Calendar
                     mode="single"
                     selected={formData.invoiceDate ? new Date(formData.invoiceDate) : undefined}
-                    onSelect={(date) => setFormData({ ...formData, invoiceDate: date?.toISOString().split('T')[0] || '' })}
+                    onSelect={(date) => setFormData({ ...formData, invoiceDate: date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` : '' })}
                     initialFocus
                     className="pointer-events-auto"
                   />
@@ -329,7 +328,7 @@ export default function InvoiceForm({
                   <Calendar
                     mode="single"
                     selected={formData.servicePeriodStart ? new Date(formData.servicePeriodStart) : undefined}
-                    onSelect={(date) => setFormData({ ...formData, servicePeriodStart: date?.toISOString().split('T')[0] || '' })}
+                    onSelect={(date) => setFormData({ ...formData, servicePeriodStart: date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` : '' })}
                     initialFocus
                     className="pointer-events-auto"
                   />
@@ -355,7 +354,7 @@ export default function InvoiceForm({
                   <Calendar
                     mode="single"
                     selected={formData.servicePeriodEnd ? new Date(formData.servicePeriodEnd) : undefined}
-                    onSelect={(date) => setFormData({ ...formData, servicePeriodEnd: date?.toISOString().split('T')[0] || '' })}
+                    onSelect={(date) => setFormData({ ...formData, servicePeriodEnd: date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` : '' })}
                     initialFocus
                     className="pointer-events-auto"
                   />
@@ -507,7 +506,7 @@ export default function InvoiceForm({
             </div>
             {selectedService && (
               <p className="text-xs text-muted-foreground mb-4">
-                שירות שנבחר: {selectedService.name}
+                {language === 'de' ? 'Ausgewählter Service:' : 'Selected Service:'} {selectedService.name}
               </p>
             )}
           </CardHeader>
@@ -576,53 +575,53 @@ export default function InvoiceForm({
                        disabled
                        className="bg-muted"
                      />
-                     {service.addedToInvoice && service.currency === 'ILS' && service.originalAmount && (
-                       <div className="text-xs text-green-700 space-y-1">
-                         <p>{service.hours} שעות × {service.rate} ש"ח = {service.originalAmount.toFixed(2)} ש"ח</p>
-                         <p>≈ €{service.amount.toFixed(2)} (שער: {service.exchangeRateUsed || exchangeRate})</p>
+                      {service.addedToInvoice && service.currency === 'ILS' && service.originalAmount && (
+                        <div className="text-xs text-green-700 space-y-1">
+                          <p>{service.hours} {language === 'de' ? 'Std.' : 'hours'} × {service.rate} ILS = {service.originalAmount.toFixed(2)} ILS</p>
+                          <p>≈ €{service.amount.toFixed(2)} ({language === 'de' ? 'Kurs:' : 'Rate:'} {service.exchangeRateUsed || exchangeRate})</p>
+                        </div>
+                      )}
+                     {!service.addedToInvoice && service.currency === 'ILS' && service.hours > 0 && service.rate > 0 && (
+                       <div className="text-xs text-muted-foreground space-y-1">
+                         <p>{service.hours} {language === 'de' ? 'Std.' : 'hours'} × {service.rate} ILS = {(service.hours * service.rate).toFixed(2)} ILS</p>
+                         <p>≈ €{((service.hours * service.rate) / exchangeRate).toFixed(2)} ({language === 'de' ? 'Kurs:' : 'Rate:'} {exchangeRate})</p>
                        </div>
                      )}
-                    {!service.addedToInvoice && service.currency === 'ILS' && service.hours > 0 && service.rate > 0 && (
-                      <div className="text-xs text-muted-foreground space-y-1">
-                        <p>{service.hours} שעות × {service.rate} ש"ח = {(service.hours * service.rate).toFixed(2)} ש"ח</p>
-                        <p>≈ €{((service.hours * service.rate) / exchangeRate).toFixed(2)} (שער: {exchangeRate})</p>
-                      </div>
-                    )}
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   {/* Calculate button */}
-                  {!service.addedToInvoice && service.description && service.hours > 0 && service.rate > 0 && service.amount === 0 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => calculateServiceAmount(service.id)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      חשב
-                    </Button>
-                  )}
+                   {!service.addedToInvoice && service.description && service.hours > 0 && service.rate > 0 && service.amount === 0 && (
+                     <Button
+                       type="button"
+                       variant="outline"
+                       size="sm"
+                       onClick={() => calculateServiceAmount(service.id)}
+                       className="bg-blue-600 hover:bg-blue-700 text-white"
+                     >
+                       {language === 'de' ? 'Berechnen' : 'Calculate'}
+                     </Button>
+                   )}
                   
                   {/* Add to invoice button */}
-                  {!service.addedToInvoice && service.amount > 0 && (
-                    <Button
-                      type="button"
-                      variant="default"
-                      size="sm"
-                      onClick={() => addServiceToInvoice(service.id)}
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      הוסף לחשבונית
-                    </Button>
-                  )}
+                   {!service.addedToInvoice && service.amount > 0 && (
+                     <Button
+                       type="button"
+                       variant="default"
+                       size="sm"
+                       onClick={() => addServiceToInvoice(service.id)}
+                       className="bg-green-600 hover:bg-green-700 text-white"
+                     >
+                       {language === 'de' ? 'Zur Rechnung hinzufügen' : 'Add to Invoice'}
+                     </Button>
+                   )}
                   
                   {/* Status display */}
-                  {service.addedToInvoice && (
-                    <div className="text-xs text-green-600 font-medium">
-                      ✓ נוסף לחשבונית
-                    </div>
-                  )}
+                   {service.addedToInvoice && (
+                     <div className="text-xs text-green-600 font-medium">
+                       ✓ {language === 'de' ? 'Zur Rechnung hinzugefügt' : 'Added to Invoice'}
+                     </div>
+                   )}
                   
                   {/* Remove button */}
                   {services.length > 1 && (

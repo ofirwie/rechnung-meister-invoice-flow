@@ -11,13 +11,13 @@ import { formatGermanDate, formatCurrency } from '../utils/formatters';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 interface InvoiceHistoryTableProps {
-  language: 'de' | 'en' | 'he';
+  language: 'de' | 'en';
   onInvoiceView?: (invoice: InvoiceHistory) => void;
 }
 
 export default function InvoiceHistoryTable({ language, onInvoiceView }: InvoiceHistoryTableProps) {
   const t = translations[language];
-  const isRTL = language === 'he';
+  const isRTL = false;
   
   const [invoices] = useLocalStorage<InvoiceHistory[]>('invoice-history', []);
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,13 +47,13 @@ export default function InvoiceHistoryTable({ language, onInvoiceView }: Invoice
   const getStatusText = (status: InvoiceHistory['status']) => {
     switch (status) {
       case 'paid':
-        return language === 'de' ? 'Bezahlt' : language === 'he' ? 'שולם' : 'Paid';
+        return language === 'de' ? 'Bezahlt' : 'Paid';
       case 'sent':
-        return language === 'de' ? 'Gesendet' : language === 'he' ? 'נשלח' : 'Sent';
+        return language === 'de' ? 'Gesendet' : 'Sent';
       case 'overdue':
-        return language === 'de' ? 'Überfällig' : language === 'he' ? 'באיחור' : 'Overdue';
+        return language === 'de' ? 'Überfällig' : 'Overdue';
       case 'draft':
-        return language === 'de' ? 'Entwurf' : language === 'he' ? 'טיוטה' : 'Draft';
+        return language === 'de' ? 'Entwurf' : 'Draft';
       case 'cancelled':
         return t.cancelled;
       default:
@@ -162,8 +162,7 @@ export default function InvoiceHistoryTable({ language, onInvoiceView }: Invoice
                   {filteredInvoices.length}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  {language === 'de' ? 'Gesamte Rechnungen' : 
-                   language === 'he' ? 'סה"כ חשבוניות' : 'Total Invoices'}
+                  {language === 'de' ? 'Gesamte Rechnungen' : 'Total Invoices'}
                 </div>
               </div>
               <div>
@@ -198,8 +197,7 @@ export default function InvoiceHistoryTable({ language, onInvoiceView }: Invoice
                   )}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  {language === 'de' ? 'Gesamtwert' : 
-                   language === 'he' ? 'ערך כולל' : 'Total Value'}
+                  {language === 'de' ? 'Gesamtwert' : 'Total Value'}
                 </div>
               </div>
             </div>

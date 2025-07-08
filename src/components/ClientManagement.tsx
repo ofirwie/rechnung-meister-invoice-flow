@@ -11,13 +11,13 @@ import ClientForm from './ClientForm';
 import ClientTable from './ClientTable';
 
 interface ClientManagementProps {
-  language: 'de' | 'en' | 'he';
+  language: 'de' | 'en';
   onClientSelect?: (client: Client) => void;
 }
 
 export default function ClientManagement({ language, onClientSelect }: ClientManagementProps) {
   const t = translations[language];
-  const isRTL = language === 'he';
+  const isRTL = false;
   
   const {
     filteredClients,
