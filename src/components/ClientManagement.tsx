@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Search } from 'lucide-react';
 import { Client } from '../types/client';
 import { translations } from '../utils/translations';
-import { useClientManagement } from '../hooks/useClientManagement';
+import { useSupabaseClients } from '../hooks/useSupabaseClients';
 import ClientForm from './ClientForm';
 import ClientTable from './ClientTable';
 
@@ -34,7 +34,7 @@ export default function ClientManagement({ language, onClientSelect }: ClientMan
     handleClientSelect,
     openAddDialog,
     updateFormData
-  } = useClientManagement(onClientSelect);
+  } = useSupabaseClients(onClientSelect);
 
   return (
     <div className={`space-y-6 ${isRTL ? 'rtl' : 'ltr'}`}>

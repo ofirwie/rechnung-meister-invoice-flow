@@ -14,7 +14,260 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clients: {
+        Row: {
+          address: string
+          business_license: string | null
+          city: string
+          company_name: string
+          company_registration: string | null
+          contact_name: string | null
+          country: string
+          created_at: string
+          email: string | null
+          id: string
+          phone: string | null
+          postal_code: string | null
+          tax_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          address: string
+          business_license?: string | null
+          city: string
+          company_name: string
+          company_registration?: string | null
+          contact_name?: string | null
+          country: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          phone?: string | null
+          postal_code?: string | null
+          tax_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          address?: string
+          business_license?: string | null
+          city?: string
+          company_name?: string
+          company_registration?: string | null
+          contact_name?: string | null
+          country?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          phone?: string | null
+          postal_code?: string | null
+          tax_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      invoice_history: {
+        Row: {
+          amount: number
+          client_id: string | null
+          client_name: string
+          created_at: string
+          currency: string
+          due_date: string
+          id: string
+          invoice_id: string | null
+          invoice_number: string
+          language: string
+          service_period_from: string
+          service_period_to: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          client_id?: string | null
+          client_name: string
+          created_at: string
+          currency: string
+          due_date: string
+          id?: string
+          invoice_id?: string | null
+          invoice_number: string
+          language: string
+          service_period_from: string
+          service_period_to: string
+          status: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          client_id?: string | null
+          client_name?: string
+          created_at?: string
+          currency?: string
+          due_date?: string
+          id?: string
+          invoice_id?: string | null
+          invoice_number?: string
+          language?: string
+          service_period_from?: string
+          service_period_to?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_history_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_history_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          client_address: string
+          client_business_license: string | null
+          client_city: string
+          client_company: string
+          client_company_registration: string | null
+          client_country: string
+          client_id: string | null
+          client_postal_code: string | null
+          created_at: string
+          currency: string
+          due_date: string
+          exchange_rate: number | null
+          id: string
+          invoice_date: string
+          invoice_number: string
+          issued_at: string | null
+          language: string
+          service_period_end: string
+          service_period_start: string
+          services: Json
+          status: string
+          subtotal: number
+          total: number
+          updated_at: string
+          user_id: string | null
+          vat_amount: number
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          client_address: string
+          client_business_license?: string | null
+          client_city: string
+          client_company: string
+          client_company_registration?: string | null
+          client_country: string
+          client_id?: string | null
+          client_postal_code?: string | null
+          created_at?: string
+          currency?: string
+          due_date: string
+          exchange_rate?: number | null
+          id?: string
+          invoice_date: string
+          invoice_number: string
+          issued_at?: string | null
+          language?: string
+          service_period_end: string
+          service_period_start: string
+          services?: Json
+          status?: string
+          subtotal: number
+          total: number
+          updated_at?: string
+          user_id?: string | null
+          vat_amount?: number
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          client_address?: string
+          client_business_license?: string | null
+          client_city?: string
+          client_company?: string
+          client_company_registration?: string | null
+          client_country?: string
+          client_id?: string | null
+          client_postal_code?: string | null
+          created_at?: string
+          currency?: string
+          due_date?: string
+          exchange_rate?: number | null
+          id?: string
+          invoice_date?: string
+          invoice_number?: string
+          issued_at?: string | null
+          language?: string
+          service_period_end?: string
+          service_period_start?: string
+          services?: Json
+          status?: string
+          subtotal?: number
+          total?: number
+          updated_at?: string
+          user_id?: string | null
+          vat_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          created_at: string
+          currency: string
+          default_rate: number
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          default_rate: number
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          default_rate?: number
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

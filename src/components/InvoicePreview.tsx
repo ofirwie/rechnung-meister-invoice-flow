@@ -152,6 +152,12 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, langua
             <p>{invoice.clientAddress}</p>
             <p>{invoice.clientCity} {invoice.clientPostalCode}</p>
             <p>{invoice.clientCountry}</p>
+            {invoice.clientBusinessLicense && (
+              <p className="mt-2"><strong>מספר עוסק מורשה:</strong> {invoice.clientBusinessLicense}</p>
+            )}
+            {invoice.clientCompanyRegistration && (
+              <p><strong>ח.פ:</strong> {invoice.clientCompanyRegistration}</p>
+            )}
           </div>
         </div>
 

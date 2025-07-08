@@ -13,6 +13,8 @@ export interface InvoiceData {
   clientCity: string;
   clientPostalCode: string;
   clientCountry: string;
+  clientBusinessLicense?: string;
+  clientCompanyRegistration?: string;
   
   // Services
   services: InvoiceService[];

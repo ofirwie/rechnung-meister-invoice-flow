@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import InvoiceForm from '../components/InvoiceForm';
 import InvoicePreview from '../components/InvoicePreview';
 import ClientManagement from '../components/ClientManagement';
@@ -6,10 +6,16 @@ import ServiceManagement from '../components/ServiceManagement';
 import InvoiceHistoryTable from '../components/InvoiceHistoryTable';
 import PendingInvoicesTable from '../components/PendingInvoicesTable';
 import Navigation from '../components/Navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { supabase } from '@/integrations/supabase/client';
 import { InvoiceData } from '../types/invoice';
 import { InvoiceHistory } from '../types/invoiceHistory';
 import { Client } from '../types/client';
 import { Service } from '../types/service';
+import { useDataMigration } from '../hooks/useDataMigration';
+import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history' | 'pending'>('invoice');
@@ -18,6 +24,50 @@ const Index = () => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [serviceSearchTerm, setServiceSearchTerm] = useState('');
+  const [user, setUser] = useState(null);
+  const [showMigrationDialog, setShowMigrationDialog] = useState(false);
+
+  const { updateInvoiceStatus } = useSupabaseInvoices();
+  const { 
+    isMigrating, 
+    migrationStatus, 
+    migrateToSupabase, 
+    hasLocalData, 
+    localDataCounts 
+  } = useDataMigration();
+
+  useEffect(() => {
+    // Check auth state
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+      
+      // If user is logged in and has local data, show migration dialog
+      if (user && hasLocalData()) {
+        setShowMigrationDialog(true);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+      
+      // Show migration dialog when user logs in and has local data
+      if (session?.user && hasLocalData()) {
+        setShowMigrationDialog(true);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [hasLocalData]);
+
+  const handleMigration = async () => {
+    const success = await migrateToSupabase();
+    if (success) {
+      setTimeout(() => {
+        setShowMigrationDialog(false);
+        window.location.reload(); // Refresh to load from Supabase
+      }, 2000);
+    }
+  };
 
   const handleInvoiceGenerated = (invoice: InvoiceData) => {
     setCurrentInvoice(invoice);
@@ -131,6 +181,69 @@ const Index = () => {
           />
         )}
       </div>
+
+      {/* Migration Dialog */}
+      <Dialog open={showMigrationDialog} onOpenChange={setShowMigrationDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>העברת נתונים לבסיס נתונים חיצוני</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p>זוהו נתונים שמורים במקום (localStorage) שעלולים להיעלם:</p>
+            <Card>
+              <CardContent className="p-4">
+                <ul className="space-y-2 text-sm">
+                  <li>לקוחות: {localDataCounts.clients}</li>
+                  <li>שירותים: {localDataCounts.services}</li>
+                  <li>חשבוניות: {localDataCounts.invoices}</li>
+                  <li>היסטוריה: {localDataCounts.history}</li>
+                </ul>
+              </CardContent>
+            </Card>
+            <p className="text-sm text-muted-foreground">
+              מומלץ להעביר את הנתונים לבסיס נתונים חיצוני (Supabase) כדי:
+            </p>
+            <ul className="text-sm text-muted-foreground list-disc list-inside">
+              <li>להבטיח שהנתונים לא ייעלמו</li>
+              <li>לגשת לנתונים מכל מכשיר</li>
+              <li>לקבל גיבוי אוטומטי</li>
+            </ul>
+            {migrationStatus && (
+              <div className="p-3 bg-blue-50 text-blue-800 rounded text-sm">
+                {migrationStatus}
+              </div>
+            )}
+            <div className="flex gap-2 justify-end">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowMigrationDialog(false)}
+                disabled={isMigrating}
+              >
+                לא עכשיו
+              </Button>
+              <Button 
+                onClick={handleMigration}
+                disabled={isMigrating}
+                className="bg-corporate-blue hover:bg-corporate-blue-dark"
+              >
+                {isMigrating ? 'מעביר...' : 'העבר נתונים'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Auth Message for non-authenticated users */}
+      {!user && (
+        <div className="fixed bottom-4 right-4 bg-orange-100 border border-orange-300 rounded-lg p-4 max-w-sm">
+          <p className="text-sm text-orange-800 font-medium">
+            התחבר כדי לשמור נתונים בענן
+          </p>
+          <p className="text-xs text-orange-600 mt-1">
+            כרגע הנתונים נשמרים רק במכשיר הזה
+          </p>
+        </div>
+      )}
     </div>
   );
 };

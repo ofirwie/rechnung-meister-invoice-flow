@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Search } from 'lucide-react';
-import { Service } from '../types/service';
+import { Service, ServiceFormData } from '../types/service';
 import { translations } from '../utils/translations';
-import { useServiceManagement } from '../hooks/useServiceManagement';
+import { useSupabaseServices } from '../hooks/useSupabaseServices';
 import ServiceForm from './ServiceForm';
 import ServiceTable from './ServiceTable';
 
@@ -22,25 +22,102 @@ export default function ServiceManagement({ language, onServiceSelect, searchTer
   const isRTL = false;
   
   const {
-    filteredServices,
-    searchTerm,
-    setSearchTerm,
-    isDialogOpen,
-    setIsDialogOpen,
-    editingService,
-    formData,
-    handleInputChange,
-    handleSubmit,
-    handleEdit,
-    handleDelete,
-    openAddDialog
-  } = useServiceManagement(externalSearchTerm, onSearchChange);
+    services,
+    loading,
+    addService,
+    updateService,
+    deleteService
+  } = useSupabaseServices();
+  
+  const [searchTerm, setSearchTerm] = useState(externalSearchTerm || '');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingService, setEditingService] = useState<Service | null>(null);
+  const [formData, setFormData] = useState<ServiceFormData>({
+    name: '',
+    description: '',
+    hourlyRate: 0,
+    currency: 'ILS',
+    category: 'General'
+  });
+
+  useEffect(() => {
+    if (externalSearchTerm !== undefined) {
+      setSearchTerm(externalSearchTerm);
+    }
+  }, [externalSearchTerm]);
+
+  useEffect(() => {
+    if (onSearchChange) {
+      onSearchChange(searchTerm);
+    }
+  }, [searchTerm, onSearchChange]);
+
+  const filteredServices = services.filter(service =>
+    service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    service.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      hourlyRate: 0,
+      currency: 'ILS',
+      category: 'General'
+    });
+    setEditingService(null);
+  };
+
+  const openAddDialog = () => {
+    resetForm();
+    setIsDialogOpen(true);
+  };
+
+  const handleEdit = (service: Service) => {
+    setEditingService(service);
+    setFormData({
+      name: service.name,
+      description: service.description,
+      hourlyRate: service.hourlyRate,
+      currency: service.currency,
+      category: service.category
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (serviceId: string) => {
+    await deleteService(serviceId);
+  };
+
+  const handleInputChange = (field: keyof ServiceFormData, value: string | number) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (editingService) {
+      await updateService(editingService.id, formData);
+    } else {
+      await addService({
+        name: formData.name,
+        description: formData.description,
+        hourlyRate: formData.hourlyRate,
+        currency: formData.currency,
+        category: formData.category,
+        isActive: true
+      });
+    }
+    
+    resetForm();
+    setIsDialogOpen(false);
+  };
 
   return (
     <div className={`space-y-6 ${isRTL ? 'rtl' : 'ltr'}`}>
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-corporate-blue">{t.serviceManagement}</h2>
-        <Dialog open={isDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-corporate-blue hover:bg-corporate-blue-dark" onClick={openAddDialog}>
               <Plus className="w-4 h-4 mr-2" />
@@ -83,13 +160,19 @@ export default function ServiceManagement({ language, onServiceSelect, searchTer
       {/* Services Table */}
       <Card>
         <CardContent className="p-0">
-          <ServiceTable 
-            language={language}
-            services={filteredServices}
-            onServiceSelect={onServiceSelect}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
+          {loading ? (
+            <div className="p-8 text-center text-muted-foreground">
+              טוען שירותים...
+            </div>
+          ) : (
+            <ServiceTable 
+              language={language}
+              services={filteredServices}
+              onServiceSelect={onServiceSelect}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          )}
         </CardContent>
       </Card>
     </div>
