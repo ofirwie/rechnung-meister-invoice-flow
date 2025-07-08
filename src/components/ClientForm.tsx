@@ -111,6 +111,22 @@ export default function ClientForm({
             onChange={(e) => onInputChange('taxId', e.target.value)}
           />
         </div>
+        <div>
+          <Label htmlFor="businessLicense">מספר עוסק מורשה</Label>
+          <Input
+            id="businessLicense"
+            value={formData.businessLicense}
+            onChange={(e) => onInputChange('businessLicense', e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="companyRegistration">ח.פ (מספר חברה)</Label>
+          <Input
+            id="companyRegistration"
+            value={formData.companyRegistration}
+            onChange={(e) => onInputChange('companyRegistration', e.target.value)}
+          />
+        </div>
         <div className="md:col-span-2">
           <Label htmlFor="address">{t.clientAddress} *</Label>
           <Input

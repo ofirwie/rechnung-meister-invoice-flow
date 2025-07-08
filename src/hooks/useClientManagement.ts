@@ -16,7 +16,9 @@ export function useClientManagement(onClientSelect?: (client: Client) => void) {
     country: 'Israel',
     email: '',
     phone: '',
-    taxId: ''
+    taxId: '',
+    businessLicense: '',
+    companyRegistration: ''
   });
 
   const filteredClients = clients.filter(client =>
@@ -35,7 +37,9 @@ export function useClientManagement(onClientSelect?: (client: Client) => void) {
       country: 'Israel',
       email: '',
       phone: '',
-      taxId: ''
+      taxId: '',
+      businessLicense: '',
+      companyRegistration: ''
     });
     setEditingClient(null);
   };
@@ -83,7 +87,9 @@ export function useClientManagement(onClientSelect?: (client: Client) => void) {
       country: client.country,
       email: client.email || '',
       phone: client.phone || '',
-      taxId: client.taxId || ''
+      taxId: client.taxId || '',
+      businessLicense: client.businessLicense || '',
+      companyRegistration: client.companyRegistration || ''
     });
     setIsDialogOpen(true);
   };

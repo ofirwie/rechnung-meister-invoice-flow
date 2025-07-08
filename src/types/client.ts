@@ -9,6 +9,8 @@ export interface Client {
   email?: string;
   phone?: string;
   taxId?: string;
+  businessLicense?: string; // מספר עוסק מורשה
+  companyRegistration?: string; // ח.פ
   createdAt: string;
   updatedAt: string;
 }
@@ -23,4 +25,6 @@ export interface ClientFormData {
   email: string;
   phone: string;
   taxId: string;
+  businessLicense: string;
+  companyRegistration: string;
 }
