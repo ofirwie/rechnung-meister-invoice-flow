@@ -7,6 +7,7 @@ import InvoiceHistoryTable from '../components/InvoiceHistoryTable';
 import PendingInvoicesTable from '../components/PendingInvoicesTable';
 import Navigation from '../components/Navigation';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,6 +19,7 @@ import { useDataMigration } from '../hooks/useDataMigration';
 import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
 
 const Index = () => {
+  const navigate = useNavigate();
   const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history' | 'pending'>('invoice');
   const [currentInvoice, setCurrentInvoice] = useState<InvoiceData | null>(null);
   const [language, setLanguage] = useState<'de' | 'en'>('en');
@@ -25,6 +27,7 @@ const Index = () => {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [serviceSearchTerm, setServiceSearchTerm] = useState('');
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [showMigrationDialog, setShowMigrationDialog] = useState(false);
 
   const { updateInvoiceStatus } = useSupabaseInvoices();
@@ -40,6 +43,7 @@ const Index = () => {
     // Check auth state
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
+      setLoading(false);
       
       // If user is logged in and has local data, show migration dialog
       if (user && hasLocalData()) {
@@ -49,6 +53,7 @@ const Index = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user || null);
+      setLoading(false);
       
       // Show migration dialog when user logs in and has local data
       if (session?.user && hasLocalData()) {
@@ -88,6 +93,40 @@ const Index = () => {
   const handleBackToForm = () => {
     setCurrentInvoice(null);
   };
+
+  // Show loading while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">טוען...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect to auth page if not logged in
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center">
+          <div className="bg-orange-50 border border-orange-300 rounded-lg p-6">
+            <h2 className="text-xl font-bold text-orange-800 mb-4">נדרשת התחברות</h2>
+            <p className="text-orange-700 mb-4">
+              כדי להשתמש במערכת ולשמור את הנתונים שלך בענן, עליך להתחבר או להירשם
+            </p>
+            <Button 
+              onClick={() => navigate('/auth')}
+              className="w-full"
+            >
+              התחבר / הירשם
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (currentInvoice) {
     return (
@@ -233,15 +272,19 @@ const Index = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Auth Message for non-authenticated users */}
-      {!user && (
-        <div className="fixed bottom-4 right-4 bg-orange-100 border border-orange-300 rounded-lg p-4 max-w-sm">
-          <p className="text-sm text-orange-800 font-medium">
-            התחבר כדי לשמור נתונים בענן
-          </p>
-          <p className="text-xs text-orange-600 mt-1">
-            כרגע הנתונים נשמרים רק במכשיר הזה
-          </p>
+      {/* Logout button for authenticated users */}
+      {user && (
+        <div className="fixed bottom-4 right-4">
+          <Button 
+            variant="outline"
+            onClick={async () => {
+              await supabase.auth.signOut();
+              navigate('/auth');
+            }}
+            className="bg-background/80 backdrop-blur-sm"
+          >
+            התנתק
+          </Button>
         </div>
       )}
     </div>
