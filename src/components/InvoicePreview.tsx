@@ -184,7 +184,7 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, langua
               <tr className="bg-corporate-blue-light">
                 <th className="border border-invoice-border p-3 text-left font-semibold text-corporate-blue">{t.serviceDescription}</th>
                 <th className="border border-invoice-border p-3 text-center font-semibold text-corporate-blue w-20">{t.hours}</th>
-                <th className="border border-invoice-border p-3 text-right font-semibold text-corporate-blue w-24">{t.hourlyRate}</th>
+                <th className="border border-invoice-border p-3 text-right font-semibold text-corporate-blue w-24">Hourly Rate</th>
                 <th className="border border-invoice-border p-3 text-right font-semibold text-corporate-blue w-24">{t.amount}</th>
               </tr>
             </thead>
@@ -194,7 +194,7 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, langua
                   <td className="border border-invoice-border p-3">{service.description}</td>
                   <td className="border border-invoice-border p-3 text-center">{service.hours.toFixed(2)}</td>
                    <td className="border border-invoice-border p-3 text-right">
-                     {service.currency === 'ILS' ? `${service.rate} ILS` : formatCurrency(service.rate, invoice.language)}
+                     {formatCurrency(service.amount / service.hours, invoice.language)}
                    </td>
                    <td className="border border-invoice-border p-3 text-right font-semibold">{formatCurrency(service.amount, invoice.language)}</td>
                 </tr>

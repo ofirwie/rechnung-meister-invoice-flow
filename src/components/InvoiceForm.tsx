@@ -566,6 +566,17 @@ export default function InvoiceForm({
                     </SelectContent>
                   </Select>
                 </div>
+                {service.addedToInvoice && (
+                  <div>
+                    <Label>Hourly Rate</Label>
+                    <Input
+                      type="text"
+                      value={`€${(service.amount / service.hours).toFixed(2)}`}
+                      disabled
+                      className="bg-muted"
+                    />
+                  </div>
+                )}
                 <div>
                   <Label>{t.amount}</Label>
                   <div className="space-y-1">
