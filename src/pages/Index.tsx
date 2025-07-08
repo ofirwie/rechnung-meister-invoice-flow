@@ -123,6 +123,11 @@ const Index = () => {
               };
               setCurrentInvoice(invoiceData);
             }}
+            onInvoiceEdit={(invoice: InvoiceHistory) => {
+              // For editing, we need to go back to the invoice form
+              // TODO: This would need to pre-populate the form with the invoice data
+              setCurrentView('invoice');
+            }}
           />
         )}
       </div>

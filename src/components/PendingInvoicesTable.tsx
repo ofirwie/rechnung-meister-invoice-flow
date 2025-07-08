@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Eye, Check, X } from 'lucide-react';
+import { Search, Eye, Check, X, Edit } from 'lucide-react';
 import { InvoiceHistory } from '../types/invoiceHistory';
 import { translations } from '../utils/translations';
 import { formatGermanDate, formatCurrency } from '../utils/formatters';
@@ -13,9 +13,10 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 interface PendingInvoicesTableProps {
   language: 'de' | 'en';
   onInvoiceView?: (invoice: InvoiceHistory, fromPending?: boolean) => void;
+  onInvoiceEdit?: (invoice: InvoiceHistory) => void;
 }
 
-export default function PendingInvoicesTable({ language, onInvoiceView }: PendingInvoicesTableProps) {
+export default function PendingInvoicesTable({ language, onInvoiceView, onInvoiceEdit }: PendingInvoicesTableProps) {
   const t = translations[language];
   const isRTL = false;
   
@@ -83,6 +84,10 @@ export default function PendingInvoicesTable({ language, onInvoiceView }: Pendin
 
   const canBeCancelled = (status: InvoiceHistory['status']) => {
     return status === 'draft';
+  };
+
+  const canBeEdited = (status: InvoiceHistory['status']) => {
+    return status === 'pending_approval';
   };
 
   return (
@@ -157,6 +162,17 @@ export default function PendingInvoicesTable({ language, onInvoiceView }: Pendin
                           <Eye className="w-4 h-4 mr-1" />
                           {t.viewInvoice}
                         </Button>
+                        {canBeEdited(invoice.status) && onInvoiceEdit && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onInvoiceEdit(invoice)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white"
+                          >
+                            <Edit className="w-4 h-4 mr-1" />
+                            {language === 'de' ? 'Bearbeiten' : 'Edit'}
+                          </Button>
+                        )}
                         {needsApproval(invoice.status) && (
                           <Button
                             variant="default"
