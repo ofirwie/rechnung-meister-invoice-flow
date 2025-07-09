@@ -220,15 +220,23 @@ export default function InvoiceForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check if at least one service is added to the invoice
+    const addedServices = services.filter(service => service.addedToInvoice);
+    if (addedServices.length === 0) {
+      alert('יש להוסיף לפחות שירות אחד לחשבונית לפני יצירתה');
+      return;
+    }
+    
     const totals = calculateTotals();
     const hasILSServices = services.some(service => service.currency === 'ILS');
     
     const invoice: InvoiceData = {
       ...formData as InvoiceData,
-      services,
+      services: addedServices, // Only include services that were added to invoice
       ...totals,
       ...(hasILSServices && { exchangeRate }),
-      status: 'draft',
+      status: 'pending_approval', // Changed from 'draft' to 'pending_approval'
       createdAt: new Date().toISOString()
     };
     
@@ -672,15 +680,38 @@ export default function InvoiceForm({
           </CardContent>
         </Card>
 
+        {/* Services Summary */}
+        {services.filter(s => s.addedToInvoice).length > 0 && (
+          <Card className="bg-green-50 border-green-200">
+            <CardContent className="p-4">
+              <p className="text-sm font-medium text-green-800">
+                שירותים שנוספו לחשבונית: {services.filter(s => s.addedToInvoice).length}
+              </p>
+              <p className="text-xs text-green-600">
+                סה"כ: €{totals.total.toFixed(2)}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Form Actions */}
         <div className="flex justify-end space-x-4">
           <Button type="button" variant="outline" onClick={resetForm}>
             {t.reset}
           </Button>
-          <Button type="submit" className="bg-corporate-blue hover:bg-corporate-blue-dark">
+          <Button 
+            type="submit" 
+            className="bg-corporate-blue hover:bg-corporate-blue-dark"
+            disabled={services.filter(s => s.addedToInvoice).length === 0}
+          >
             {t.generateInvoice}
           </Button>
         </div>
+        {services.filter(s => s.addedToInvoice).length === 0 && (
+          <p className="text-xs text-red-600 mt-2 text-center">
+            יש להוסיף לפחות שירות אחד לחשבונית לפני יצירתה
+          </p>
+        )}
       </form>
     </div>
   );

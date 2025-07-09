@@ -30,7 +30,7 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [showMigrationDialog, setShowMigrationDialog] = useState(false);
 
-  const { updateInvoiceStatus } = useSupabaseInvoices();
+  const { updateInvoiceStatus, saveInvoice } = useSupabaseInvoices();
   const { 
     isMigrating, 
     migrationStatus, 
@@ -74,19 +74,33 @@ const Index = () => {
     }
   };
 
-  const handleInvoiceGenerated = (invoice: InvoiceData) => {
-    setCurrentInvoice(invoice);
+  const handleInvoiceGenerated = async (invoice: InvoiceData) => {
+    try {
+      await saveInvoice(invoice);
+      setCurrentInvoice(invoice);
+      console.log('Invoice saved successfully to Supabase');
+    } catch (error) {
+      console.error('Failed to save invoice:', error);
+      alert('שגיאה בשמירת החשבונית. אנא נסה שוב.');
+    }
   };
 
-  const handleInvoiceStatusChange = (newStatus: InvoiceData['status']) => {
+  const handleInvoiceStatusChange = async (newStatus: InvoiceData['status']) => {
     if (currentInvoice) {
-      const updatedInvoice = { 
-        ...currentInvoice, 
-        status: newStatus,
-        ...(newStatus === 'approved' && { approvedAt: new Date().toISOString() }),
-        ...(newStatus === 'issued' && { issuedAt: new Date().toISOString() })
-      };
-      setCurrentInvoice(updatedInvoice);
+      try {
+        await updateInvoiceStatus(currentInvoice.invoiceNumber, newStatus);
+        const updatedInvoice = { 
+          ...currentInvoice, 
+          status: newStatus,
+          ...(newStatus === 'approved' && { approvedAt: new Date().toISOString() }),
+          ...(newStatus === 'issued' && { issuedAt: new Date().toISOString() })
+        };
+        setCurrentInvoice(updatedInvoice);
+        console.log('Invoice status updated successfully in Supabase');
+      } catch (error) {
+        console.error('Failed to update invoice status:', error);
+        alert('שגיאה בעדכון סטטוס החשבונית. אנא נסה שוב.');
+      }
     }
   };
 
