@@ -48,10 +48,23 @@ export default function InvoiceForm({
   const [clients] = useLocalStorage<Client[]>('invoice-clients', []);
   const [invoiceHistory] = useLocalStorage<InvoiceHistory[]>('invoice-history', []);
   
+  // Initialize service period dates with current month defaults
+  const getCurrentMonthDates = () => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    return {
+      start: startOfMonth.toISOString().split('T')[0],
+      end: endOfMonth.toISOString().split('T')[0]
+    };
+  };
+
+  const monthDates = getCurrentMonthDates();
+
   const [formData, setFormData] = useState<Partial<InvoiceData>>({
     invoiceDate: new Date().toISOString().split('T')[0],
-    servicePeriodStart: '',
-    servicePeriodEnd: '',
+    servicePeriodStart: monthDates.start,
+    servicePeriodEnd: monthDates.end,
     dueDate: '',
     language: language,
     currency: 'EUR',
@@ -221,6 +234,47 @@ export default function InvoiceForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate required fields
+    if (!formData.invoiceNumber?.trim()) {
+      alert('מספר חשבונית הוא שדה חובה');
+      return;
+    }
+    
+    if (!formData.invoiceDate) {
+      alert('תאריך החשבונית הוא שדה חובה');
+      return;
+    }
+    
+    if (!formData.servicePeriodStart) {
+      alert('תאריך תחילת תקופת השירות הוא שדה חובה');
+      return;
+    }
+    
+    if (!formData.servicePeriodEnd) {
+      alert('תאריך סיום תקופת השירות הוא שדה חובה');
+      return;
+    }
+    
+    // Validate date logic
+    const startDate = new Date(formData.servicePeriodStart);
+    const endDate = new Date(formData.servicePeriodEnd);
+    const invoiceDate = new Date(formData.invoiceDate);
+    
+    if (startDate >= endDate) {
+      alert('תאריך תחילת תקופת השירות חייב להיות לפני תאריך הסיום');
+      return;
+    }
+    
+    if (invoiceDate > new Date()) {
+      alert('תאריך החשבונית לא יכול להיות עתידי');
+      return;
+    }
+    
+    if (!formData.clientCompany?.trim()) {
+      alert('שם הלקוח הוא שדה חובה');
+      return;
+    }
+    
     // Check if at least one service is added to the invoice
     const addedServices = services.filter(service => service.addedToInvoice);
     if (addedServices.length === 0) {
@@ -231,23 +285,30 @@ export default function InvoiceForm({
     const totals = calculateTotals();
     const hasILSServices = services.some(service => service.currency === 'ILS');
     
-    const invoice: InvoiceData = {
-      ...formData as InvoiceData,
-      services: addedServices, // Only include services that were added to invoice
-      ...totals,
-      ...(hasILSServices && { exchangeRate }),
-      status: 'pending_approval', // Changed from 'draft' to 'pending_approval'
-      createdAt: new Date().toISOString()
-    };
-    
-    onInvoiceGenerated(invoice);
+    try {
+      const invoice: InvoiceData = {
+        ...formData as InvoiceData,
+        services: addedServices, // Only include services that were added to invoice
+        ...totals,
+        ...(hasILSServices && { exchangeRate }),
+        status: 'pending_approval', // Changed from 'draft' to 'pending_approval'
+        createdAt: new Date().toISOString()
+      };
+      
+      console.log('Invoice data being submitted:', invoice);
+      onInvoiceGenerated(invoice);
+    } catch (error) {
+      console.error('Error creating invoice:', error);
+      alert('שגיאה ביצירת החשבונית. אנא בדוק את הנתונים ונסה שוב.');
+    }
   };
 
   const resetForm = () => {
+    const monthDates = getCurrentMonthDates();
     setFormData({
       invoiceDate: new Date().toISOString().split('T')[0],
-      servicePeriodStart: '',
-      servicePeriodEnd: '',
+      servicePeriodStart: monthDates.start,
+      servicePeriodEnd: monthDates.end,
       dueDate: '',
       language: language,
       currency: 'EUR',
