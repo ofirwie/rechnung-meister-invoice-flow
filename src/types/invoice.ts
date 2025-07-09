@@ -55,6 +55,7 @@ export interface BusinessInfo {
   phone: string;
   email: string;
   taxId: string;
+  vatId?: string;
   bankName: string;
   iban: string;
   bic: string;

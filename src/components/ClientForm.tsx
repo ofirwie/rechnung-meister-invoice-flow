@@ -27,7 +27,7 @@ export default function ClientForm({
   onUpdateFormData 
 }: ClientFormProps) {
   const t = translations[language];
-  const { pasteText, setPasteText, openAiKey, setOpenAiKey, parseClientInfo, resetPasteText } = useClientParser();
+  const { pasteText, setPasteText, parseClientInfo, resetPasteText } = useClientParser();
 
   const handleParseAndUpdate = async () => {
     const parsedData = await parseClientInfo(pasteText);
@@ -55,15 +55,8 @@ export default function ClientForm({
               size="sm"
               onClick={handleParseAndUpdate}
             >
-              נתח פרטים
+              נתח פרטים (AI)
             </Button>
-            <Input
-              type="password"
-              placeholder="OpenAI API Key (אופציונלי)"
-              value={openAiKey}
-              onChange={(e) => setOpenAiKey(e.target.value)}
-              className="flex-1"
-            />
           </div>
         </CardContent>
       </Card>

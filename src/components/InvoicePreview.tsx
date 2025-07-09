@@ -140,6 +140,7 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, langua
               <p className="mt-2">{businessInfo.phone}</p>
               <p>{businessInfo.email}</p>
               <p className="mt-2"><strong>Steuernummer:</strong> {businessInfo.taxId}</p>
+              {businessInfo.vatId && <p><strong>USt-IdNr:</strong> {businessInfo.vatId}</p>}
             </div>
           </div>
         </div>
