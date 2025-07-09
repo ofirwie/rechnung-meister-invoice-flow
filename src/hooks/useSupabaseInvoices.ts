@@ -91,6 +91,13 @@ export function useSupabaseInvoices() {
 
   const saveInvoice = async (invoice: InvoiceData) => {
     try {
+      // Get current user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        throw new Error('User not authenticated. Please log in to save invoices.');
+      }
+
       const { error } = await supabase
         .from('invoices')
         .upsert({
@@ -116,7 +123,8 @@ export function useSupabaseInvoices() {
           status: invoice.status,
           approved_at: invoice.approvedAt,
           approved_by: invoice.approvedBy,
-          issued_at: invoice.issuedAt
+          issued_at: invoice.issuedAt,
+          user_id: user.id  // Add user_id to satisfy RLS policy
         });
 
       if (error) throw error;
@@ -131,11 +139,18 @@ export function useSupabaseInvoices() {
 
   const updateInvoiceStatus = async (invoiceNumber: string, status: InvoiceData['status']) => {
     try {
+      // Get current user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        throw new Error('User not authenticated. Please log in to update invoice status.');
+      }
+
       const updateData: any = { status };
       
       if (status === 'approved') {
         updateData.approved_at = new Date().toISOString();
-        updateData.approved_by = 'User'; // You can get this from auth context
+        updateData.approved_by = user.email || 'User';
       } else if (status === 'issued') {
         updateData.issued_at = new Date().toISOString();
       }
@@ -143,7 +158,8 @@ export function useSupabaseInvoices() {
       const { error } = await supabase
         .from('invoices')
         .update(updateData)
-        .eq('invoice_number', invoiceNumber);
+        .eq('invoice_number', invoiceNumber)
+        .eq('user_id', user.id); // Ensure user can only update their own invoices
 
       if (error) throw error;
       
@@ -157,10 +173,18 @@ export function useSupabaseInvoices() {
 
   const deleteInvoice = async (invoiceNumber: string) => {
     try {
+      // Get current user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        throw new Error('User not authenticated. Please log in to delete invoices.');
+      }
+
       const { error } = await supabase
         .from('invoices')
         .delete()
-        .eq('invoice_number', invoiceNumber);
+        .eq('invoice_number', invoiceNumber)
+        .eq('user_id', user.id); // Ensure user can only delete their own invoices
 
       if (error) throw error;
       
