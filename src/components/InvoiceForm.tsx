@@ -102,7 +102,7 @@ export default function InvoiceForm({
       const invoiceNumber = `${formData.clientCompany}-1`;
       setFormData(prev => ({ ...prev, invoiceNumber }));
     }
-  }, [formData.clientCompany, invoiceHistory]);
+  }, [formData.clientCompany]);
 
   // Update form when client is selected
   useEffect(() => {
@@ -385,7 +385,7 @@ export default function InvoiceForm({
                   <Calendar
                     mode="single"
                     selected={formData.invoiceDate ? new Date(formData.invoiceDate) : undefined}
-                    onSelect={(date) => setFormData({ ...formData, invoiceDate: date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` : '' })}
+                    onSelect={(date) => setFormData(prev => ({ ...prev, invoiceDate: date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` : '' }))}
                     initialFocus
                     className="pointer-events-auto"
                   />
@@ -411,7 +411,7 @@ export default function InvoiceForm({
                   <Calendar
                     mode="single"
                     selected={formData.servicePeriodStart ? new Date(formData.servicePeriodStart) : undefined}
-                    onSelect={(date) => setFormData({ ...formData, servicePeriodStart: date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` : '' })}
+                    onSelect={(date) => setFormData(prev => ({ ...prev, servicePeriodStart: date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` : '' }))}
                     initialFocus
                     className="pointer-events-auto"
                   />
@@ -437,7 +437,7 @@ export default function InvoiceForm({
                   <Calendar
                     mode="single"
                     selected={formData.servicePeriodEnd ? new Date(formData.servicePeriodEnd) : undefined}
-                    onSelect={(date) => setFormData({ ...formData, servicePeriodEnd: date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` : '' })}
+                    onSelect={(date) => setFormData(prev => ({ ...prev, servicePeriodEnd: date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` : '' }))}
                     initialFocus
                     className="pointer-events-auto"
                   />
