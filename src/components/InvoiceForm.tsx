@@ -121,13 +121,18 @@ export default function InvoiceForm({
   // Update form when service is selected
   useEffect(() => {
     if (selectedService) {
+      const originalAmount = 1 * selectedService.hourlyRate;
+      const finalAmount = selectedService.currency === 'ILS' ? originalAmount / exchangeRate : originalAmount;
+      
       const newService: InvoiceService = {
         id: Date.now().toString(),
         description: selectedService.description,
         hours: 1,
         rate: selectedService.hourlyRate,
         currency: selectedService.currency,
-        amount: 1 * selectedService.hourlyRate, // Calculate amount properly
+        amount: finalAmount,
+        originalAmount: originalAmount,
+        exchangeRateUsed: selectedService.currency === 'ILS' ? exchangeRate : undefined,
         addedToInvoice: false
       };
       setServices(prev => [...prev.slice(0, -1), newService, { id: Date.now().toString() + '1', description: '', hours: 0, rate: 0, currency: 'EUR', amount: 0, addedToInvoice: false }]);
@@ -200,10 +205,19 @@ export default function InvoiceForm({
     setServices(prev => prev.map(service => {
       if (service.id === id) {
         const updated = { ...service, [field]: value };
-        // Reset amount to 0 when hours, rate, or currency changes to force recalculation
-        if (field === 'hours' || field === 'rate' || field === 'currency') {
+        
+        // Auto-calculate amount when hours, rate, or currency changes
+        if ((field === 'hours' || field === 'rate' || field === 'currency') && 
+            updated.hours > 0 && updated.rate > 0 && updated.description) {
+          const originalAmount = Number(updated.hours) * Number(updated.rate);
+          updated.amount = updated.currency === 'ILS' ? originalAmount / exchangeRate : originalAmount;
+          updated.originalAmount = originalAmount;
+          updated.exchangeRateUsed = updated.currency === 'ILS' ? exchangeRate : undefined;
+        } else if (field === 'hours' || field === 'rate' || field === 'currency') {
+          // Reset amount if any required field is missing
           updated.amount = 0;
         }
+        
         return updated;
       }
       return service;
@@ -662,38 +676,42 @@ export default function InvoiceForm({
                         </div>
                       )}
                      {!service.addedToInvoice && service.currency === 'ILS' && service.hours > 0 && service.rate > 0 && (
-                       <div className="text-xs text-muted-foreground space-y-1">
+                       <div className="text-xs text-blue-600 space-y-1 font-medium">
                          <p>{service.hours} {language === 'de' ? 'Std.' : 'hours'} × {service.rate} ILS = {(service.hours * service.rate).toFixed(2)} ILS</p>
-                         <p>≈ €{((service.hours * service.rate) / exchangeRate).toFixed(2)} ({language === 'de' ? 'Kurs:' : 'Rate:'} {exchangeRate})</p>
+                         <p>≈ €{service.amount.toFixed(2)} ({language === 'de' ? 'Kurs:' : 'Rate:'} {exchangeRate})</p>
+                       </div>
+                     )}
+                     {!service.addedToInvoice && service.currency === 'EUR' && service.hours > 0 && service.rate > 0 && (
+                       <div className="text-xs text-blue-600 space-y-1 font-medium">
+                         <p>{service.hours} {language === 'de' ? 'Std.' : 'hours'} × €{service.rate} = €{service.amount.toFixed(2)}</p>
                        </div>
                      )}
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  {/* Calculate button */}
-                   {!service.addedToInvoice && service.description && service.hours > 0 && service.rate > 0 && service.amount === 0 && (
-                     <Button
-                       type="button"
-                       variant="outline"
-                       size="sm"
-                       onClick={() => calculateServiceAmount(service.id)}
-                       className="bg-blue-600 hover:bg-blue-700 text-white"
-                     >
-                       {language === 'de' ? 'Berechnen' : 'Calculate'}
-                     </Button>
-                   )}
-                  
                   {/* Add to invoice button */}
-                   {!service.addedToInvoice && service.amount > 0 && (
-                     <Button
-                       type="button"
-                       variant="default"
-                       size="sm"
-                       onClick={() => addServiceToInvoice(service.id)}
-                       className="bg-green-600 hover:bg-green-700 text-white"
-                     >
-                       {language === 'de' ? 'Zur Rechnung hinzufügen' : 'Add to Invoice'}
-                     </Button>
+                   {!service.addedToInvoice && service.description && service.hours > 0 && service.rate > 0 ? (
+                     service.amount > 0 ? (
+                       <Button
+                         type="button"
+                         variant="default"
+                         size="sm"
+                         onClick={() => addServiceToInvoice(service.id)}
+                         className="bg-green-600 hover:bg-green-700 text-white"
+                       >
+                         {language === 'de' ? 'Zur Rechnung hinzufügen' : 'Add to Invoice'}
+                       </Button>
+                     ) : (
+                       <div className="text-xs text-orange-600 font-medium text-center">
+                         {language === 'de' ? 'Berechnung läuft...' : 'Calculating...'}
+                       </div>
+                     )
+                   ) : (
+                     !service.addedToInvoice && (
+                       <div className="text-xs text-muted-foreground text-center">
+                         {language === 'de' ? 'Alle Felder ausfüllen' : 'Fill all fields'}
+                       </div>
+                     )
                    )}
                   
                   {/* Status display */}
