@@ -5,6 +5,7 @@ import ClientManagement from '../components/ClientManagement';
 import ServiceManagement from '../components/ServiceManagement';
 import InvoiceHistoryTable from '../components/InvoiceHistoryTable';
 import PendingInvoicesTable from '../components/PendingInvoicesTable';
+import ExpenseManagement from '../components/ExpenseManagement';
 import Navigation from '../components/Navigation';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -20,7 +21,7 @@ import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
 
 const Index = () => {
   const navigate = useNavigate();
-  const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history' | 'pending'>('invoice');
+  const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses'>('invoice');
   const [currentInvoice, setCurrentInvoice] = useState<InvoiceData | null>(null);
   const [language, setLanguage] = useState<'de' | 'en'>('en');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -232,6 +233,9 @@ const Index = () => {
               setCurrentView('invoice');
             }}
           />
+        )}
+        {currentView === 'expenses' && (
+          <ExpenseManagement />
         )}
       </div>
 

@@ -5,8 +5,8 @@ import { FileText, Users, History, Briefcase } from 'lucide-react';
 import { translations } from '../utils/translations';
 
 interface NavigationProps {
-  currentView: 'invoice' | 'clients' | 'services' | 'history' | 'pending';
-  onViewChange: (view: 'invoice' | 'clients' | 'services' | 'history' | 'pending') => void;
+  currentView: 'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses';
+  onViewChange: (view: 'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses') => void;
   language: 'de' | 'en';
   onLanguageChange: (language: 'de' | 'en') => void;
 }
@@ -57,6 +57,14 @@ export default function Navigation({ currentView, onViewChange, language, onLang
           >
             <History className="w-4 h-4 mr-2" />
             {t.pendingInvoices}
+          </Button>
+          <Button
+            variant={currentView === 'expenses' ? 'default' : 'outline'}
+            onClick={() => onViewChange('expenses')}
+            className={`flex items-center ${currentView === 'expenses' ? 'bg-corporate-blue hover:bg-corporate-blue-dark' : ''}`}
+          >
+            💰
+            הוצאות
           </Button>
         </div>
         

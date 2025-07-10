@@ -68,6 +68,177 @@ export type Database = {
         }
         Relationships: []
       }
+      expense_categories: {
+        Row: {
+          active: boolean | null
+          color: string | null
+          created_at: string | null
+          description: string | null
+          expense_type_id: string | null
+          id: string
+          name: string
+          sort_order: number | null
+        }
+        Insert: {
+          active?: boolean | null
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          expense_type_id?: string | null
+          id?: string
+          name: string
+          sort_order?: number | null
+        }
+        Update: {
+          active?: boolean | null
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          expense_type_id?: string | null
+          id?: string
+          name?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_categories_expense_type_id_fkey"
+            columns: ["expense_type_id"]
+            isOneToOne: false
+            referencedRelation: "expense_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expense_types: {
+        Row: {
+          active: boolean | null
+          color: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean | null
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean | null
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      expenses: {
+        Row: {
+          active: boolean | null
+          amount: number
+          auto_renew: boolean | null
+          category_id: string | null
+          created_at: string | null
+          currency: string | null
+          description: string
+          expense_date: string
+          expense_type_id: string | null
+          id: string
+          invoice_number: string | null
+          is_recurring: boolean | null
+          notes: string | null
+          payment_method: string | null
+          receipt_drive_id: string | null
+          receipt_file_name: string | null
+          receipt_file_url: string | null
+          recurring_end_date: string | null
+          recurring_next_date: string | null
+          recurring_period: string | null
+          recurring_start_date: string | null
+          supplier_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          amount: number
+          auto_renew?: boolean | null
+          category_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description: string
+          expense_date: string
+          expense_type_id?: string | null
+          id?: string
+          invoice_number?: string | null
+          is_recurring?: boolean | null
+          notes?: string | null
+          payment_method?: string | null
+          receipt_drive_id?: string | null
+          receipt_file_name?: string | null
+          receipt_file_url?: string | null
+          recurring_end_date?: string | null
+          recurring_next_date?: string | null
+          recurring_period?: string | null
+          recurring_start_date?: string | null
+          supplier_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          amount?: number
+          auto_renew?: boolean | null
+          category_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string
+          expense_date?: string
+          expense_type_id?: string | null
+          id?: string
+          invoice_number?: string | null
+          is_recurring?: boolean | null
+          notes?: string | null
+          payment_method?: string | null
+          receipt_drive_id?: string | null
+          receipt_file_name?: string | null
+          receipt_file_url?: string | null
+          recurring_end_date?: string | null
+          recurring_next_date?: string | null
+          recurring_period?: string | null
+          recurring_start_date?: string | null
+          supplier_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_expense_type_id_fkey"
+            columns: ["expense_type_id"]
+            isOneToOne: false
+            referencedRelation: "expense_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_history: {
         Row: {
           amount: number
@@ -265,6 +436,54 @@ export type Database = {
           name?: string
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          active: boolean | null
+          address: string | null
+          contact_person: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          tax_id: string | null
+          updated_at: string | null
+          user_id: string | null
+          website: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          tax_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          website?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          tax_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          website?: string | null
         }
         Relationships: []
       }
