@@ -9,6 +9,7 @@ import { InvoiceHistory } from '../types/invoiceHistory';
 import { translations } from '../utils/translations';
 import { formatGermanDate, formatCurrency } from '../utils/formatters';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
 import { useLanguage } from '../hooks/useLanguage';
 
 interface PendingInvoicesTableProps {
@@ -19,13 +20,21 @@ interface PendingInvoicesTableProps {
 export default function PendingInvoicesTable({ onInvoiceView, onInvoiceEdit }: PendingInvoicesTableProps) {
   const { language, t, isRTL } = useLanguage();
   
-  const [invoices, setInvoices] = useLocalStorage<InvoiceHistory[]>('invoice-history', []);
+  const { invoiceHistory, loading, updateInvoiceStatus } = useSupabaseInvoices();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredInvoices = invoices.filter(invoice =>
+  const filteredInvoices = invoiceHistory.filter(invoice =>
     (invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
      invoice.clientName.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-muted-foreground">טוען חשבוניות...</div>
+      </div>
+    );
+  }
 
   const getStatusColor = (status: InvoiceHistory['status']) => {
     switch (status) {
@@ -61,20 +70,24 @@ export default function PendingInvoicesTable({ onInvoiceView, onInvoiceEdit }: P
     }
   };
 
-  const handleApproveInvoice = (invoiceId: string) => {
-    setInvoices(prev => prev.map(invoice => 
-      invoice.id === invoiceId 
-        ? { ...invoice, status: 'approved' as const }
-        : invoice
-    ));
+  const handleApproveInvoice = async (invoiceId: string) => {
+    try {
+      await updateInvoiceStatus(invoiceId, 'approved');
+      console.log('Invoice approved successfully');
+    } catch (error) {
+      console.error('Failed to approve invoice:', error);
+      alert('שגיאה באישור החשבונית. אנא נסה שוב.');
+    }
   };
 
-  const handleCancelInvoice = (invoiceId: string) => {
-    setInvoices(prev => prev.map(invoice => 
-      invoice.id === invoiceId 
-        ? { ...invoice, status: 'cancelled' as const }
-        : invoice
-    ));
+  const handleCancelInvoice = async (invoiceId: string) => {
+    try {
+      await updateInvoiceStatus(invoiceId, 'cancelled');
+      console.log('Invoice cancelled successfully');
+    } catch (error) {
+      console.error('Failed to cancel invoice:', error);
+      alert('שגיאה בביטול החשבונית. אנא נסה שוב.');
+    }
   };
 
   const needsApproval = (status: InvoiceHistory['status']) => {
@@ -176,7 +189,7 @@ export default function PendingInvoicesTable({ onInvoiceView, onInvoiceEdit }: P
                           <Button
                             variant="default"
                             size="sm"
-                            onClick={() => handleApproveInvoice(invoice.id)}
+                            onClick={() => handleApproveInvoice(invoice.invoiceNumber)}
                             className="bg-green-600 hover:bg-green-700"
                           >
                             <Check className="w-4 h-4 mr-1" />
@@ -187,7 +200,7 @@ export default function PendingInvoicesTable({ onInvoiceView, onInvoiceEdit }: P
                           <Button
                             variant="destructive"
                             size="sm"
-                            onClick={() => handleCancelInvoice(invoice.id)}
+                            onClick={() => handleCancelInvoice(invoice.invoiceNumber)}
                           >
                             <X className="w-4 h-4 mr-1" />
                             {t.cancelInvoice}

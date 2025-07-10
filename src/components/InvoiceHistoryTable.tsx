@@ -9,6 +9,7 @@ import { InvoiceHistory } from '../types/invoiceHistory';
 import { translations } from '../utils/translations';
 import { formatGermanDate, formatCurrency } from '../utils/formatters';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
 import { useLanguage } from '../hooks/useLanguage';
 
 interface InvoiceHistoryTableProps {
@@ -27,13 +28,21 @@ export default function InvoiceHistoryTable({ onInvoiceView }: InvoiceHistoryTab
     );
   }
   
-  const [invoices] = useLocalStorage<InvoiceHistory[]>('invoice-history', []);
+  const { invoiceHistory, loading } = useSupabaseInvoices();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredInvoices = invoices.filter(invoice =>
+  const filteredInvoices = invoiceHistory.filter(invoice =>
     invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
     invoice.clientName.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-muted-foreground">טוען חשבוניות...</div>
+      </div>
+    );
+  }
 
   const getStatusColor = (status: InvoiceHistory['status']) => {
     switch (status) {
