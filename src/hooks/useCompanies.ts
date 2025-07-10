@@ -66,7 +66,12 @@ export const useCompanies = () => {
 
       if (userError) throw userError;
 
+      // רענון רשימת החברות
       await fetchCompanies();
+      
+      // עדכון הרשימה מיידית
+      setCompanies(prev => [...prev, company as Company]);
+      
       return company as Company;
     } catch (err) {
       console.error('Error creating company:', err);

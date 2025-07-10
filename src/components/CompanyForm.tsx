@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useCompanies } from '@/hooks/useCompanies';
+import { useCompany } from '@/contexts/CompanyContext';
 import { Company } from '@/types/company';
 import { toast } from 'sonner';
 
@@ -19,13 +20,14 @@ interface CompanyFormProps {
 export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) => {
   const { t, isRTL } = useLanguage();
   const { createCompany, updateCompany } = useCompanies();
+  const { refreshCompanies } = useCompany();
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: company?.name || '',
     business_name: company?.business_name || '',
     tax_id: company?.tax_id || '',
-    german_vat_id: (company?.settings as any)?.german_vat_id || '',
+    german_vat_id: (company as any)?.german_vat_id || '',
     address: company?.address || '',
     phone: company?.phone || '',
     email: company?.email || '',
@@ -44,7 +46,6 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) 
         ...formData,
         settings: {
           ...((company?.settings as any) || {}),
-          german_vat_id: formData.german_vat_id,
         },
       };
 
@@ -52,8 +53,15 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) 
         await updateCompany(company.id, companyData);
         toast.success(t.save + ' ' + t.companySettings);
       } else {
-        await createCompany(companyData);
-        toast.success(t.createCompany);
+        const result = await createCompany(companyData);
+        if (result) {
+          toast.success(t.createCompany);
+          // רענון הקונטקסט
+          refreshCompanies();
+        } else {
+          toast.error('Failed to create company');
+          return;
+        }
       }
       
       onSuccess();

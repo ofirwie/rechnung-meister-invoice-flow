@@ -120,6 +120,7 @@ export type Database = {
           drive_folder_id: string | null
           email: string | null
           fiscal_year_start: number | null
+          german_vat_id: string | null
           id: string
           logo_url: string | null
           name: string
@@ -139,6 +140,7 @@ export type Database = {
           drive_folder_id?: string | null
           email?: string | null
           fiscal_year_start?: number | null
+          german_vat_id?: string | null
           id?: string
           logo_url?: string | null
           name: string
@@ -158,6 +160,7 @@ export type Database = {
           drive_folder_id?: string | null
           email?: string | null
           fiscal_year_start?: number | null
+          german_vat_id?: string | null
           id?: string
           logo_url?: string | null
           name?: string

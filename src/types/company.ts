@@ -3,6 +3,7 @@ export interface Company {
   name: string;
   business_name?: string;
   tax_id?: string;
+  german_vat_id?: string;
   address?: string;
   phone?: string;
   email?: string;
@@ -66,6 +67,7 @@ export interface CompanyFormData {
   name: string;
   business_name?: string;
   tax_id?: string;
+  german_vat_id?: string;
   address?: string;
   phone?: string;
   email?: string;
