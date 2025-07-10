@@ -21,7 +21,7 @@ import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
 
 const Index = () => {
   const navigate = useNavigate();
-  const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses'>('invoice');
+  const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'users'>('invoice');
   const [currentInvoice, setCurrentInvoice] = useState<InvoiceData | null>(null);
   const [language, setLanguage] = useState<'de' | 'en'>('en');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
@@ -159,8 +159,10 @@ const Index = () => {
       <Navigation 
         currentView={currentView}
         onViewChange={setCurrentView}
-        language={language}
-        onLanguageChange={setLanguage}
+        onLogout={async () => {
+          await supabase.auth.signOut();
+          navigate('/auth');
+        }}
       />
       
       <div className="max-w-6xl mx-auto p-6">
