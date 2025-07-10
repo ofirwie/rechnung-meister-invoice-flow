@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Filter, Download, Users, Tags, Zap } from 'lucide-react';
 import ExpenseTable from './ExpenseTable';
 import ExpenseForm from './ExpenseForm';
+import SupplierManagement from './SupplierManagement';
+import CategoryManagement from './CategoryManagement';
 import { useSupabaseExpenses } from '@/hooks/useSupabaseExpenses';
 import { useSupabaseSuppliers } from '@/hooks/useSupabaseSuppliers';
 import { useExpenseCategories } from '@/hooks/useExpenseCategories';
@@ -17,6 +19,8 @@ const ExpenseManagement = () => {
   const [activeTab, setActiveTab] = useState<'business' | 'personal'>('business');
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
+  const [showSupplierManagement, setShowSupplierManagement] = useState(false);
+  const [showCategoryManagement, setShowCategoryManagement] = useState(false);
   const [filters, setFilters] = useState<ExpenseFilters>({
     searchTerm: '',
     dateFrom: '',
@@ -198,11 +202,11 @@ const ExpenseManagement = () => {
               <Download className="w-4 h-4" />
               ייצוא לאקסל
             </Button>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button variant="outline" className="flex items-center gap-2" onClick={() => setShowSupplierManagement(true)}>
               <Users className="w-4 h-4" />
               ניהול ספקים
             </Button>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button variant="outline" className="flex items-center gap-2" onClick={() => setShowCategoryManagement(true)}>
               <Tags className="w-4 h-4" />
               ניהול קטגוריות
             </Button>
@@ -236,6 +240,18 @@ const ExpenseManagement = () => {
           defaultExpenseType={activeTab}
         />
       )}
+
+      {/* Supplier Management Dialog */}
+      <SupplierManagement 
+        open={showSupplierManagement} 
+        onClose={() => setShowSupplierManagement(false)} 
+      />
+
+      {/* Category Management Dialog */}
+      <CategoryManagement 
+        open={showCategoryManagement} 
+        onClose={() => setShowCategoryManagement(false)} 
+      />
     </div>
   );
 };
