@@ -7,19 +7,18 @@ import { Plus, Search } from 'lucide-react';
 import { Service, ServiceFormData } from '../types/service';
 import { translations } from '../utils/translations';
 import { useSupabaseServices } from '../hooks/useSupabaseServices';
+import { useLanguage } from '../hooks/useLanguage';
 import ServiceForm from './ServiceForm';
 import ServiceTable from './ServiceTable';
 
 interface ServiceManagementProps {
-  language: 'de' | 'en';
   onServiceSelect?: (service: Service) => void;
   searchTerm?: string;
   onSearchChange?: (term: string) => void;
 }
 
-export default function ServiceManagement({ language, onServiceSelect, searchTerm: externalSearchTerm, onSearchChange }: ServiceManagementProps) {
-  const t = translations[language];
-  const isRTL = false;
+export default function ServiceManagement({ onServiceSelect, searchTerm: externalSearchTerm, onSearchChange }: ServiceManagementProps) {
+  const { language, t, isRTL } = useLanguage();
   
   const {
     services,

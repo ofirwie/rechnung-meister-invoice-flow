@@ -5,15 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, Clock, FileText, Send } from 'lucide-react';
 import { InvoiceData } from '../types/invoice';
 import { translations } from '../utils/translations';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface InvoiceWorkflowProps {
   invoice: InvoiceData;
-  language: 'de' | 'en';
   onStatusChange: (newStatus: InvoiceData['status']) => void;
 }
 
-export default function InvoiceWorkflow({ invoice, language, onStatusChange }: InvoiceWorkflowProps) {
-  const t = translations[language];
+export default function InvoiceWorkflow({ invoice, onStatusChange }: InvoiceWorkflowProps) {
+  const { language, t } = useLanguage();
 
   const getStatusBadge = (status: InvoiceData['status']) => {
     const statusConfig = {

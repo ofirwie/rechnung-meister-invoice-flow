@@ -9,15 +9,14 @@ import { InvoiceHistory } from '../types/invoiceHistory';
 import { translations } from '../utils/translations';
 import { formatGermanDate, formatCurrency } from '../utils/formatters';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface InvoiceHistoryTableProps {
-  language: 'de' | 'en';
   onInvoiceView?: (invoice: InvoiceHistory) => void;
 }
 
-export default function InvoiceHistoryTable({ language, onInvoiceView }: InvoiceHistoryTableProps) {
-  const t = translations[language];
-  const isRTL = false;
+export default function InvoiceHistoryTable({ onInvoiceView }: InvoiceHistoryTableProps) {
+  const { language, t, isRTL } = useLanguage();
   
   const [invoices] = useLocalStorage<InvoiceHistory[]>('invoice-history', []);
   const [searchTerm, setSearchTerm] = useState('');

@@ -13,11 +13,10 @@ interface InvoicePreviewProps {
   invoice: InvoiceData;
   onBack: () => void;
   onStatusChange?: (newStatus: InvoiceData['status']) => void;
-  language?: 'de' | 'en';
   fromPending?: boolean;
 }
 
-export default function InvoicePreview({ invoice, onBack, onStatusChange, language, fromPending }: InvoicePreviewProps) {
+export default function InvoicePreview({ invoice, onBack, onStatusChange, fromPending }: InvoicePreviewProps) {
   const t = translations[invoice.language];
   const isRTL = false;
   const [invoiceHistory, setInvoiceHistory] = useLocalStorage<InvoiceHistory[]>('invoice-history', []);
@@ -82,7 +81,6 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, langua
         <div className="max-w-4xl mx-auto px-8 print:hidden">
           <InvoiceWorkflow 
             invoice={invoice} 
-            language={language || invoice.language} 
             onStatusChange={onStatusChange} 
           />
         </div>
@@ -96,8 +94,7 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, langua
               <div>
                 <h3 className="text-lg font-semibold text-orange-800">{t.approvalRequired}</h3>
                 <p className="text-sm text-orange-600">
-                  {language === 'de' ? 'Diese Rechnung wartet auf Ihre Genehmigung.' :
-                   'This invoice is waiting for your approval.'}
+                  {t.pendingApprovalMessage || 'This invoice is waiting for your approval.'}
                 </p>
               </div>
               <Button

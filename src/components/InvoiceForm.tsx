@@ -19,11 +19,10 @@ import { translations } from '../utils/translations';
 import { generateInvoiceNumber, calculateDueDate } from '../utils/formatters';
 import { getNextInvoiceNumber } from '../utils/invoiceNumberManager';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface InvoiceFormProps {
   onInvoiceGenerated: (invoice: InvoiceData) => void;
-  language: 'de' | 'en';
-  onLanguageChange: (language: 'de' | 'en') => void;
   selectedClient?: Client | null;
   selectedService?: Service | null;
   onClientClear?: () => void;
@@ -34,8 +33,6 @@ interface InvoiceFormProps {
 
 export default function InvoiceForm({ 
   onInvoiceGenerated, 
-  language, 
-  onLanguageChange, 
   selectedClient, 
   selectedService, 
   onClientClear, 
@@ -43,7 +40,7 @@ export default function InvoiceForm({
   onSelectClient,
   setCurrentView 
 }: InvoiceFormProps) {
-  const t = translations[language];
+  const { language, t, changeLanguage } = useLanguage();
   
   const [clients] = useLocalStorage<Client[]>('invoice-clients', []);
   const [invoiceHistory] = useLocalStorage<InvoiceHistory[]>('invoice-history', []);
@@ -66,7 +63,7 @@ export default function InvoiceForm({
     servicePeriodStart: monthDates.start,
     servicePeriodEnd: monthDates.end,
     dueDate: '',
-    language: language,
+    language: language as 'de' | 'en',
     currency: 'EUR',
     clientCountry: 'Israel',
     services: []
@@ -324,7 +321,7 @@ export default function InvoiceForm({
       servicePeriodStart: monthDates.start,
       servicePeriodEnd: monthDates.end,
       dueDate: '',
-      language: language,
+      language: language as 'de' | 'en',
       currency: 'EUR',
       clientCountry: 'Israel',
       services: []
@@ -338,13 +335,14 @@ export default function InvoiceForm({
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-corporate-blue">{t.title}</h1>
-        <Select value={language} onValueChange={onLanguageChange}>
+        <Select value={language} onValueChange={changeLanguage}>
           <SelectTrigger className="w-32">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="de">Deutsch</SelectItem>
+            <SelectItem value="he">עברית</SelectItem>
             <SelectItem value="en">English</SelectItem>
+            <SelectItem value="de">Deutsch</SelectItem>
           </SelectContent>
         </Select>
       </div>

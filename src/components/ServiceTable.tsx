@@ -7,7 +7,7 @@ import { Service } from '../types/service';
 import { translations } from '../utils/translations';
 
 interface ServiceTableProps {
-  language: 'de' | 'en';
+  language: 'de' | 'en' | 'he';
   services: Service[];
   onServiceSelect?: (service: Service) => void;
   onEdit: (service: Service) => void;

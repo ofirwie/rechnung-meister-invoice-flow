@@ -8,7 +8,7 @@ import { ServiceFormData, Service } from '../types/service';
 import { translations } from '../utils/translations';
 
 interface ServiceFormProps {
-  language: 'de' | 'en';
+  language: 'de' | 'en' | 'he';
   formData: ServiceFormData;
   editingService: Service | null;
   onInputChange: (field: keyof ServiceFormData, value: string | number) => void;

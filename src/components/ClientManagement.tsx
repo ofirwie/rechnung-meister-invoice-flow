@@ -7,17 +7,16 @@ import { Plus, Search } from 'lucide-react';
 import { Client } from '../types/client';
 import { translations } from '../utils/translations';
 import { useSupabaseClients } from '../hooks/useSupabaseClients';
+import { useLanguage } from '../hooks/useLanguage';
 import ClientForm from './ClientForm';
 import ClientTable from './ClientTable';
 
 interface ClientManagementProps {
-  language: 'de' | 'en';
   onClientSelect?: (client: Client) => void;
 }
 
-export default function ClientManagement({ language, onClientSelect }: ClientManagementProps) {
-  const t = translations[language];
-  const isRTL = false;
+export default function ClientManagement({ onClientSelect }: ClientManagementProps) {
+  const { language, t, isRTL } = useLanguage();
   
   const {
     filteredClients,

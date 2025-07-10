@@ -9,16 +9,15 @@ import { InvoiceHistory } from '../types/invoiceHistory';
 import { translations } from '../utils/translations';
 import { formatGermanDate, formatCurrency } from '../utils/formatters';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface PendingInvoicesTableProps {
-  language: 'de' | 'en';
   onInvoiceView?: (invoice: InvoiceHistory, fromPending?: boolean) => void;
   onInvoiceEdit?: (invoice: InvoiceHistory) => void;
 }
 
-export default function PendingInvoicesTable({ language, onInvoiceView, onInvoiceEdit }: PendingInvoicesTableProps) {
-  const t = translations[language];
-  const isRTL = false;
+export default function PendingInvoicesTable({ onInvoiceView, onInvoiceEdit }: PendingInvoicesTableProps) {
+  const { language, t, isRTL } = useLanguage();
   
   const [invoices, setInvoices] = useLocalStorage<InvoiceHistory[]>('invoice-history', []);
   const [searchTerm, setSearchTerm] = useState('');

@@ -18,12 +18,13 @@ import { Client } from '../types/client';
 import { Service } from '../types/service';
 import { useDataMigration } from '../hooks/useDataMigration';
 import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
+import { useLanguage } from '../hooks/useLanguage';
 
 const Index = () => {
   const navigate = useNavigate();
+  const { language } = useLanguage();
   const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'users'>('invoice');
   const [currentInvoice, setCurrentInvoice] = useState<InvoiceData | null>(null);
-  const [language, setLanguage] = useState<'de' | 'en'>('en');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [serviceSearchTerm, setServiceSearchTerm] = useState('');
@@ -149,7 +150,6 @@ const Index = () => {
         invoice={currentInvoice} 
         onBack={handleBackToForm}
         onStatusChange={handleInvoiceStatusChange}
-        language={language}
       />
     );
   }
@@ -169,8 +169,6 @@ const Index = () => {
         {currentView === 'invoice' && (
           <InvoiceForm 
             onInvoiceGenerated={handleInvoiceGenerated}
-            language={language}
-            onLanguageChange={setLanguage}
             selectedClient={selectedClient}
             selectedService={selectedService}
             onClientClear={() => setSelectedClient(null)}
@@ -181,7 +179,6 @@ const Index = () => {
         )}
         {currentView === 'clients' && (
           <ClientManagement 
-            language={language} 
             onClientSelect={(client) => {
               setSelectedClient(client);
               setCurrentView('invoice');
@@ -190,7 +187,6 @@ const Index = () => {
         )}
         {currentView === 'services' && (
           <ServiceManagement 
-            language={language} 
             onServiceSelect={(service) => {
               setSelectedService(service);
               setCurrentView('invoice');
@@ -200,11 +196,10 @@ const Index = () => {
           />
         )}
         {currentView === 'history' && (
-          <InvoiceHistoryTable language={language} />
+          <InvoiceHistoryTable />
         )}
         {currentView === 'pending' && (
           <PendingInvoicesTable 
-            language={language} 
             onInvoiceView={(invoice: InvoiceHistory) => {
               // Convert InvoiceHistory back to InvoiceData for viewing
               const invoiceData: InvoiceData = {
