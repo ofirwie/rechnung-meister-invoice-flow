@@ -68,7 +68,8 @@ export interface CompanyFormData {
   phone?: string;
   email?: string;
   website?: string;
-  default_currency: 'ILS' | 'EUR';
+  default_currency: string;
   fiscal_year_start: number;
-  logo_url?: string;
+  active: boolean;
+  settings?: Record<string, any>;
 }

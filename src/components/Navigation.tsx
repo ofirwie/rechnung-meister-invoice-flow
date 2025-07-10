@@ -1,13 +1,13 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Users, History, Briefcase, DollarSign, Settings, LogOut } from 'lucide-react';
+import { FileText, Users, History, Briefcase, DollarSign, Settings, LogOut, Building } from 'lucide-react';
 import { useLanguage, Language } from '@/hooks/useLanguage';
 import { useUserManagement } from '@/hooks/useUserManagement';
 
 interface NavigationProps {
-  currentView: 'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'users';
-  onViewChange: (view: 'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'users') => void;
+  currentView: 'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'users' | 'companies';
+  onViewChange: (view: 'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'users' | 'companies') => void;
   onLogout: () => void;
 }
 
@@ -28,6 +28,9 @@ export default function Navigation({ currentView, onViewChange, onLogout }: Navi
   if (isAdmin()) {
     navItems.push({ key: 'users', icon: Settings, label: t.userManagement });
   }
+  
+  // Add company management
+  navItems.push({ key: 'companies', icon: Building, label: t.companyManagement });
 
   return (
     <div className="bg-white border-b border-gray-200 p-4 sticky top-0 z-10">

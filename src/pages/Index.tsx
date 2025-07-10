@@ -21,11 +21,14 @@ import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
 import { useLanguage } from '../hooks/useLanguage';
 import { CompanyProvider } from '../contexts/CompanyContext';
 import CompanySelector from '../components/CompanySelector';
+import CompanyUserManagement from '../components/CompanyUserManagement';
+import { CompanyManagement } from '../components/CompanyManagement';
+import UserManagement from '../components/UserManagement';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { language } = useLanguage();
-  const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'users'>('invoice');
+  const { language, t } = useLanguage();
+  const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'users' | 'companies'>('invoice');
   const [currentInvoice, setCurrentInvoice] = useState<InvoiceData | null>(null);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -85,7 +88,7 @@ const Index = () => {
       console.log('Invoice saved successfully to Supabase');
     } catch (error) {
       console.error('Failed to save invoice:', error);
-      alert('שגיאה בשמירת החשבונית. אנא נסה שוב.');
+      alert(t.errorSavingInvoice);
     }
   };
 
@@ -103,7 +106,7 @@ const Index = () => {
         console.log('Invoice status updated successfully in Supabase');
       } catch (error) {
         console.error('Failed to update invoice status:', error);
-        alert('שגיאה בעדכון סטטוס החשבונית. אנא נסה שוב.');
+        alert(t.errorUpdatingStatus);
       }
     }
   };
@@ -244,6 +247,8 @@ const Index = () => {
         {currentView === 'expenses' && (
           <ExpenseManagement />
         )}
+        {currentView === 'users' && <UserManagement open={true} onClose={() => setCurrentView('invoice')} />}
+        {currentView === 'companies' && <CompanyManagement />}
       </div>
 
       {/* Migration Dialog */}
