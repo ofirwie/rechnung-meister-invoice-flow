@@ -120,7 +120,7 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, langua
             <div className="flex items-center gap-4">
               <h1 className="text-4xl font-bold text-invoice-header mb-2">{t.invoice}</h1>
               {(invoice.status === 'draft' || !invoice.status) && (
-                <div className="bg-red-100 border border-red-400 text-red-800 px-3 py-1 rounded-lg text-lg font-bold">
+                <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-2 rounded-lg text-xl font-bold print:bg-red-200 print:border-2 print:border-red-600 print:text-red-900">
                   DRAFT
                 </div>
               )}
@@ -228,22 +228,12 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, langua
           </div>
         </div>
 
-        {/* VAT Exemption Notice */}
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8">
-          <p className="text-sm font-medium text-yellow-800">
-            <strong>VAT Exemption Notice:</strong>
-          </p>
-          <p className="text-sm text-yellow-700 mt-1">
-            {t.vatExempt}
-          </p>
-        </div>
-
         {/* Payment Information */}
         <div className="mb-8">
           <h3 className="font-bold text-lg mb-3 text-invoice-header">{t.paymentTerms}</h3>
           <p className="text-sm mb-4">{t.paymentText}</p>
           
-          <div className="bg-gray-50 p-4 rounded-lg">
+          <div className="bg-gray-50 p-4 rounded-lg print:bg-white print:border print:border-gray-300">
             <h4 className="font-semibold mb-2 text-corporate-blue">{t.bankDetails}</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
@@ -259,9 +249,22 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, langua
         </div>
 
         {/* Footer */}
-        <div className="border-t border-invoice-border pt-6 text-center">
+        <div className="border-t border-invoice-border pt-6 text-center mb-8">
           <p className="text-lg font-semibold text-corporate-blue mb-2">{t.thankYou}</p>
           <p className="text-xs text-muted-foreground">{t.archivalNote}</p>
+        </div>
+
+        {/* Reverse Charge Notice - Always on second page */}
+        <div className="page-break-before bg-yellow-50 border-l-4 border-yellow-400 p-6 print:bg-white print:border print:border-yellow-400">
+          <p className="text-lg font-bold text-yellow-800 mb-3">
+            <strong>Reverse Charge</strong>
+          </p>
+          <p className="text-sm text-yellow-700 leading-relaxed">
+            {invoice.language === 'de' 
+              ? 'Gemäß § 13b UStG wird die Umsatzsteuer vom Leistungsempfänger geschuldet. Diese Rechnung enthält keine Umsatzsteuer.'
+              : 'According to § 13b UStG (German VAT Act), VAT is payable by the recipient of services. This invoice does not contain VAT.'
+            }
+          </p>
         </div>
       </div>
 
@@ -273,6 +276,31 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, langua
           .print\\:p-6 { padding: 1.5rem !important; }
           .print\\:max-w-none { max-width: none !important; }
           .print\\:mx-0 { margin-left: 0 !important; margin-right: 0 !important; }
+          .print\\:bg-white { background-color: white !important; }
+          .print\\:border { border: 1px solid #d1d5db !important; }
+          .print\\:border-gray-300 { border-color: #d1d5db !important; }
+          .print\\:border-yellow-400 { border-color: #f59e0b !important; }
+          .print\\:bg-red-200 { background-color: #fecaca !important; }
+          .print\\:border-2 { border-width: 2px !important; }
+          .print\\:border-red-600 { border-color: #dc2626 !important; }
+          .print\\:text-red-900 { color: #7f1d1d !important; }
+          
+          /* Page break control */
+          .page-break-before { 
+            page-break-before: always !important; 
+            break-before: page !important;
+          }
+          
+          /* Optimize spacing for short invoices */
+          .services-table-container { 
+            min-height: auto !important; 
+          }
+          
+          /* Ensure proper page distribution */
+          .invoice-main-content {
+            page-break-after: auto;
+          }
+          
           @page { 
             size: A4; 
             margin: 2cm; 
