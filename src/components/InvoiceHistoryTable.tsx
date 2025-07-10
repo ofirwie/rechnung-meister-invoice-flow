@@ -18,6 +18,15 @@ interface InvoiceHistoryTableProps {
 export default function InvoiceHistoryTable({ onInvoiceView }: InvoiceHistoryTableProps) {
   const { language, t, isRTL } = useLanguage();
   
+  // Safety check - if translations are not loaded yet, show loading state
+  if (!t) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+  
   const [invoices] = useLocalStorage<InvoiceHistory[]>('invoice-history', []);
   const [searchTerm, setSearchTerm] = useState('');
 

@@ -24,7 +24,7 @@ export const useLanguage = () => {
     document.documentElement.lang = language;
   }, [language]);
 
-  const t = translations[language];
+  const t = translations[language] || translations['en']; // Fallback to English if language not found
 
   const changeLanguage = (newLanguage: Language) => {
     setLanguage(newLanguage);
