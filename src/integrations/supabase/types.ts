@@ -109,6 +109,104 @@ export type Database = {
           },
         ]
       }
+      expense_charges: {
+        Row: {
+          active: boolean | null
+          amount: number
+          category_id: string | null
+          charge_date: string
+          created_at: string | null
+          currency: string | null
+          description: string
+          expense_type_id: string | null
+          id: string
+          invoice_number: string | null
+          is_subscription_charge: boolean | null
+          notes: string | null
+          payment_method: string | null
+          receipt_drive_id: string | null
+          receipt_file_name: string | null
+          receipt_file_url: string | null
+          subscription_id: string | null
+          supplier_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          active?: boolean | null
+          amount: number
+          category_id?: string | null
+          charge_date: string
+          created_at?: string | null
+          currency?: string | null
+          description: string
+          expense_type_id?: string | null
+          id?: string
+          invoice_number?: string | null
+          is_subscription_charge?: boolean | null
+          notes?: string | null
+          payment_method?: string | null
+          receipt_drive_id?: string | null
+          receipt_file_name?: string | null
+          receipt_file_url?: string | null
+          subscription_id?: string | null
+          supplier_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          active?: boolean | null
+          amount?: number
+          category_id?: string | null
+          charge_date?: string
+          created_at?: string | null
+          currency?: string | null
+          description?: string
+          expense_type_id?: string | null
+          id?: string
+          invoice_number?: string | null
+          is_subscription_charge?: boolean | null
+          notes?: string | null
+          payment_method?: string | null
+          receipt_drive_id?: string | null
+          receipt_file_name?: string | null
+          receipt_file_url?: string | null
+          subscription_id?: string | null
+          supplier_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_charges_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_charges_expense_type_id_fkey"
+            columns: ["expense_type_id"]
+            isOneToOne: false
+            referencedRelation: "expense_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_charges_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_charges_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expense_types: {
         Row: {
           active: boolean | null
@@ -438,6 +536,94 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          amount: number
+          auto_renew: boolean | null
+          category_id: string | null
+          created_at: string | null
+          currency: string | null
+          description: string | null
+          end_date: string | null
+          expense_type_id: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          next_charge_date: string
+          notes: string | null
+          payment_method: string | null
+          recurring_period: string
+          start_date: string
+          supplier_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          auto_renew?: boolean | null
+          category_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          end_date?: string | null
+          expense_type_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          next_charge_date: string
+          notes?: string | null
+          payment_method?: string | null
+          recurring_period: string
+          start_date: string
+          supplier_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          auto_renew?: boolean | null
+          category_id?: string | null
+          created_at?: string | null
+          currency?: string | null
+          description?: string | null
+          end_date?: string | null
+          expense_type_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          next_charge_date?: string
+          notes?: string | null
+          payment_method?: string | null
+          recurring_period?: string
+          start_date?: string
+          supplier_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_expense_type_id_fkey"
+            columns: ["expense_type_id"]
+            isOneToOne: false
+            referencedRelation: "expense_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suppliers: {
         Row: {
