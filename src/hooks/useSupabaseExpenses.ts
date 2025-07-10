@@ -129,8 +129,15 @@ export const useSupabaseExpenses = () => {
 
   const addExpense = async (expense: Omit<Expense, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => {
     try {
+      console.log('Adding new expense:', expense);
+
       const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error('User not authenticated');
+      if (!user.user) {
+        console.error('User not authenticated');
+        throw new Error('User not authenticated');
+      }
+
+      console.log('User authenticated:', user.user.id);
 
       // Map frontend types to database fields
       const dbExpense = {
@@ -157,11 +164,19 @@ export const useSupabaseExpenses = () => {
         user_id: user.user.id,
       };
 
-      const { error } = await supabase
-        .from('expenses')
-        .insert(dbExpense);
+      console.log('Database expense object:', dbExpense);
 
-      if (error) throw error;
+      const { data, error } = await supabase
+        .from('expenses')
+        .insert(dbExpense)
+        .select();
+
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+
+      console.log('Expense added successfully:', data);
 
       toast({
         title: "הצלחה",

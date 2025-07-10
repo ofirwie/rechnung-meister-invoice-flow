@@ -127,13 +127,23 @@ const ExpenseForm = ({ expense, onClose, onSave, defaultExpenseType = 'business'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('ExpenseForm: Form submitted');
+    console.log('Form data:', formData);
     
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      console.log('Form validation failed');
+      return;
+    }
 
     setLoading(true);
     try {
       const expenseTypeData = expenseTypes.find(t => t.name === formData.expenseType);
-      if (!expenseTypeData) throw new Error('Expense type not found');
+      if (!expenseTypeData) {
+        console.error('Expense type not found:', formData.expenseType);
+        throw new Error('Expense type not found');
+      }
+
+      console.log('Expense type found:', expenseTypeData);
 
       const expenseData = {
         expenseTypeId: expenseTypeData.id,
@@ -157,12 +167,17 @@ const ExpenseForm = ({ expense, onClose, onSave, defaultExpenseType = 'business'
         active: true,
       };
 
+      console.log('Expense data prepared:', expenseData);
+
       if (expense) {
+        console.log('Updating existing expense');
         await updateExpense(expense.id, expenseData);
       } else {
+        console.log('Adding new expense');
         await addExpense(expenseData);
       }
 
+      console.log('Expense operation completed successfully');
       onSave();
     } catch (error) {
       console.error('Error saving expense:', error);

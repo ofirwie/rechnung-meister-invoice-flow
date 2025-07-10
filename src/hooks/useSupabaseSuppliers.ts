@@ -43,8 +43,15 @@ export const useSupabaseSuppliers = () => {
 
   const addSupplier = async (supplier: Omit<Supplier, 'id' | 'createdAt' | 'updatedAt' | 'userId'>) => {
     try {
+      console.log('Adding new supplier:', supplier);
+
       const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error('User not authenticated');
+      if (!user.user) {
+        console.error('User not authenticated');
+        throw new Error('User not authenticated');
+      }
+
+      console.log('User authenticated:', user.user.id);
 
       // Map frontend types to database fields
       const dbSupplier = {
@@ -60,11 +67,19 @@ export const useSupabaseSuppliers = () => {
         user_id: user.user.id,
       };
 
-      const { error } = await supabase
-        .from('suppliers')
-        .insert(dbSupplier);
+      console.log('Database supplier object:', dbSupplier);
 
-      if (error) throw error;
+      const { data, error } = await supabase
+        .from('suppliers')
+        .insert(dbSupplier)
+        .select();
+
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+
+      console.log('Supplier added successfully:', data);
 
       toast({
         title: "הצלחה",
@@ -84,12 +99,46 @@ export const useSupabaseSuppliers = () => {
 
   const updateSupplier = async (id: string, updates: Partial<Supplier>) => {
     try {
+      console.log('Updating supplier with id:', id);
+      console.log('Updates data:', updates);
+
+      // Map frontend types to database fields
+      const dbUpdates: any = {};
+      Object.entries(updates).forEach(([key, value]) => {
+        switch (key) {
+          case 'taxId':
+            dbUpdates.tax_id = value;
+            break;
+          case 'contactPerson':
+            dbUpdates.contact_person = value;
+            break;
+          case 'userId':
+            dbUpdates.user_id = value;
+            break;
+          case 'createdAt':
+            dbUpdates.created_at = value;
+            break;
+          case 'updatedAt':
+            dbUpdates.updated_at = value;
+            break;
+          default:
+            dbUpdates[key] = value;
+        }
+      });
+
+      console.log('Mapped database updates:', dbUpdates);
+
       const { error } = await supabase
         .from('suppliers')
-        .update(updates)
+        .update(dbUpdates)
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+
+      console.log('Supplier updated successfully');
 
       toast({
         title: "הצלחה",

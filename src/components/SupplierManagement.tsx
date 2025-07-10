@@ -38,12 +38,19 @@ const SupplierManagement = ({ open, onClose }: SupplierManagementProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('SupplierManagement: Form submitted');
+    console.log('Form data:', formData);
+    console.log('Editing supplier:', editingSupplier);
+
     try {
       if (editingSupplier) {
+        console.log('Updating existing supplier');
         await updateSupplier(editingSupplier.id, formData);
       } else {
+        console.log('Adding new supplier');
         await addSupplier({ ...formData, active: true });
       }
+      console.log('Supplier operation completed successfully');
       handleCloseForm();
     } catch (error) {
       console.error('Error saving supplier:', error);
