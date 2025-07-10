@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          additional_info: Json | null
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          record_id: string
+          table_name: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          additional_info?: Json | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id: string
+          table_name: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          additional_info?: Json | null
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           address: string
@@ -417,6 +459,7 @@ export type Database = {
           client_postal_code: string | null
           created_at: string
           currency: string
+          deleted_at: string | null
           due_date: string
           exchange_rate: number | null
           id: string
@@ -447,6 +490,7 @@ export type Database = {
           client_postal_code?: string | null
           created_at?: string
           currency?: string
+          deleted_at?: string | null
           due_date: string
           exchange_rate?: number | null
           id?: string
@@ -477,6 +521,7 @@ export type Database = {
           client_postal_code?: string | null
           created_at?: string
           currency?: string
+          deleted_at?: string | null
           due_date?: string
           exchange_rate?: number | null
           id?: string

@@ -14,6 +14,7 @@ export function useSupabaseInvoices() {
       const { data, error } = await supabase
         .from('invoices')
         .select('*')
+        .is('deleted_at', null) // Only load non-deleted invoices
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -180,9 +181,27 @@ export function useSupabaseInvoices() {
         throw new Error('User not authenticated. Please log in to delete invoices.');
       }
 
+      // First, get the invoice to check its status
+      const { data: invoiceData, error: fetchError } = await supabase
+        .from('invoices')
+        .select('status')
+        .eq('invoice_number', invoiceNumber)
+        .eq('user_id', user.id)
+        .single();
+
+      if (fetchError) {
+        throw new Error('Invoice not found or access denied.');
+      }
+
+      // Prevent deletion of approved or issued invoices
+      if (invoiceData.status === 'approved' || invoiceData.status === 'issued') {
+        throw new Error('אסור למחוק חשבוניות שאושרו או הונפקו! זהו הפרה של חוקי הנהלת חשבונות.\n\nCannot delete approved or issued invoices! This violates accounting regulations.\n\nרק חשבוניות עם סטטוס "טיוטה" ניתנות למחיקה.\nOnly invoices with "draft" status can be deleted.');
+      }
+
+      // Use soft delete instead of hard delete
       const { error } = await supabase
         .from('invoices')
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq('invoice_number', invoiceNumber)
         .eq('user_id', user.id); // Ensure user can only delete their own invoices
 
