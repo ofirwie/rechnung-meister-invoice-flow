@@ -1,82 +1,84 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Users, History, Briefcase } from 'lucide-react';
-import { translations } from '../utils/translations';
+import { FileText, Users, History, Briefcase, DollarSign, Settings, LogOut } from 'lucide-react';
+import { useLanguage, Language } from '@/hooks/useLanguage';
+import { useUserManagement } from '@/hooks/useUserManagement';
 
 interface NavigationProps {
-  currentView: 'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses';
-  onViewChange: (view: 'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses') => void;
-  language: 'de' | 'en';
-  onLanguageChange: (language: 'de' | 'en') => void;
+  currentView: 'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'users';
+  onViewChange: (view: 'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'users') => void;
+  onLogout: () => void;
 }
 
-export default function Navigation({ currentView, onViewChange, language, onLanguageChange }: NavigationProps) {
-  const t = translations[language];
+export default function Navigation({ currentView, onViewChange, onLogout }: NavigationProps) {
+  const { t, language, changeLanguage, availableLanguages, isRTL } = useLanguage();
+  const { isAdmin } = useUserManagement();
+
+  const navItems = [
+    { key: 'invoice', icon: FileText, label: t.createInvoice },
+    { key: 'clients', icon: Users, label: t.clientManagement },
+    { key: 'services', icon: Briefcase, label: t.serviceManagement },
+    { key: 'history', icon: History, label: t.invoiceHistory },
+    { key: 'pending', icon: History, label: t.pendingInvoices },
+    { key: 'expenses', icon: DollarSign, label: t.expenseManagement },
+  ];
+
+  // Add user management for admins only
+  if (isAdmin()) {
+    navItems.push({ key: 'users', icon: Settings, label: t.userManagement });
+  }
 
   return (
     <div className="bg-white border-b border-gray-200 p-4 sticky top-0 z-10">
       <div className="max-w-6xl mx-auto flex justify-between items-center">
-        <div className="flex space-x-2">
-          <Button
-            variant={currentView === 'invoice' ? 'default' : 'outline'}
-            onClick={() => onViewChange('invoice')}
-            className={`flex items-center ${currentView === 'invoice' ? 'bg-corporate-blue hover:bg-corporate-blue-dark' : ''}`}
-          >
-            <FileText className="w-4 h-4 mr-2" />
-            {t.createInvoice}
-          </Button>
-          <Button
-            variant={currentView === 'clients' ? 'default' : 'outline'}
-            onClick={() => onViewChange('clients')}
-            className={`flex items-center ${currentView === 'clients' ? 'bg-corporate-blue hover:bg-corporate-blue-dark' : ''}`}
-          >
-            <Users className="w-4 h-4 mr-2" />
-            {t.clientManagement}
-          </Button>
-          <Button
-            variant={currentView === 'services' ? 'default' : 'outline'}
-            onClick={() => onViewChange('services')}
-            className={`flex items-center ${currentView === 'services' ? 'bg-corporate-blue hover:bg-corporate-blue-dark' : ''}`}
-          >
-            <Briefcase className="w-4 h-4 mr-2" />
-            {t.serviceManagement}
-          </Button>
-          <Button
-            variant={currentView === 'history' ? 'default' : 'outline'}
-            onClick={() => onViewChange('history')}
-            className={`flex items-center ${currentView === 'history' ? 'bg-corporate-blue hover:bg-corporate-blue-dark' : ''}`}
-          >
-            <History className="w-4 h-4 mr-2" />
-            {t.invoiceHistory}
-          </Button>
-          <Button
-            variant={currentView === 'pending' ? 'default' : 'outline'}
-            onClick={() => onViewChange('pending')}
-            className={`flex items-center ${currentView === 'pending' ? 'bg-corporate-blue hover:bg-corporate-blue-dark' : ''}`}
-          >
-            <History className="w-4 h-4 mr-2" />
-            {t.pendingInvoices}
-          </Button>
-          <Button
-            variant={currentView === 'expenses' ? 'default' : 'outline'}
-            onClick={() => onViewChange('expenses')}
-            className={`flex items-center ${currentView === 'expenses' ? 'bg-corporate-blue hover:bg-corporate-blue-dark' : ''}`}
-          >
-            💰
-            הוצאות
-          </Button>
+        <div className={`flex ${isRTL ? 'space-x-reverse' : ''} space-x-2`}>
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Button
+                key={item.key}
+                variant={currentView === item.key ? 'default' : 'outline'}
+                onClick={() => onViewChange(item.key as any)}
+                className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''} ${
+                  currentView === item.key ? 'bg-primary hover:bg-primary/90' : ''
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                {item.label}
+              </Button>
+            );
+          })}
         </div>
         
-        <Select value={language} onValueChange={onLanguageChange}>
-          <SelectTrigger className="w-32">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="de">Deutsch</SelectItem>
-            <SelectItem value="en">English</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-2`}>
+          {/* Language Selector */}
+          <Select value={language} onValueChange={changeLanguage}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {availableLanguages.map((lang) => (
+                <SelectItem key={lang.code} value={lang.code}>
+                  <span className="flex items-center gap-2">
+                    <span>{lang.flag}</span>
+                    {lang.name}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Logout Button */}
+          <Button
+            variant="outline"
+            onClick={onLogout}
+            className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}
+          >
+            <LogOut className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+            {t.logout}
+          </Button>
+        </div>
       </div>
     </div>
   );

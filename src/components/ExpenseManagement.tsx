@@ -13,9 +13,11 @@ import CategoryManagement from './CategoryManagement';
 import { useSupabaseExpenses } from '@/hooks/useSupabaseExpenses';
 import { useSupabaseSuppliers } from '@/hooks/useSupabaseSuppliers';
 import { useExpenseCategories } from '@/hooks/useExpenseCategories';
+import { useLanguage } from '@/hooks/useLanguage';
 import type { ExpenseFilters } from '@/types/expense';
 
 const ExpenseManagement = () => {
+  const { t, isRTL } = useLanguage();
   const [activeTab, setActiveTab] = useState<'business' | 'personal'>('business');
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
@@ -67,22 +69,22 @@ const ExpenseManagement = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">ניהול הוצאות</h1>
-        <Button onClick={() => setShowExpenseForm(true)} className="flex items-center gap-2">
+      <div className={`flex justify-between items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
+        <h1 className="text-3xl font-bold">{t.expenseManagement}</h1>
+        <Button onClick={() => setShowExpenseForm(true)} className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
           <Plus className="w-4 h-4" />
-          הוצאה חדשה
+          {t.newExpense}
         </Button>
       </div>
 
       {/* Expense Type Tabs */}
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'business' | 'personal')}>
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="business" className="flex items-center gap-2">
-            📊 עסקי
+          <TabsTrigger value="business" className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            📊 {t.business}
           </TabsTrigger>
-          <TabsTrigger value="personal" className="flex items-center gap-2">
-            🏠 אישי/משפחה
+          <TabsTrigger value="personal" className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            🏠 {t.personal}
           </TabsTrigger>
         </TabsList>
 
@@ -92,7 +94,7 @@ const ExpenseManagement = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">סה״כ החודש</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t.totalThisMonth}</CardTitle>
                   <span className="text-blue-600">💰</span>
                 </CardHeader>
                 <CardContent>
@@ -109,7 +111,7 @@ const ExpenseManagement = () => {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">מנויים פעילים</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t.activeSubscriptions}</CardTitle>
                   <span className="text-green-600">🔄</span>
                 </CardHeader>
                 <CardContent>
@@ -119,7 +121,7 @@ const ExpenseManagement = () => {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">הוצאה גדולה</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t.highestExpense}</CardTitle>
                   <span className="text-orange-600">📈</span>
                 </CardHeader>
                 <CardContent>
@@ -129,7 +131,7 @@ const ExpenseManagement = () => {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">קטגוריה מובילה</CardTitle>
+                  <CardTitle className="text-sm font-medium">{t.topCategory}</CardTitle>
                   <span className="text-purple-600">🏷️</span>
                 </CardHeader>
                 <CardContent>
@@ -152,7 +154,7 @@ const ExpenseManagement = () => {
               <div className="flex flex-wrap gap-4 items-end">
                 <div className="flex-1 min-w-[200px]">
                   <Input
-                    placeholder="חיפוש בתיאור, ספק, קטגוריה..."
+                    placeholder={`${t.search} ${t.description}, ${t.supplier}, ${t.category}...`}
                     value={filters.searchTerm}
                     onChange={(e) => handleFilterChange('searchTerm', e.target.value)}
                     className="w-full"
@@ -162,13 +164,13 @@ const ExpenseManagement = () => {
                 <div className="flex gap-2">
                   <Input
                     type="date"
-                    placeholder="מתאריך"
+                    placeholder={t.dateFrom}
                     value={filters.dateFrom}
                     onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
                   />
                   <Input
                     type="date"
-                    placeholder="עד תאריך"
+                    placeholder={t.dateTo}
                     value={filters.dateTo}
                     onChange={(e) => handleFilterChange('dateTo', e.target.value)}
                   />
@@ -179,36 +181,36 @@ const ExpenseManagement = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">הכל</SelectItem>
-                    <SelectItem value="true">מנוי</SelectItem>
-                    <SelectItem value="false">חד-פעמי</SelectItem>
+                    <SelectItem value="all">{t.all}</SelectItem>
+                    <SelectItem value="true">{t.subscription}</SelectItem>
+                    <SelectItem value="false">{t.oneTime}</SelectItem>
                   </SelectContent>
                 </Select>
 
                 <Button variant="outline" onClick={clearFilters}>
-                  נקה פילטרים
+                  {t.clearFilters}
                 </Button>
               </div>
             </CardContent>
           </Card>
 
           {/* Action Buttons */}
-          <div className="flex gap-2 flex-wrap">
-            <Button onClick={() => setShowExpenseForm(true)} className="flex items-center gap-2">
+          <div className={`flex gap-2 flex-wrap ${isRTL ? 'justify-end' : ''}`}>
+            <Button onClick={() => setShowExpenseForm(true)} className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
               <Plus className="w-4 h-4" />
-              הוצאה חדשה
+              {t.newExpense}
             </Button>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button variant="outline" className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
               <Download className="w-4 h-4" />
-              ייצוא לאקסל
+              {t.exportToExcel}
             </Button>
-            <Button variant="outline" className="flex items-center gap-2" onClick={() => setShowSupplierManagement(true)}>
+            <Button variant="outline" className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`} onClick={() => setShowSupplierManagement(true)}>
               <Users className="w-4 h-4" />
-              ניהול ספקים
+              {t.supplierManagement}
             </Button>
-            <Button variant="outline" className="flex items-center gap-2" onClick={() => setShowCategoryManagement(true)}>
+            <Button variant="outline" className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`} onClick={() => setShowCategoryManagement(true)}>
               <Tags className="w-4 h-4" />
-              ניהול קטגוריות
+              {t.categoryManagement}
             </Button>
           </div>
 
