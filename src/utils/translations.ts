@@ -141,6 +141,14 @@ export const translations = {
     unblock: 'Freigeben',
     noUsers: 'Keine Benutzer gefunden',
     
+    // Company management
+    noCompanySelected: 'Keine Firma ausgewählt',
+    createCompany: 'Firma erstellen',
+    addCompany: 'Firma hinzufügen',
+    manageCompany: 'Firma verwalten',
+    owner: 'Eigentümer',
+    viewer: 'Betrachter',
+    
     // Session Management
     sessionExpiring: 'Sitzung läuft ab',
     sessionExpired: 'Sitzung abgelaufen',
@@ -292,6 +300,14 @@ export const translations = {
     unblock: 'Unblock',
     noUsers: 'No users found',
     
+    // Company management
+    noCompanySelected: 'No company selected',
+    createCompany: 'Create Company',
+    addCompany: 'Add Company',
+    manageCompany: 'Manage Company',
+    owner: 'Owner',
+    viewer: 'Viewer',
+    
     // Session Management
     sessionExpiring: 'Session Expiring',
     sessionExpired: 'Session Expired',
@@ -442,6 +458,14 @@ export const translations = {
     block: 'חסום',
     unblock: 'בטל חסימה',
     noUsers: 'לא נמצאו משתמשים',
+    
+    // Company management
+    noCompanySelected: 'לא נבחרה חברה',
+    createCompany: 'צור חברה',
+    addCompany: 'הוסף חברה',
+    manageCompany: 'נהל חברה',
+    owner: 'בעלים',
+    viewer: 'צופה',
     
     // Session Management
     sessionExpiring: 'ההתחברות פגה',

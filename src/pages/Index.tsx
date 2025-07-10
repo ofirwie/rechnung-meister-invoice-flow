@@ -19,6 +19,8 @@ import { Service } from '../types/service';
 import { useDataMigration } from '../hooks/useDataMigration';
 import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
 import { useLanguage } from '../hooks/useLanguage';
+import { CompanyProvider } from '../contexts/CompanyContext';
+import CompanySelector from '../components/CompanySelector';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -155,8 +157,16 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navigation 
+    <CompanyProvider>
+      <div className="min-h-screen bg-background">
+        {/* Company Selector */}
+        <div className="bg-white border-b border-gray-200 p-3">
+          <div className="max-w-6xl mx-auto">
+            <CompanySelector />
+          </div>
+        </div>
+        
+        <Navigation
         currentView={currentView}
         onViewChange={setCurrentView}
         onLogout={async () => {
@@ -303,6 +313,7 @@ const Index = () => {
         </div>
       )}
     </div>
+    </CompanyProvider>
   );
 };
 
