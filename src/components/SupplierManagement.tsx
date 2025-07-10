@@ -32,9 +32,17 @@ const SupplierManagement = ({ open, onClose }: SupplierManagementProps) => {
 
   useEffect(() => {
     if (open) {
+      console.log('SupplierManagement: Dialog opened, loading suppliers...');
       loadSuppliers();
     }
   }, [open]);
+
+  const handleNewSupplier = () => {
+    console.log('SupplierManagement: New supplier button clicked');
+    console.log('Current showForm state:', showForm);
+    setShowForm(true);
+    console.log('Setting showForm to true');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,14 +109,15 @@ const SupplierManagement = ({ open, onClose }: SupplierManagementProps) => {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            ניהול ספקים
-            <Button onClick={() => setShowForm(true)} className="flex items-center gap-2">
-              <Plus className="w-4 h-4" />
-              ספק חדש
-            </Button>
-          </DialogTitle>
+          <DialogTitle>ניהול ספקים</DialogTitle>
         </DialogHeader>
+
+        <div className="flex justify-end mb-4">
+          <Button onClick={handleNewSupplier} className="flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            ספק חדש
+          </Button>
+        </div>
 
         {showForm && (
           <Card className="mb-6">
