@@ -10,7 +10,7 @@ export interface UserProfile {
   updated_at: string;
   is_active: boolean;
   last_login: string | null;
-  role?: 'admin' | 'manager' | 'user';
+  role?: 'rootadmin' | 'admin' | 'manager' | 'user';
 }
 
 export const useUserManagement = () => {
@@ -65,7 +65,7 @@ export const useUserManagement = () => {
     }
   };
 
-  const assignRole = async (userId: string, role: 'admin' | 'manager' | 'user') => {
+  const assignRole = async (userId: string, role: 'rootadmin' | 'admin' | 'manager' | 'user') => {
     try {
       // First, remove existing roles for this user
       await supabase
@@ -126,12 +126,26 @@ export const useUserManagement = () => {
     }
   };
 
+  const isRootAdmin = () => {
+    return currentUserRole === 'rootadmin';
+  };
+
   const isAdmin = () => {
-    return currentUserRole === 'admin';
+    return currentUserRole === 'admin' || currentUserRole === 'rootadmin';
   };
 
   const canManageUsers = () => {
-    return currentUserRole === 'admin' || currentUserRole === 'manager';
+    return ['rootadmin', 'admin', 'manager'].includes(currentUserRole || '');
+  };
+
+  const canCreateCompanies = () => {
+    return currentUserRole === 'rootadmin';
+  };
+
+  const canAssignRole = (targetRole: string) => {
+    if (currentUserRole === 'rootadmin') return true;
+    if (currentUserRole === 'admin' && ['manager', 'user'].includes(targetRole)) return true;
+    return false;
   };
 
   useEffect(() => {
@@ -145,7 +159,10 @@ export const useUserManagement = () => {
     loadUsers,
     assignRole,
     toggleUserStatus,
+    isRootAdmin,
     isAdmin,
-    canManageUsers
+    canManageUsers,
+    canCreateCompanies,
+    canAssignRole
   };
 };

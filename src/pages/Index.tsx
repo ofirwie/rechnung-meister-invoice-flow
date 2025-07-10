@@ -28,7 +28,8 @@ import UserManagement from '../components/UserManagement';
 const Index = () => {
   const navigate = useNavigate();
   const { language, t } = useLanguage();
-  const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'users' | 'companies'>('invoice');
+  const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'companies'>('invoice');
+  const [showUserManagement, setShowUserManagement] = useState(false);
   const [currentInvoice, setCurrentInvoice] = useState<InvoiceData | null>(null);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -165,7 +166,10 @@ const Index = () => {
         {/* Company Selector */}
         <div className="bg-white border-b border-gray-200 p-3">
           <div className="max-w-6xl mx-auto">
-            <CompanySelector />
+            <CompanySelector 
+              onManageCompanies={() => setCurrentView('companies')}
+              onManageUsers={() => setShowUserManagement(true)}
+            />
           </div>
         </div>
         
@@ -247,7 +251,17 @@ const Index = () => {
         {currentView === 'expenses' && (
           <ExpenseManagement />
         )}
-        {currentView === 'users' && <UserManagement open={true} onClose={() => setCurrentView('invoice')} />}
+        {showUserManagement && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h1 className="text-3xl font-bold">ניהול משתמשי החברה</h1>
+              <Button variant="outline" onClick={() => setShowUserManagement(false)}>
+                חזור
+              </Button>
+            </div>
+            <CompanyUserManagement />
+          </div>
+        )}
         {currentView === 'companies' && <CompanyManagement />}
       </div>
 

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useCompany } from '@/contexts/CompanyContext';
+import { useUserManagement } from '@/hooks/useUserManagement';
 import CompanyUserManagement from './CompanyUserManagement';
 import { CompanyForm } from './CompanyForm';
 import { formatCurrency } from '@/utils/formatters';
@@ -12,6 +13,7 @@ import { formatCurrency } from '@/utils/formatters';
 export const CompanyManagement: React.FC = () => {
   const { t, isRTL } = useLanguage();
   const { selectedCompany, companies, switchCompany } = useCompany();
+  const { canCreateCompanies } = useUserManagement();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showUserManagement, setShowUserManagement] = useState(false);
   const [editingCompany, setEditingCompany] = useState<string | null>(null);
@@ -79,13 +81,15 @@ export const CompanyManagement: React.FC = () => {
               {t.companyUsers}
             </Button>
           )}
-          <Button
-            onClick={() => setShowCreateForm(true)}
-            className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}
-          >
-            <Plus className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
-            {t.addCompany}
-          </Button>
+          {canCreateCompanies() && (
+            <Button
+              onClick={() => setShowCreateForm(true)}
+              className={`flex items-center ${isRTL ? 'flex-row-reverse' : ''}`}
+            >
+              <Plus className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+              {t.addCompany}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -95,11 +99,13 @@ export const CompanyManagement: React.FC = () => {
             <Building className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">{t.noCompanySelected}</h3>
             <p className="text-muted-foreground mb-4">
-              {t.createCompany}
+              {canCreateCompanies() ? t.createCompany : "אין לך הרשאה ליצור חברות חדשות"}
             </p>
-            <Button onClick={() => setShowCreateForm(true)}>
-              {t.addCompany}
-            </Button>
+            {canCreateCompanies() && (
+              <Button onClick={() => setShowCreateForm(true)}>
+                {t.addCompany}
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (

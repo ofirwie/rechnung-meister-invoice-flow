@@ -18,7 +18,7 @@ interface UserManagementProps {
 }
 
 const UserManagement: React.FC<UserManagementProps> = ({ open, onClose }) => {
-  const { users, loading, currentUserRole, loadUsers, assignRole, toggleUserStatus, isAdmin } = useUserManagement();
+  const { users, loading, currentUserRole, loadUsers, assignRole, toggleUserStatus, isAdmin, canAssignRole } = useUserManagement();
   const { t, isRTL } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
@@ -42,7 +42,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ open, onClose }) => {
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  const handleRoleChange = async (userId: string, newRole: 'admin' | 'manager' | 'user') => {
+  const handleRoleChange = async (userId: string, newRole: 'rootadmin' | 'admin' | 'manager' | 'user') => {
     await assignRole(userId, newRole);
   };
 
@@ -52,6 +52,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ open, onClose }) => {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
+      case 'rootadmin': return 'bg-purple-100 text-purple-800';
       case 'admin': return 'bg-red-100 text-red-800';
       case 'manager': return 'bg-blue-100 text-blue-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -60,6 +61,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ open, onClose }) => {
 
   const getRoleText = (role: string) => {
     switch (role) {
+      case 'rootadmin': return 'מנהל על';
       case 'admin': return t.admin;
       case 'manager': return t.manager;
       default: return t.user;
@@ -162,17 +164,18 @@ const UserManagement: React.FC<UserManagementProps> = ({ open, onClose }) => {
             </div>
           </div>
 
-          <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder={t.role} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t.all}</SelectItem>
-              <SelectItem value="admin">{t.admin}</SelectItem>
-              <SelectItem value="manager">{t.manager}</SelectItem>
-              <SelectItem value="user">{t.user}</SelectItem>
-            </SelectContent>
-          </Select>
+              <Select value={roleFilter} onValueChange={setRoleFilter}>
+                <SelectTrigger className="w-[150px]">
+                  <SelectValue placeholder={t.role} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t.all}</SelectItem>
+                  <SelectItem value="rootadmin">מנהל על</SelectItem>
+                  <SelectItem value="admin">{t.admin}</SelectItem>
+                  <SelectItem value="manager">{t.manager}</SelectItem>
+                  <SelectItem value="user">{t.user}</SelectItem>
+                </SelectContent>
+              </Select>
 
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[150px]">
@@ -224,14 +227,24 @@ const UserManagement: React.FC<UserManagementProps> = ({ open, onClose }) => {
                       <Select
                         value={user.role || 'user'}
                         onValueChange={(value) => handleRoleChange(user.id, value as any)}
+                        disabled={!canAssignRole(user.role || 'user')}
                       >
                         <SelectTrigger className="w-[120px]">
-                          <SelectValue />
+                          <SelectValue>
+                            <Badge className={getRoleBadgeColor(user.role || 'user')}>
+                              {getRoleText(user.role || 'user')}
+                            </Badge>
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="user">{t.user}</SelectItem>
                           <SelectItem value="manager">{t.manager}</SelectItem>
-                          <SelectItem value="admin">{t.admin}</SelectItem>
+                          {canAssignRole('admin') && (
+                            <SelectItem value="admin">{t.admin}</SelectItem>
+                          )}
+                          {canAssignRole('rootadmin') && (
+                            <SelectItem value="rootadmin">מנהל על</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     </TableCell>

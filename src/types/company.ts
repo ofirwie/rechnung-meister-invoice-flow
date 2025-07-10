@@ -60,6 +60,8 @@ export interface UserPermissions {
 
 export type UserRole = 'owner' | 'admin' | 'user' | 'viewer';
 
+export type AppRole = 'rootadmin' | 'admin' | 'manager' | 'user';
+
 export interface CompanyFormData {
   name: string;
   business_name?: string;

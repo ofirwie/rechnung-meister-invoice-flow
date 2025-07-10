@@ -6,8 +6,8 @@ import { useLanguage, Language } from '@/hooks/useLanguage';
 import { useUserManagement } from '@/hooks/useUserManagement';
 
 interface NavigationProps {
-  currentView: 'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'users' | 'companies';
-  onViewChange: (view: 'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'users' | 'companies') => void;
+  currentView: 'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'companies';
+  onViewChange: (view: 'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'companies') => void;
   onLogout: () => void;
 }
 
@@ -24,10 +24,7 @@ export default function Navigation({ currentView, onViewChange, onLogout }: Navi
     { key: 'expenses', icon: DollarSign, label: t.expenseManagement },
   ];
 
-  // Add user management for admins only
-  if (isAdmin()) {
-    navItems.push({ key: 'users', icon: Settings, label: t.userManagement });
-  }
+  // Users are now managed per company, not globally
   
   // Add company management
   navItems.push({ key: 'companies', icon: Building, label: t.companyManagement });

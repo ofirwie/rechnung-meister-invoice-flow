@@ -9,9 +9,10 @@ import { useLanguage } from '@/hooks/useLanguage';
 interface CompanySelectorProps {
   onManageCompanies?: () => void;
   onCreateCompany?: () => void;
+  onManageUsers?: () => void;
 }
 
-export default function CompanySelector({ onManageCompanies, onCreateCompany }: CompanySelectorProps) {
+export default function CompanySelector({ onManageCompanies, onCreateCompany, onManageUsers }: CompanySelectorProps) {
   const { selectedCompany, companies, userRole, switchCompany } = useCompany();
   const { t, isRTL } = useLanguage();
 
@@ -109,6 +110,18 @@ export default function CompanySelector({ onManageCompanies, onCreateCompany }: 
           </Button>
         )}
         
+        {onManageUsers && (userRole === 'owner' || userRole === 'admin') && (
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={onManageUsers}
+            className={`flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}
+          >
+            <Users className="w-4 h-4" />
+            {t.userManagement || 'נהל משתמשים'}
+          </Button>
+        )}
+
         {onManageCompanies && (userRole === 'owner' || userRole === 'admin') && (
           <Button 
             size="sm" 
