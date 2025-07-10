@@ -7,11 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Settings, UserMinus, Mail } from 'lucide-react';
+import { Plus, Settings, UserMinus, Mail, User, AlertCircle } from 'lucide-react';
 import { useCompany } from '@/contexts/CompanyContext';
 import { useCompanyUsers } from '@/hooks/useCompanyUsers';
 import { useLanguage } from '@/hooks/useLanguage';
-import type { UserRole, UserPermissions } from '@/types/company';
+import { toast } from 'sonner';
+import type { UserRole } from '@/types/company';
 
 export default function CompanyUserManagement() {
   const { selectedCompany, userRole } = useCompany();
@@ -21,11 +22,15 @@ export default function CompanyUserManagement() {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<UserRole>('user');
+  const [inviteLoading, setInviteLoading] = useState(false);
 
   if (!selectedCompany) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-muted-foreground">{t.noCompanySelected}</div>
+        <div className="text-center space-y-2">
+          <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto" />
+          <div className="text-muted-foreground">{t.noCompanySelected}</div>
+        </div>
       </div>
     );
   }
@@ -33,29 +38,49 @@ export default function CompanyUserManagement() {
   if (userRole !== 'owner' && userRole !== 'admin') {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-muted-foreground">אין לך הרשאה לנהל משתמשים</div>
+        <div className="text-center space-y-2">
+          <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto" />
+          <div className="text-muted-foreground">אין לך הרשאה לנהל משתמשים</div>
+        </div>
       </div>
     );
   }
 
   const handleInviteUser = async () => {
-    if (!inviteEmail.trim()) return;
+    if (!inviteEmail.trim()) {
+      toast.error('נא להזין כתובת אימייל');
+      return;
+    }
 
-    const success = await inviteUser(inviteEmail, inviteRole);
-    if (success) {
-      setShowInviteDialog(false);
-      setInviteEmail('');
-      setInviteRole('user');
+    setInviteLoading(true);
+    try {
+      const success = await inviteUser(inviteEmail, inviteRole);
+      if (success) {
+        setShowInviteDialog(false);
+        setInviteEmail('');
+        setInviteRole('user');
+        toast.success('המשתמש הוזמן בהצלחה');
+      }
+    } catch (error) {
+      console.error('Error inviting user:', error);
+    } finally {
+      setInviteLoading(false);
     }
   };
 
   const handleRoleChange = async (userId: string, newRole: UserRole) => {
-    await updateUserRole(userId, newRole);
+    const success = await updateUserRole(userId, newRole);
+    if (success) {
+      toast.success('התפקיד עודכן בהצלחה');
+    }
   };
 
-  const handleRemoveUser = async (userId: string) => {
-    if (confirm('האם אתה בטוח שברצונך להסיר את המשתמש הזה?')) {
-      await removeUser(userId);
+  const handleRemoveUser = async (userId: string, userEmail: string) => {
+    if (confirm(`האם אתה בטוח שברצונך להסיר את ${userEmail} מהחברה?`)) {
+      const success = await removeUser(userId);
+      if (success) {
+        toast.success('המשתמש הוסר בהצלחה');
+      }
     }
   };
 
@@ -76,12 +101,19 @@ export default function CompanyUserManagement() {
 
   const getRoleText = (role: string) => {
     switch (role) {
-      case 'owner': return t.owner;
-      case 'admin': return t.admin;
-      case 'user': return t.user;
-      case 'viewer': return t.viewer;
+      case 'owner': return t.owner || 'בעלים';
+      case 'admin': return t.admin || 'מנהל';
+      case 'user': return t.user || 'משתמש';
+      case 'viewer': return t.viewer || 'צופה';
       default: return role;
     }
+  };
+
+  const getInitials = (email: string, displayName?: string | null) => {
+    if (displayName) {
+      return displayName.split(' ').map(n => n[0]).join('').toUpperCase();
+    }
+    return email.charAt(0).toUpperCase();
   };
 
   if (loading) {
@@ -121,11 +153,16 @@ export default function CompanyUserManagement() {
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="example@company.com"
+                  disabled={inviteLoading}
                 />
               </div>
               <div>
                 <Label htmlFor="role">תפקיד</Label>
-                <Select value={inviteRole} onValueChange={(value) => setInviteRole(value as UserRole)}>
+                <Select 
+                  value={inviteRole} 
+                  onValueChange={(value) => setInviteRole(value as UserRole)}
+                  disabled={inviteLoading}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -137,11 +174,18 @@ export default function CompanyUserManagement() {
                 </Select>
               </div>
               <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setShowInviteDialog(false)}>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowInviteDialog(false)}
+                  disabled={inviteLoading}
+                >
                   ביטול
                 </Button>
-                <Button onClick={handleInviteUser}>
-                  שלח הזמנה
+                <Button 
+                  onClick={handleInviteUser}
+                  disabled={inviteLoading}
+                >
+                  {inviteLoading ? 'שולח...' : 'שלח הזמנה'}
                 </Button>
               </div>
             </div>
@@ -149,8 +193,10 @@ export default function CompanyUserManagement() {
         </Dialog>
       </div>
 
+      {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-800 p-3 rounded">
+        <div className="bg-red-50 border border-red-200 text-red-800 p-3 rounded flex items-center gap-2">
+          <AlertCircle className="w-4 h-4" />
           {error}
         </div>
       )}
@@ -160,13 +206,17 @@ export default function CompanyUserManagement() {
         <CardHeader>
           <CardTitle className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
             <Settings className="w-5 h-5" />
-            משתמשי החברה
+            משתמשי החברה ({users.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
           {users.length === 0 ? (
-            <div className="text-center p-8 text-muted-foreground">
-              אין משתמשים בחברה זו
+            <div className="text-center p-8 space-y-2">
+              <User className="w-12 h-12 text-muted-foreground mx-auto" />
+              <div className="text-muted-foreground">אין משתמשים בחברה זו</div>
+              <Button onClick={() => setShowInviteDialog(true)} variant="outline" size="sm">
+                הזמן משתמש ראשון
+              </Button>
             </div>
           ) : (
             <Table>
@@ -174,6 +224,7 @@ export default function CompanyUserManagement() {
                 <TableRow>
                   <TableHead>משתמש</TableHead>
                   <TableHead>תפקיד</TableHead>
+                  <TableHead>סטטוס</TableHead>
                   <TableHead>תאריך הצטרפות</TableHead>
                   <TableHead>פעולות</TableHead>
                 </TableRow>
@@ -182,17 +233,19 @@ export default function CompanyUserManagement() {
                 {users.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
                           <span className="text-sm font-medium">
-                            {user.user_id.charAt(0).toUpperCase()}
+                            {getInitials(user.user_email, user.user_display_name)}
                           </span>
                         </div>
                         <div>
-                          <div className="font-medium">{user.user_id}</div>
-                          <div className="text-sm text-muted-foreground">
-                            <Mail className="w-3 h-3 inline mr-1" />
-                            {user.user_id}
+                          <div className="font-medium">
+                            {user.user_display_name || 'משתמש ללא שם'}
+                          </div>
+                          <div className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Mail className="w-3 h-3" />
+                            {user.user_email}
                           </div>
                         </div>
                       </div>
@@ -200,6 +253,11 @@ export default function CompanyUserManagement() {
                     <TableCell>
                       <Badge className={getRoleBadgeColor(user.role)}>
                         {getRoleText(user.role)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={user.user_is_active ? "default" : "secondary"}>
+                        {user.user_is_active ? 'פעיל' : 'לא פעיל'}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -227,7 +285,7 @@ export default function CompanyUserManagement() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleRemoveUser(user.user_id)}
+                            onClick={() => handleRemoveUser(user.user_id, user.user_email)}
                             className="text-red-600 hover:text-red-700"
                           >
                             <UserMinus className="w-4 h-4" />
@@ -276,3 +334,4 @@ export default function CompanyUserManagement() {
     </div>
   );
 }
+//Fix: Enhanced CompanyUserManagement with proper user display
