@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Company, CompanyUser, UserRole, UserPermissions } from '@/types/company';
 import { supabase } from '@/integrations/supabase/client';
-import { useCompanies } from '@/hooks/useCompanies';
 
 interface CompanyContextType {
   selectedCompany: Company | null;
@@ -30,23 +29,95 @@ interface CompanyProviderProps {
 
 export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) => {
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [permissions, setPermissions] = useState<UserPermissions | null>(null);
-  
-  // Use the useCompanies hook that has the proper JOIN logic
-  const { companies, loading: companiesLoading, fetchCompanies } = useCompanies();
+  const [loading, setLoading] = useState(true);
 
-  console.log('📊 CompanyContext - companies loaded:', companies.length);
-  console.log('📊 CompanyContext - selected company:', selectedCompany?.name || 'none');
+  // Use the proper JOIN query like in useCompanies hook
+  const fetchCompanies = async () => {
+    try {
+      setLoading(true);
+      console.log('🔍 CompanyContext: Fetching companies...');
+
+      // Get current user first
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        console.error('❌ CompanyContext: Auth error:', authError);
+        setCompanies([]);
+        setLoading(false);
+        return;
+      }
+
+      if (!user) {
+        console.error('❌ CompanyContext: No user logged in');
+        setCompanies([]);
+        setLoading(false);
+        return;
+      }
+
+      console.log('✅ CompanyContext: Current user:', user.id);
+
+      // Use the same query as useCompanies but directly here to avoid loop
+      const { data: userCompanies, error: userCompaniesError } = await supabase
+        .from('company_users')
+        .select(`
+          company_id,
+          companies!inner (
+            *
+          )
+        `)
+        .eq('user_id', user.id)
+        .eq('active', true);
+
+      if (userCompaniesError) {
+        console.error('❌ CompanyContext: Error fetching companies:', userCompaniesError);
+        setCompanies([]);
+        setLoading(false);
+        return;
+      }
+
+      console.log('✅ CompanyContext: Raw company data:', userCompanies);
+
+      // Transform the data to get just the companies
+      const companiesData = userCompanies?.map((item: any) => item.companies) || [];
+      
+      console.log('🔄 CompanyContext: Transformed companies:', companiesData);
+
+      const activeCompanies = companiesData.filter((company: any) => company && company.active) as Company[];
+      
+      console.log('✅ CompanyContext: Final active companies:', activeCompanies.length);
+
+      setCompanies(activeCompanies);
+      
+      // Auto-select first company if none selected
+      if (activeCompanies.length > 0 && !selectedCompany) {
+        const savedCompanyId = localStorage.getItem('selectedCompanyId');
+        const companyToSelect = savedCompanyId 
+          ? activeCompanies.find(c => c.id === savedCompanyId) || activeCompanies[0]
+          : activeCompanies[0];
+        
+        console.log('🎯 CompanyContext: Auto-selecting company:', companyToSelect.name);
+        await switchCompany(companyToSelect.id);
+      }
+
+    } catch (err) {
+      console.error('❌ CompanyContext: Error in fetchCompanies:', err);
+      setCompanies([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchUserPermissions = async (companyId: string) => {
     try {
-      console.log('👤 Fetching permissions for company:', companyId);
+      console.log('👤 CompanyContext: Fetching permissions for company:', companyId);
       
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
       if (authError || !user) {
-        console.error('❌ Auth error getting user for permissions:', authError);
+        console.error('❌ CompanyContext: Auth error getting user for permissions:', authError);
         return;
       }
 
@@ -59,28 +130,28 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
         .single();
 
       if (error) {
-        console.error('❌ Error fetching user permissions:', error);
+        console.error('❌ CompanyContext: Error fetching user permissions:', error);
         setUserRole(null);
         setPermissions(null);
         return;
       }
 
-      console.log('✅ User permissions loaded:', data);
+      console.log('✅ CompanyContext: User permissions loaded:', data);
       setUserRole(data.role as UserRole);
       setPermissions(data.permissions as unknown as UserPermissions);
     } catch (error) {
-      console.error('❌ Error fetching user permissions:', error);
+      console.error('❌ CompanyContext: Error fetching user permissions:', error);
       setUserRole(null);
       setPermissions(null);
     }
   };
 
   const switchCompany = async (companyId: string) => {
-    console.log('🔄 Switching to company:', companyId);
+    console.log('🔄 CompanyContext: Switching to company:', companyId);
     
     const company = companies.find(c => c.id === companyId);
     if (!company) {
-      console.error('❌ Company not found:', companyId);
+      console.error('❌ CompanyContext: Company not found:', companyId);
       return;
     }
 
@@ -89,11 +160,11 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
     
     await fetchUserPermissions(companyId);
     
-    console.log('✅ Switched to company:', company.name);
+    console.log('✅ CompanyContext: Switched to company:', company.name);
   };
 
   const refreshCompanies = () => {
-    console.log('🔄 Refreshing companies...');
+    console.log('🔄 CompanyContext: Refreshing companies...');
     fetchCompanies();
   };
 
@@ -106,40 +177,11 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
     return resourcePermissions[action as keyof typeof resourcePermissions] === true;
   };
 
-  // Effect to select the first company when companies are loaded
+  // Only run once on mount - no dependencies to avoid loops
   useEffect(() => {
-    console.log('🎯 CompanyContext effect - companies:', companies.length, 'selected:', selectedCompany?.name || 'none');
-    
-    // Only auto-select if we have companies and no company is selected
-    if (!companiesLoading && companies.length > 0 && !selectedCompany) {
-      console.log('🎯 Auto-selecting company...');
-      
-      // Try to restore the previously selected company from localStorage
-      const savedCompanyId = localStorage.getItem('selectedCompanyId');
-      const companyToSelect = savedCompanyId 
-        ? companies.find(c => c.id === savedCompanyId) || companies[0]
-        : companies[0];
-      
-      console.log('🎯 Company to select:', companyToSelect.name, 'ID:', companyToSelect.id);
-      switchCompany(companyToSelect.id);
-    }
-  }, [companies, companiesLoading, selectedCompany]);
-
-  // Reset selected company when companies list changes and current selection is no longer valid
-  useEffect(() => {
-    if (selectedCompany && companies.length > 0) {
-      const stillExists = companies.some(c => c.id === selectedCompany.id);
-      if (!stillExists) {
-        console.log('⚠️ Selected company no longer exists, clearing selection');
-        setSelectedCompany(null);
-        setUserRole(null);
-        setPermissions(null);
-        localStorage.removeItem('selectedCompanyId');
-      }
-    }
-  }, [companies, selectedCompany]);
-
-  const loading = companiesLoading;
+    console.log('🔄 CompanyContext: Component mounted, fetching companies...');
+    fetchCompanies();
+  }, []); // Empty dependency array!
 
   return (
     <CompanyContext.Provider
