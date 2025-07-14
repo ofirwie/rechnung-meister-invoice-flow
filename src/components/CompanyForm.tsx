@@ -1,7 +1,7 @@
 
 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,7 @@ import { useCompanies } from '@/hooks/useCompanies';
 import { useCompany } from '@/contexts/CompanyContext';
 import { Company } from '@/types/company';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CompanyFormProps {
   company?: Company;
@@ -27,6 +28,18 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) 
   const { refreshCompanies } = useCompany();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isRootAdmin, setIsRootAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkRootAdmin = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        const rootAdminEmails = ['ofir.wienerman@gmail.com', 'firestar393@gmail.com'];
+        setIsRootAdmin(rootAdminEmails.includes(user.email));
+      }
+    };
+    checkRootAdmin();
+  }, []);
 
   const [formData, setFormData] = useState({
     name: company?.name || '',
@@ -39,6 +52,14 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) 
     website: company?.website || '',
     default_currency: company?.default_currency || 'EUR',
     fiscal_year_start: company?.fiscal_year_start || 1,
+    // Banking information
+    bank_name: company?.bank_name || '',
+    iban: company?.iban || '',
+    bic: company?.bic || '',
+    account_number: company?.account_number || '',
+    // Company flags
+    is_main_company: company?.is_main_company ?? false,
+    can_be_deleted: company?.can_be_deleted ?? true,
     active: company?.active ?? true,
   });
 
@@ -46,15 +67,19 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) 
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'שם החברה הוא שדה חובה';
+      newErrors.name = 'Company name is required';
     }
 
     if (formData.email && !formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-      newErrors.email = 'כתובת אימייל לא תקינה';
+      newErrors.email = 'Invalid email address';
     }
 
     if (formData.website && !formData.website.match(/^https?:\/\/.+/)) {
-      newErrors.website = 'כתובת אתר חייבת להתחיל ב-http:// או https://';
+      newErrors.website = 'Website must start with http:// or https://';
+    }
+
+    if (formData.iban && !formData.iban.match(/^[A-Z]{2}\d{2}[\s]?[\d\s]*$/)) {
+      newErrors.iban = 'Invalid IBAN format (example: DE89 3704 0044 0532 0130 00)';
     }
 
     setErrors(newErrors);
@@ -65,7 +90,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) 
     e.preventDefault();
     
     if (!validateForm()) {
-      toast.error('נא לתקן את השגיאות בטופס');
+      toast.error('Please fix the form errors');
       return;
     }
 
@@ -100,7 +125,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) 
       onSuccess();
     } catch (error) {
       console.error('Unexpected error saving company:', error);
-      toast.error('שגיאה לא צפויה בשמירת החברה');
+      toast.error('Unexpected error saving company');
     } finally {
       setLoading(false);
     }
@@ -137,12 +162,12 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) 
             {company ? (
               <>
                 <CheckCircle className="w-5 h-5 text-green-600" />
-                {t.companySettings || 'הגדרות חברה'}
+                {t.companySettings || 'Company Settings'}
               </>
             ) : (
               <>
                 <AlertCircle className="w-5 h-5 text-blue-600" />
-                {t.createCompany || 'יצירת חברה חדשה'}
+                {t.createCompany || 'Create New Company'}
               </>
             )}
           </CardTitle>
@@ -152,14 +177,14 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="name" className="text-sm font-medium">
-                {t.name || 'שם'} *
+                {t.name || 'Name'} *
               </Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
                 required
-                placeholder={t.name || 'שם החברה'}
+                placeholder={t.name || 'Company Name'}
                 className={errors.name ? 'border-red-500' : ''}
                 disabled={loading}
               />
@@ -173,13 +198,13 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) 
 
             <div className="space-y-2">
               <Label htmlFor="business_name" className="text-sm font-medium">
-                {t.businessName || 'שם עסקי'}
+                {t.businessName || 'Business Name'}
               </Label>
               <Input
                 id="business_name"
                 value={formData.business_name}
                 onChange={(e) => handleChange('business_name', e.target.value)}
-                placeholder={t.businessName || 'שם עסקי'}
+                placeholder={t.businessName || 'Business Name'}
                 disabled={loading}
               />
             </div>
@@ -189,20 +214,20 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="tax_id" className="text-sm font-medium">
-                {t.taxId || 'ח.פ / ע.מ'}
+                {t.taxId || 'Tax ID / Company ID'}
               </Label>
               <Input
                 id="tax_id"
                 value={formData.tax_id}
                 onChange={(e) => handleChange('tax_id', e.target.value)}
-                placeholder={t.taxId || 'מספר זיהוי מס'}
+                placeholder={t.taxId || 'Tax ID number'}
                 disabled={loading}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="german_vat_id" className="text-sm font-medium">
-                {t.germanVatId || 'מספר מע"מ גרמני'}
+                {t.germanVatId || 'German VAT number'}
               </Label>
               <Input
                 id="german_vat_id"
@@ -217,13 +242,13 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) 
           {/* Contact Information */}
           <div className="space-y-2">
             <Label htmlFor="address" className="text-sm font-medium">
-              {t.address || 'כתובת'}
+              {t.address || 'Address'}
             </Label>
             <Textarea
               id="address"
               value={formData.address}
               onChange={(e) => handleChange('address', e.target.value)}
-              placeholder={t.address || 'כתובת החברה'}
+              placeholder={t.address || 'Company address'}
               rows={3}
               disabled={loading}
             />
@@ -232,28 +257,28 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="phone" className="text-sm font-medium">
-                {t.phone || 'טלפון'}
+                {t.phone || 'Phone'}
               </Label>
               <Input
                 id="phone"
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => handleChange('phone', e.target.value)}
-                placeholder={t.phone || 'מספר טלפון'}
+                placeholder={t.phone || 'Phone number'}
                 disabled={loading}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium">
-                {t.email || 'אימייל'}
+                {t.email || 'Email'}
               </Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleChange('email', e.target.value)}
-                placeholder={t.email || 'כתובת אימייל'}
+                placeholder={t.email || 'Email Address'}
                 className={errors.email ? 'border-red-500' : ''}
                 disabled={loading}
               />
@@ -268,7 +293,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) 
 
           <div className="space-y-2">
             <Label htmlFor="website" className="text-sm font-medium">
-              {t.website || 'אתר אינטרנט'}
+              {t.website || 'Website'}
             </Label>
             <Input
               id="website"
@@ -287,11 +312,81 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) 
             )}
           </div>
 
+          {/* Banking Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+              Bank Account Details
+            </h3>
+            
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="bank_name" className="text-sm font-medium">
+                  Bank Name
+                </Label>
+                <Input
+                  id="bank_name"
+                  value={formData.bank_name}
+                  onChange={(e) => handleChange('bank_name', e.target.value)}
+                  placeholder="Bank Name"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bic" className="text-sm font-medium">
+                  BIC/SWIFT
+                </Label>
+                <Input
+                  id="bic"
+                  value={formData.bic}
+                  onChange={(e) => handleChange('bic', e.target.value.toUpperCase())}
+                  placeholder="DEUTDEFF"
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="iban" className="text-sm font-medium">
+                  IBAN
+                </Label>
+                <Input
+                  id="iban"
+                  value={formData.iban}
+                  onChange={(e) => handleChange('iban', e.target.value.toUpperCase())}
+                  placeholder="DE89 3704 0044 0532 0130 00"
+                  className={errors.iban ? 'border-red-500' : ''}
+                  disabled={loading}
+                />
+                {errors.iban && (
+                  <p className="text-sm text-red-600 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    {errors.iban}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="account_number" className="text-sm font-medium">
+                  Account Number
+                </Label>
+                <Input
+                  id="account_number"
+                  value={formData.account_number}
+                  onChange={(e) => handleChange('account_number', e.target.value)}
+                  placeholder="1234567890"
+                  disabled={loading}
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Financial Settings */}
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="default_currency" className="text-sm font-medium">
-                {t.defaultCurrency || 'מטבע ברירת מחדל'}
+                {t.defaultCurrency || 'Default Currency'}
               </Label>
               <Select
                 value={formData.default_currency}
@@ -311,7 +406,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) 
 
             <div className="space-y-2">
               <Label htmlFor="fiscal_year_start" className="text-sm font-medium">
-                {t.fiscalYearStart || 'תחילת שנת כספים'}
+                {t.fiscalYearStart || 'Fiscal Year Start'}
               </Label>
               <Select
                 value={formData.fiscal_year_start.toString()}
@@ -333,16 +428,33 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) 
           </div>
 
           {/* Status */}
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="active"
-              checked={formData.active}
-              onCheckedChange={(checked) => handleChange('active', checked)}
-              disabled={loading}
-            />
-            <Label htmlFor="active" className="text-sm font-medium">
-              {t.active || 'פעיל'}
-            </Label>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="active"
+                checked={formData.active}
+                onCheckedChange={(checked) => handleChange('active', checked)}
+                disabled={loading}
+              />
+              <Label htmlFor="active" className="text-sm font-medium">
+                {t.active || 'Active'}
+              </Label>
+            </div>
+
+            {/* Main Company Flag - Only for root admins */}
+            {isRootAdmin && (
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="is_main_company"
+                  checked={formData.is_main_company}
+                  onCheckedChange={(checked) => handleChange('is_main_company', checked)}
+                  disabled={loading}
+                />
+                <Label htmlFor="is_main_company" className="text-sm font-medium">
+                  Main company (can overwrite existing company with same tax ID)
+                </Label>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -352,14 +464,14 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) 
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              שומר...
+              Saving...
             </>
           ) : (
-            t.save || 'שמור'
+            t.save || 'Save'
           )}
         </Button>
         <Button type="button" variant="outline" onClick={onSuccess} disabled={loading}>
-          {t.cancel || 'ביטול'}
+          {t.cancel || 'Cancel'}
         </Button>
       </div>
     </form>

@@ -24,6 +24,8 @@ import CompanySelector from '../components/CompanySelector';
 import CompanyUserManagement from '../components/CompanyUserManagement';
 import { CompanyManagement } from '../components/CompanyManagement';
 import UserManagement from '../components/UserManagement';
+import { DebugPanel } from '../components/DebugPanel';
+import { TestCompanies } from '../components/TestCompanies';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -49,7 +51,8 @@ const Index = () => {
 
   useEffect(() => {
     // Check auth state
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const user = session?.user;
       setUser(user);
       setLoading(false);
       
@@ -122,7 +125,7 @@ const Index = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">טוען...</p>
+          <p className="mt-4 text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -134,15 +137,15 @@ const Index = () => {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="max-w-md w-full text-center">
           <div className="bg-orange-50 border border-orange-300 rounded-lg p-6">
-            <h2 className="text-xl font-bold text-orange-800 mb-4">נדרשת התחברות</h2>
+            <h2 className="text-xl font-bold text-orange-800 mb-4">Login Required</h2>
             <p className="text-orange-700 mb-4">
-              כדי להשתמש במערכת ולשמור את הנתונים שלך בענן, עליך להתחבר או להירשם
+              To use the system and save your data to the cloud, you need to login or register
             </p>
             <Button 
               onClick={() => navigate('/auth')}
               className="w-full"
             >
-              התחבר / הירשם
+              Login / Register
             </Button>
           </div>
         </div>
@@ -162,6 +165,8 @@ const Index = () => {
 
   return (
     <CompanyProvider>
+      {/* <DebugPanel /> */}
+      {/* <TestCompanies /> */}
       <div className="min-h-screen bg-background">
         {/* Company Selector */}
         <div className="bg-white border-b border-gray-200 p-3">
@@ -178,6 +183,14 @@ const Index = () => {
         onViewChange={setCurrentView}
         onLogout={async () => {
           await supabase.auth.signOut();
+        {/* Floating Debug Button */}
+        <button
+          onClick={() => navigate("/debug")}
+          className="fixed bottom-4 left-4 bg-red-600 text-white p-3 rounded-full shadow-lg hover:bg-red-700 z-50"
+          title="Debug Screen"
+        >
+          🐛
+        </button>
           navigate('/auth');
         }}
       />
@@ -254,9 +267,9 @@ const Index = () => {
         {showUserManagement && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-bold">ניהול משתמשי החברה</h1>
+              <h1 className="text-3xl font-bold">Company User Management</h1>
               <Button variant="outline" onClick={() => setShowUserManagement(false)}>
-                חזור
+                Back
               </Button>
             </div>
             <CompanyUserManagement />
@@ -269,27 +282,27 @@ const Index = () => {
       <Dialog open={showMigrationDialog} onOpenChange={setShowMigrationDialog}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>העברת נתונים לבסיס נתונים חיצוני</DialogTitle>
+            <DialogTitle>Data Migration to External Database</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p>זוהו נתונים שמורים במקום (localStorage) שעלולים להיעלם:</p>
+            <p>Local data found that may be lost:</p>
             <Card>
               <CardContent className="p-4">
                 <ul className="space-y-2 text-sm">
-                  <li>לקוחות: {localDataCounts.clients}</li>
-                  <li>שירותים: {localDataCounts.services}</li>
-                  <li>חשבוניות: {localDataCounts.invoices}</li>
-                  <li>היסטוריה: {localDataCounts.history}</li>
+                  <li>Clients: {localDataCounts.clients}</li>
+                  <li>Services: {localDataCounts.services}</li>
+                  <li>Invoices: {localDataCounts.invoices}</li>
+                  <li>History: {localDataCounts.history}</li>
                 </ul>
               </CardContent>
             </Card>
             <p className="text-sm text-muted-foreground">
-              מומלץ להעביר את הנתונים לבסיס נתונים חיצוני (Supabase) כדי:
+              We recommend migrating data to external database (Supabase) to:
             </p>
             <ul className="text-sm text-muted-foreground list-disc list-inside">
-              <li>להבטיח שהנתונים לא ייעלמו</li>
-              <li>לגשת לנתונים מכל מכשיר</li>
-              <li>לקבל גיבוי אוטומטי</li>
+              <li>Ensure data won't be lost</li>
+              <li>Access data from any device</li>
+              <li>Get automatic backup</li>
             </ul>
             {migrationStatus && (
               <div className="p-3 bg-blue-50 text-blue-800 rounded text-sm">
@@ -302,14 +315,14 @@ const Index = () => {
                 onClick={() => setShowMigrationDialog(false)}
                 disabled={isMigrating}
               >
-                לא עכשיו
+                Not now
               </Button>
               <Button 
                 onClick={handleMigration}
                 disabled={isMigrating}
                 className="bg-corporate-blue hover:bg-corporate-blue-dark"
               >
-                {isMigrating ? 'מעביר...' : 'העבר נתונים'}
+                {isMigrating ? 'Migrating...' : 'Migrate Data'}
               </Button>
             </div>
           </div>
@@ -327,7 +340,7 @@ const Index = () => {
             }}
             className="bg-background/80 backdrop-blur-sm"
           >
-            התנתק
+            Logout
           </Button>
         </div>
       )}

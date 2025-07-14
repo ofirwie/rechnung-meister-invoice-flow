@@ -9,6 +9,7 @@ import { useUserManagement } from '@/hooks/useUserManagement';
 import CompanyUserManagement from './CompanyUserManagement';
 import { CompanyForm } from './CompanyForm';
 import { formatCurrency } from '@/utils/formatters';
+import { supabase } from '@/integrations/supabase/client';
 
 export const CompanyManagement: React.FC = () => {
   const { t, isRTL } = useLanguage();
@@ -17,6 +18,18 @@ export const CompanyManagement: React.FC = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showUserManagement, setShowUserManagement] = useState(false);
   const [editingCompany, setEditingCompany] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string>('');
+
+  // Get current user email
+  React.useEffect(() => {
+    const getUserEmail = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserEmail(user.email || '');
+      }
+    };
+    getUserEmail();
+  }, []);
 
   if (showCreateForm) {
     return (
@@ -97,13 +110,20 @@ export const CompanyManagement: React.FC = () => {
         <Card>
           <CardContent className="p-6 text-center">
             <Building className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">{t.noCompanySelected}</h3>
+            <h3 className="text-lg font-semibold mb-2">No companies found</h3>
             <p className="text-muted-foreground mb-4">
-              {canCreateCompanies() ? t.createCompany : "אין לך הרשאה ליצור חברות חדשות"}
+              {canCreateCompanies() 
+                ? "Create your first company to start working with the system" 
+                : "You don't have permission to create new companies. Contact the system admin."}
             </p>
-            {canCreateCompanies() && (
-              <Button onClick={() => setShowCreateForm(true)}>
-                {t.addCompany}
+            {canCreateCompanies() ? (
+              <Button onClick={() => setShowCreateForm(true)} size="lg">
+                <Plus className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+                Create First Company
+              </Button>
+            ) : (
+              <Button variant="outline" onClick={() => window.location.reload()}>
+                Refresh Page
               </Button>
             )}
           </CardContent>

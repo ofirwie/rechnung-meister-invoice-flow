@@ -8,6 +8,7 @@ import { businessInfo } from '../utils/businessInfo';
 import { formatGermanDate, formatCurrency } from '../utils/formatters';
 import InvoiceWorkflow from './InvoiceWorkflow';
 import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useCompany } from '../contexts/CompanyContext';
 
 interface InvoicePreviewProps {
   invoice: InvoiceData;
@@ -20,6 +21,7 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, fromPe
   const t = translations[invoice.language];
   const isRTL = false;
   const [invoiceHistory, setInvoiceHistory] = useLocalStorage<InvoiceHistory[]>('invoice-history', []);
+  const { selectedCompany } = useCompany();
 
   // Convert InvoiceData to InvoiceHistory format
   const convertToHistory = (invoiceData: InvoiceData): InvoiceHistory => {
@@ -234,12 +236,12 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, fromPe
             <h4 className="font-semibold mb-2 text-corporate-blue">{t.bankDetails}</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
-                <p><strong>Bank:</strong> {businessInfo.bankName}</p>
-                <p><strong>IBAN:</strong> {businessInfo.iban}</p>
+                <p><strong>Bank:</strong> {selectedCompany?.bank_name || businessInfo.bankName}</p>
+                <p><strong>IBAN:</strong> {selectedCompany?.iban || businessInfo.iban}</p>
               </div>
               <div>
-                <p><strong>BIC:</strong> {businessInfo.bic}</p>
-                <p><strong>Account:</strong> {businessInfo.accountNumber}</p>
+                <p><strong>BIC:</strong> {selectedCompany?.bic || businessInfo.bic}</p>
+                <p><strong>Account:</strong> {selectedCompany?.account_number || businessInfo.accountNumber}</p>
               </div>
             </div>
           </div>

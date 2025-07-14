@@ -1,0 +1,58 @@
+// Add debug mode
+const DEBUG_MODE = true;
+let renderCount = 0;
+let calcCount = 0;
+
+// Add at the beginning of InvoiceForm component
+if (DEBUG_MODE) {
+  renderCount++;
+  console.log(`\n🔄 RENDER #${renderCount} ==================`);
+  console.log('Services:', services.map(s => ({ id: s.id, desc: s.description?.substring(0, 20), amount: s.amount })));
+}
+
+// Replace calculateTotals with debug version
+const calculateTotals = () => {
+  if (DEBUG_MODE) {
+    calcCount++;
+    console.log(`📊 calculateTotals called #${calcCount}`);
+    console.trace('Call stack:');
+  }
+  
+  const subtotal = services
+    .filter(service => service.addedToInvoice)
+    .reduce((sum, service) => {
+      return sum + service.amount;
+    }, 0);
+    
+  if (DEBUG_MODE) {
+    console.log(`📊 Subtotal calculated: ${subtotal}`);
+  }
+  
+  return {
+    subtotal,
+    vatAmount: 0,
+    total: subtotal
+  };
+};
+
+// Add debug to useMemo
+const totals = useMemo(() => {
+  if (DEBUG_MODE) {
+    console.log('🎯 useMemo recalculating totals');
+    console.log('Services length:', services.length);
+    console.log('Services reference changed:', true);
+  }
+  return calculateTotals();
+}, [services]);
+
+// Add debug to useEffects
+useEffect(() => {
+  if (DEBUG_MODE) console.log('📌 useEffect: formData.invoiceDate changed');
+  // ... existing code
+}, [formData.invoiceDate]);
+
+useEffect(() => {
+  if (DEBUG_MODE) console.log('📌 useEffect: selectedService changed');
+  // ... existing code
+}, [selectedService]);
+EOF < /dev/null

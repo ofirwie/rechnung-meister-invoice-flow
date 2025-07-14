@@ -40,11 +40,11 @@ export default function ClientForm({
       {/* Smart Paste Section */}
       <Card className="bg-muted/50">
         <CardContent className="p-4">
-          <Label htmlFor="pasteText">הדבק פרטי לקוח (Copy & Paste)</Label>
+          <Label htmlFor="pasteText">Paste Client Details (Copy & Paste)</Label>
           <textarea
             id="pasteText"
             className="w-full h-24 p-2 border rounded-md resize-none mt-2"
-            placeholder="הדבק כאן כתובת מייל, פרטי איש קשר או כל מידע על הלקוח..."
+            placeholder="הדבק כאן Address מייל, פרטי איש קשר או כל מידע על הלקוח..."
             value={pasteText}
             onChange={(e) => setPasteText(e.target.value)}
           />
@@ -55,7 +55,7 @@ export default function ClientForm({
               size="sm"
               onClick={handleParseAndUpdate}
             >
-              נתח פרטים (AI)
+              Parse Details (AI)
             </Button>
           </div>
         </CardContent>
@@ -105,7 +105,7 @@ export default function ClientForm({
           />
         </div>
         <div>
-          <Label htmlFor="businessLicense">מספר עוסק מורשה</Label>
+          <Label htmlFor="businessLicense">Licensed dealer number</Label>
           <Input
             id="businessLicense"
             value={formData.businessLicense}
@@ -113,7 +113,7 @@ export default function ClientForm({
           />
         </div>
         <div>
-          <Label htmlFor="companyRegistration">ח.פ (מספר חברה)</Label>
+          <Label htmlFor="companyRegistration">Company registration number</Label>
           <Input
             id="companyRegistration"
             value={formData.companyRegistration}

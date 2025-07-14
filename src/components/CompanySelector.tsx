@@ -20,11 +20,11 @@ export default function CompanySelector({ onManageCompanies, onCreateCompany, on
     return (
       <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
         <Building2 className="w-5 h-5 text-muted-foreground" />
-        <span className="text-muted-foreground">{t.noCompanySelected || 'לא נבחרה חברה'}</span>
+        <span className="text-muted-foreground">{t.noCompanySelected || 'No company selected'}</span>
         {onCreateCompany && (
           <Button size="sm" onClick={onCreateCompany} className={`flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
             <Plus className="w-4 h-4" />
-            {t.createCompany || 'צור חברה'}
+            {t.createCompany || 'Create Company'}
           </Button>
         )}
       </div>
@@ -48,17 +48,17 @@ export default function CompanySelector({ onManageCompanies, onCreateCompany, on
 
   const getRoleText = (role: string) => {
     switch (role) {
-      case 'owner': return t.owner || 'בעלים';
-      case 'admin': return t.admin || 'מנהל';
-      case 'user': return t.user || 'משתמש';
-      case 'viewer': return t.viewer || 'צופה';
+      case 'owner': return t.owner || 'Owner';
+      case 'admin': return t.admin || 'Admin';
+      case 'user': return t.user || 'User';
+      case 'viewer': return t.viewer || 'Viewer';
       default: return role;
     }
   };
 
   return (
     <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
-      {/* בוחר חברה */}
+      {/* Company Selector */}
       <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
         <Building2 className="w-5 h-5 text-primary" />
         <Select value={selectedCompany.id} onValueChange={switchCompany}>
@@ -96,7 +96,7 @@ export default function CompanySelector({ onManageCompanies, onCreateCompany, on
         </Select>
       </div>
 
-      {/* כפתורי פעולה */}
+      {/* Action buttons */}
       <div className={`flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}>
         {onCreateCompany && (
           <Button 
@@ -106,7 +106,7 @@ export default function CompanySelector({ onManageCompanies, onCreateCompany, on
             className={`flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}
           >
             <Plus className="w-4 h-4" />
-            {t.addCompany || 'הוסף חברה'}
+            {t.addCompany || 'Add Company'}
           </Button>
         )}
         
@@ -118,7 +118,7 @@ export default function CompanySelector({ onManageCompanies, onCreateCompany, on
             className={`flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}
           >
             <Users className="w-4 h-4" />
-            {t.userManagement || 'נהל משתמשים'}
+            {t.userManagement || 'Manage Users'}
           </Button>
         )}
 
@@ -130,7 +130,7 @@ export default function CompanySelector({ onManageCompanies, onCreateCompany, on
             className={`flex items-center gap-1 ${isRTL ? 'flex-row-reverse' : ''}`}
           >
             <Settings className="w-4 h-4" />
-            {t.manageCompany || 'נהל חברה'}
+            {t.manageCompany || 'Manage Company'}
           </Button>
         )}
       </div>

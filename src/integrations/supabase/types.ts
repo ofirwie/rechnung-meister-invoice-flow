@@ -112,16 +112,22 @@ export type Database = {
       }
       companies: {
         Row: {
+          account_number: string | null
           active: boolean | null
           address: string | null
+          bank_name: string | null
+          bic: string | null
           business_name: string | null
+          can_be_deleted: boolean | null
           created_at: string | null
           default_currency: string | null
           drive_folder_id: string | null
           email: string | null
           fiscal_year_start: number | null
           german_vat_id: string | null
+          iban: string | null
           id: string
+          is_main_company: boolean | null
           logo_url: string | null
           name: string
           owner_id: string
@@ -132,16 +138,22 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          account_number?: string | null
           active?: boolean | null
           address?: string | null
+          bank_name?: string | null
+          bic?: string | null
           business_name?: string | null
+          can_be_deleted?: boolean | null
           created_at?: string | null
           default_currency?: string | null
           drive_folder_id?: string | null
           email?: string | null
           fiscal_year_start?: number | null
           german_vat_id?: string | null
+          iban?: string | null
           id?: string
+          is_main_company?: boolean | null
           logo_url?: string | null
           name: string
           owner_id: string
@@ -152,16 +164,22 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          account_number?: string | null
           active?: boolean | null
           address?: string | null
+          bank_name?: string | null
+          bic?: string | null
           business_name?: string | null
+          can_be_deleted?: boolean | null
           created_at?: string | null
           default_currency?: string | null
           drive_folder_id?: string | null
           email?: string | null
           fiscal_year_start?: number | null
           german_vat_id?: string | null
+          iban?: string | null
           id?: string
+          is_main_company?: boolean | null
           logo_url?: string | null
           name?: string
           owner_id?: string

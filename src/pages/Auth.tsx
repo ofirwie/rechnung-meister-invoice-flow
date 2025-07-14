@@ -39,7 +39,7 @@ const Auth = () => {
     });
 
     if (error) {
-      setError(error.message === 'Invalid login credentials' ? 'אימייל או סיסמה שגויים' : error.message);
+      setError(error.message === 'Invalid login credentials' ? 'Email או Password שגויים' : error.message);
     } else {
       setMessage('התחברת בהצלחה!');
       setTimeout(() => navigate('/'), 1000);
@@ -60,7 +60,7 @@ const Auth = () => {
     }
 
     if (password.length < 6) {
-      setError('הסיסמה חייבת להיות באורך של לפחות 6 תווים');
+      setError('הPassword חייבת להיות באורך של לפחות 6 תווים');
       setLoading(false);
       return;
     }
@@ -77,12 +77,12 @@ const Auth = () => {
 
     if (error) {
       if (error.message.includes('already registered')) {
-        setError('האימייל כבר רשום במערכת');
+        setError('הEmail כבר רשום במערכת');
       } else {
         setError(error.message);
       }
     } else {
-      setMessage('נרשמת בהצלחה! בדוק את האימייל שלך לאישור החשבון');
+      setMessage('נרשמת בהצלחה! בדוק את הEmail שלך לConfirm החשבון');
     }
     setLoading(false);
   };
@@ -95,24 +95,24 @@ const Auth = () => {
             <FileText className="h-12 w-12 text-primary" />
           </div>
           <h1 className="text-3xl font-bold text-primary">מערכת חשבוניות</h1>
-          <p className="text-muted-foreground mt-2">התחבר כדי לשמור את הנתונים שלך בענן</p>
+          <p className="text-muted-foreground mt-2">התחבר כדי לSave את הנתונים שלך בענן</p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-center">כניסה למערכת</CardTitle>
+            <CardTitle className="text-center">System Login</CardTitle>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">התחברות</TabsTrigger>
-                <TabsTrigger value="signup">רישום</TabsTrigger>
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="signup">Registration</TabsTrigger>
               </TabsList>
               
               <TabsContent value="login">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-medium">אימייל</label>
+                    <label htmlFor="email" className="text-sm font-medium">Email</label>
                     <Input
                       id="email"
                       type="email"
@@ -124,7 +124,7 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="password" className="text-sm font-medium">סיסמה</label>
+                    <label htmlFor="password" className="text-sm font-medium">Password</label>
                     <div className="relative">
                       <Input
                         id="password"
@@ -160,7 +160,7 @@ const Auth = () => {
               <TabsContent value="signup">
                 <form onSubmit={handleSignup} className="space-y-4">
                   <div className="space-y-2">
-                    <label htmlFor="signup-email" className="text-sm font-medium">אימייל</label>
+                    <label htmlFor="signup-email" className="text-sm font-medium">Email</label>
                     <Input
                       id="signup-email"
                       type="email"
@@ -172,7 +172,7 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="signup-password" className="text-sm font-medium">סיסמה</label>
+                    <label htmlFor="signup-password" className="text-sm font-medium">Password</label>
                     <div className="relative">
                       <Input
                         id="signup-password"
@@ -200,7 +200,7 @@ const Auth = () => {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor="confirm-password" className="text-sm font-medium">אישור סיסמה</label>
+                    <label htmlFor="confirm-password" className="text-sm font-medium">Confirm Password</label>
                     <Input
                       id="confirm-password"
                       type={showPassword ? "text" : "password"}
@@ -212,7 +212,7 @@ const Auth = () => {
                     />
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? 'נרשם...' : 'הרשם'}
+                    {loading ? 'נרName...' : 'הרName'}
                   </Button>
                 </form>
               </TabsContent>
@@ -233,8 +233,8 @@ const Auth = () => {
         </Card>
 
         <div className="text-center mt-6 text-sm text-muted-foreground">
-          <p>אחרי ההתחברות תוכל לשמור את כל הנתונים שלך בענן</p>
-          <p>ולגשת אליהם מכל מכשיר</p>
+          <p>After login you can save all your data to the cloud</p>
+          <p>and access it from any device</p>
         </div>
       </div>
     </div>

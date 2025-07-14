@@ -37,8 +37,8 @@ export default function ClientTable({
           <TableHead>{t.clientCompany}</TableHead>
           <TableHead>{t.contactName}</TableHead>
           <TableHead>{t.clientCity}</TableHead>
-          <TableHead>מספר עוסק מורשה</TableHead>
-          <TableHead>ח.פ</TableHead>
+          <TableHead>Licensed dealer number</TableHead>
+          <TableHead>Company ID</TableHead>
           <TableHead>{t.email}</TableHead>
           <TableHead>{t.phone}</TableHead>
           <TableHead className="text-right">{t.actions}</TableHead>

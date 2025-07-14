@@ -534,7 +534,7 @@ const ExpenseForm = ({ expense, onClose, onSave, defaultExpenseType = 'business'
                         size="sm"
                         onClick={() => window.open(formData.receiptFileUrl, '_blank')}
                       >
-                        צפייה
+                        View
                       </Button>
                     )}
                     <Button
@@ -579,11 +579,11 @@ const ExpenseForm = ({ expense, onClose, onSave, defaultExpenseType = 'business'
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={loading}>
-            ביטול
+            Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={loading}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {expense ? 'עדכן' : 'שמור'}
+            {expense ? 'Update' : 'Save'}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -12,6 +12,14 @@ export interface Company {
   fiscal_year_start: number;
   drive_folder_id?: string;
   logo_url?: string;
+  // Banking information
+  bank_name?: string;
+  iban?: string;
+  bic?: string;
+  account_number?: string;
+  // Company flags
+  is_main_company?: boolean;
+  can_be_deleted?: boolean;
   settings: any;
   active: boolean;
   owner_id: string;
@@ -74,6 +82,14 @@ export interface CompanyFormData {
   website?: string;
   default_currency: string;
   fiscal_year_start: number;
+  // Banking information
+  bank_name?: string;
+  iban?: string;
+  bic?: string;
+  account_number?: string;
+  // Company flags
+  is_main_company?: boolean;
+  can_be_deleted?: boolean;
   active: boolean;
   settings?: Record<string, any>;
 }

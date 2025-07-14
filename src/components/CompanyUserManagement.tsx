@@ -40,7 +40,7 @@ export default function CompanyUserManagement() {
       <div className="flex items-center justify-center p-8">
         <div className="text-center space-y-2">
           <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto" />
-          <div className="text-muted-foreground">אין לך הרשאה לנהל משתמשים</div>
+          <div className="text-muted-foreground">You don't have permission to manage users</div>
         </div>
       </div>
     );
@@ -48,7 +48,7 @@ export default function CompanyUserManagement() {
 
   const handleInviteUser = async () => {
     if (!inviteEmail.trim()) {
-      toast.error('נא להזין כתובת אימייל');
+      toast.error('Please enter an email address');
       return;
     }
 
@@ -59,7 +59,7 @@ export default function CompanyUserManagement() {
         setShowInviteDialog(false);
         setInviteEmail('');
         setInviteRole('user');
-        toast.success('המשתמש הוזמן בהצלחה');
+        toast.success('User invited successfully');
       }
     } catch (error) {
       console.error('Error inviting user:', error);
@@ -71,15 +71,15 @@ export default function CompanyUserManagement() {
   const handleRoleChange = async (userId: string, newRole: UserRole) => {
     const success = await updateUserRole(userId, newRole);
     if (success) {
-      toast.success('התפקיד עודכן בהצלחה');
+      toast.success('Role updated successfully');
     }
   };
 
   const handleRemoveUser = async (userId: string, userEmail: string) => {
-    if (confirm(`האם אתה בטוח שברצונך להסיר את ${userEmail} מהחברה?`)) {
+    if (confirm(`Are you sure you want to remove ${userEmail} from the company?`)) {
       const success = await removeUser(userId);
       if (success) {
-        toast.success('המשתמש הוסר בהצלחה');
+        toast.success('User removed successfully');
       }
     }
   };
@@ -101,10 +101,10 @@ export default function CompanyUserManagement() {
 
   const getRoleText = (role: string) => {
     switch (role) {
-      case 'owner': return t.owner || 'בעלים';
-      case 'admin': return t.admin || 'מנהל';
-      case 'user': return t.user || 'משתמש';
-      case 'viewer': return t.viewer || 'צופה';
+      case 'owner': return t.owner || 'Owner';
+      case 'admin': return t.admin || 'Admin';
+      case 'user': return t.user || 'User';
+      case 'viewer': return t.viewer || 'Viewer';
       default: return role;
     }
   };
@@ -119,7 +119,7 @@ export default function CompanyUserManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-muted-foreground">טוען משתמשים...</div>
+        <div className="text-muted-foreground">Loading users...</div>
       </div>
     );
   }
@@ -129,7 +129,7 @@ export default function CompanyUserManagement() {
       {/* Header */}
       <div className={`flex justify-between items-center ${isRTL ? 'flex-row-reverse' : ''}`}>
         <div>
-          <h1 className="text-3xl font-bold">ניהול משתמשים</h1>
+          <h1 className="text-3xl font-bold">User Management</h1>
           <p className="text-muted-foreground">{selectedCompany.name}</p>
         </div>
         
@@ -137,16 +137,16 @@ export default function CompanyUserManagement() {
           <DialogTrigger asChild>
             <Button className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
               <Plus className="w-4 h-4" />
-              הזמן משתמש
+              Invite User
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>הזמן משתמש חדש</DialogTitle>
+              <DialogTitle>Invite New User</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="email">כתובת אימייל</Label>
+                <Label htmlFor="email">Email Address</Label>
                 <Input
                   id="email"
                   type="email"
@@ -157,7 +157,7 @@ export default function CompanyUserManagement() {
                 />
               </div>
               <div>
-                <Label htmlFor="role">תפקיד</Label>
+                <Label htmlFor="role">Role</Label>
                 <Select 
                   value={inviteRole} 
                   onValueChange={(value) => setInviteRole(value as UserRole)}
@@ -167,9 +167,9 @@ export default function CompanyUserManagement() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="user">משתמש</SelectItem>
-                    <SelectItem value="admin">מנהל</SelectItem>
-                    <SelectItem value="viewer">צופה</SelectItem>
+                    <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="viewer">Viewer</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -179,13 +179,13 @@ export default function CompanyUserManagement() {
                   onClick={() => setShowInviteDialog(false)}
                   disabled={inviteLoading}
                 >
-                  ביטול
+                  Cancel
                 </Button>
                 <Button 
                   onClick={handleInviteUser}
                   disabled={inviteLoading}
                 >
-                  {inviteLoading ? 'שולח...' : 'שלח הזמנה'}
+                  {inviteLoading ? 'Sending...' : 'Send Invitation'}
                 </Button>
               </div>
             </div>
@@ -206,27 +206,27 @@ export default function CompanyUserManagement() {
         <CardHeader>
           <CardTitle className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
             <Settings className="w-5 h-5" />
-            משתמשי החברה ({users.length})
+            Company Users ({users.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
           {users.length === 0 ? (
             <div className="text-center p-8 space-y-2">
               <User className="w-12 h-12 text-muted-foreground mx-auto" />
-              <div className="text-muted-foreground">אין משתמשים בחברה זו</div>
+              <div className="text-muted-foreground">No users in this company</div>
               <Button onClick={() => setShowInviteDialog(true)} variant="outline" size="sm">
-                הזמן משתמש ראשון
+                Invite First User
               </Button>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>משתמש</TableHead>
-                  <TableHead>תפקיד</TableHead>
-                  <TableHead>סטטוס</TableHead>
-                  <TableHead>תאריך הצטרפות</TableHead>
-                  <TableHead>פעולות</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Join Date</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -241,7 +241,7 @@ export default function CompanyUserManagement() {
                         </div>
                         <div>
                           <div className="font-medium">
-                            {user.user_display_name || 'משתמש ללא שם'}
+                            {user.user_display_name || 'Unnamed User'}
                           </div>
                           <div className="text-sm text-muted-foreground flex items-center gap-1">
                             <Mail className="w-3 h-3" />
@@ -257,7 +257,7 @@ export default function CompanyUserManagement() {
                     </TableCell>
                     <TableCell>
                       <Badge variant={user.user_is_active ? "default" : "secondary"}>
-                        {user.user_is_active ? 'פעיל' : 'לא פעיל'}
+                        {user.user_is_active ? 'Active' : 'Inactive'}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -274,9 +274,9 @@ export default function CompanyUserManagement() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="user">משתמש</SelectItem>
-                              <SelectItem value="admin">מנהל</SelectItem>
-                              <SelectItem value="viewer">צופה</SelectItem>
+                              <SelectItem value="user">User</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="viewer">Viewer</SelectItem>
                             </SelectContent>
                           </Select>
                         )}
@@ -304,28 +304,28 @@ export default function CompanyUserManagement() {
       {/* Company Info */}
       <Card>
         <CardHeader>
-          <CardTitle>פרטי החברה</CardTitle>
+          <CardTitle>Company Details</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label>שם החברה</Label>
+              <Label>Company Name</Label>
               <div className="text-sm text-muted-foreground">{selectedCompany.name}</div>
             </div>
             {selectedCompany.business_name && (
               <div>
-                <Label>שם עסקי</Label>
+                <Label>Business Name</Label>
                 <div className="text-sm text-muted-foreground">{selectedCompany.business_name}</div>
               </div>
             )}
             {selectedCompany.tax_id && (
               <div>
-                <Label>ח.פ / ע.מ</Label>
+                <Label>Tax ID / Company ID</Label>
                 <div className="text-sm text-muted-foreground">{selectedCompany.tax_id}</div>
               </div>
             )}
             <div>
-              <Label>מטבע ברירת מחדל</Label>
+              <Label>Default Currency</Label>
               <div className="text-sm text-muted-foreground">{selectedCompany.default_currency}</div>
             </div>
           </div>

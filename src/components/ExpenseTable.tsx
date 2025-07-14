@@ -198,7 +198,7 @@ const ExpenseTable = ({ expenses, loading, onEdit }: ExpenseTableProps) => {
                       {expense.receiptFileUrl && (
                         <DropdownMenuItem onClick={() => window.open(expense.receiptFileUrl, '_blank')}>
                           <ExternalLink className="w-4 h-4 mr-2" />
-                          צפייה בקובץ
+                          View בקובץ
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuItem 
