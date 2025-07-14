@@ -44,7 +44,7 @@ export default function ClientForm({
           <textarea
             id="pasteText"
             className="w-full h-24 p-2 border rounded-md resize-none mt-2"
-            placeholder="הדבק כאן Address מייל, פרטי איש קשר או כל מידע על הלקוח..."
+            placeholder="Paste client details here - email, address, contact info, or any client information..."
             value={pasteText}
             onChange={(e) => setPasteText(e.target.value)}
           />
@@ -148,13 +148,15 @@ export default function ClientForm({
         </div>
       </div>
       
-      <div className="flex justify-end space-x-2 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          {t.cancel}
-        </Button>
-        <Button type="submit" className="bg-corporate-blue hover:bg-corporate-blue-dark">
-          {t.save}
-        </Button>
+      <div className="sticky bottom-0 bg-white border-t pt-4 mt-6">
+        <div className="flex justify-end space-x-2">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            {t.cancel}
+          </Button>
+          <Button type="submit" className="bg-corporate-blue hover:bg-corporate-blue-dark min-w-[100px]">
+            {t.save}
+          </Button>
+        </div>
       </div>
     </form>
   );

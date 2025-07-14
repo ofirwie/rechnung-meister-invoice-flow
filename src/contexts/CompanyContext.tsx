@@ -52,22 +52,9 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
         return;
       }
 
-      // TEMPORARY: For mock company, check if user is root admin and assign owner role
+      // Check if user is root admin
       const rootAdminEmails = ['ofir.wienerman@gmail.com', 'firestar393@gmail.com'];
       const isRootAdmin = rootAdminEmails.includes(user.email || '');
-      
-      if (isRootAdmin && companyId === '019e9514-c181-4577-b173-a201184c990c') {
-        console.log('🔧 MOCK PERMISSIONS: Setting owner role for root admin');
-        setUserRole('owner');
-        setPermissions({
-          expenses: { create: true, read: true, update: true, delete: true },
-          suppliers: { create: true, read: true, update: true, delete: true },
-          categories: { create: true, read: true, update: true, delete: true },
-          reports: { export: true, view_all: true },
-          company: { manage_users: true, manage_settings: true, view_sensitive: true }
-        });
-        return;
-      }
 
       const { data, error } = await supabase
         .from('company_users')

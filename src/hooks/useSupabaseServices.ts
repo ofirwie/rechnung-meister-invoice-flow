@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Service } from '../types/service';
+import { toast } from 'sonner';
 
 export function useSupabaseServices() {
   const [services, setServices] = useState<Service[]>([]);
@@ -9,11 +10,13 @@ export function useSupabaseServices() {
   // Load services from Supabase
   const loadServices = async () => {
     try {
+      console.log('🔍 Loading services...');
+      
       const { data, error } = await supabase
         .from('services')
         .select('*')
         .order('created_at', { ascending: false });
-
+      
       if (error) throw error;
 
       const formattedServices: Service[] = data.map(service => ({
@@ -29,8 +32,10 @@ export function useSupabaseServices() {
       }));
 
       setServices(formattedServices);
+      console.log('✅ Services loaded successfully:', formattedServices.length);
     } catch (error) {
-      console.error('Error loading services:', error);
+      console.error('❌ Error loading services:', error);
+      toast.error('Failed to load services. Please check your connection.');
     } finally {
       setLoading(false);
     }
@@ -42,6 +47,8 @@ export function useSupabaseServices() {
 
   const addService = async (service: Omit<Service, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
+      console.log('💾 Adding service...', service.name);
+      
       const { error } = await supabase
         .from('services')
         .insert({
@@ -53,14 +60,19 @@ export function useSupabaseServices() {
 
       if (error) throw error;
       
+      console.log('✅ Service added successfully');
+      toast.success('Service created successfully!');
       await loadServices(); // Reload services
     } catch (error) {
-      console.error('Error adding service:', error);
+      console.error('❌ Error adding service:', error);
+      toast.error('Failed to create service');
     }
   };
 
   const updateService = async (id: string, updates: Partial<Service>) => {
     try {
+      console.log('💾 Updating service...', id);
+      
       const { error } = await supabase
         .from('services')
         .update({
@@ -73,14 +85,19 @@ export function useSupabaseServices() {
 
       if (error) throw error;
       
+      console.log('✅ Service updated successfully');
+      toast.success('Service updated successfully!');
       await loadServices(); // Reload services
     } catch (error) {
-      console.error('Error updating service:', error);
+      console.error('❌ Error updating service:', error);
+      toast.error('Failed to update service');
     }
   };
 
   const deleteService = async (id: string) => {
     try {
+      console.log('🗑️ Deleting service...', id);
+      
       const { error } = await supabase
         .from('services')
         .delete()
@@ -88,9 +105,12 @@ export function useSupabaseServices() {
 
       if (error) throw error;
       
+      console.log('✅ Service deleted successfully');
+      toast.success('Service deleted successfully!');
       await loadServices(); // Reload services
     } catch (error) {
-      console.error('Error deleting service:', error);
+      console.error('❌ Error deleting service:', error);
+      toast.error('Failed to delete service');
     }
   };
 

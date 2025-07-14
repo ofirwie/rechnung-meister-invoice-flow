@@ -44,26 +44,39 @@ export const useCompanies = () => {
       const rootAdminEmails = ['ofir.wienerman@gmail.com', 'firestar393@gmail.com'];
       const isRootAdmin = rootAdminEmails.includes(user.email || '');
       
-      // TEMPORARY WORKAROUND: Companies query is hanging, use mock data
-      console.log('🔍 WORKAROUND: Using mock company data due to hanging query');
+      // Fetch companies where user is root admin or has access
+      console.log('🔍 Fetching companies from database...');
+      let query;
       
-      // Mock the company data we know exists
-      const allCompanies = [
-        {
-          id: '019e9514-c181-4577-b173-a201184c990c',
-          name: 'Ofir Wienerman',
-          active: true,
-          owner_id: user.id,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          can_be_deleted: true,
-          is_main_company: true
-        }
-      ];
+      if (isRootAdmin) {
+        // Root admins see all companies
+        query = supabase
+          .from('companies')
+          .select('*')
+          .eq('active', true)
+          .order('created_at', { ascending: false });
+      } else {
+        // Regular users see companies they belong to
+        query = supabase
+          .from('company_users')
+          .select(`
+            company_id,
+            companies!inner (*)
+          `)
+          .eq('user_id', user.id)
+          .eq('active', true);
+      }
       
-      const companiesError = null;
+      const { data: companiesData, error: companiesError } = await query;
       
-      console.log('📊 Using mock companies data:', allCompanies);
+      let allCompanies = [];
+      if (isRootAdmin && companiesData) {
+        allCompanies = companiesData;
+      } else if (companiesData) {
+        allCompanies = companiesData.map((item: any) => item.companies).filter(Boolean);
+      }
+      
+      console.log('📊 Companies fetched:', allCompanies);
 
       if (companiesError) {
         console.error('❌ Companies query failed:', companiesError);

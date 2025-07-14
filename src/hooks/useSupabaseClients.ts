@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Client, ClientFormData } from '../types/client';
+import { toast } from 'sonner';
 
 export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
   const [clients, setClients] = useState<Client[]>([]);
@@ -25,11 +26,13 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
   // Load clients from Supabase
   const loadClients = async () => {
     try {
+      console.log('🔍 Loading clients...');
+      
       const { data, error } = await supabase
         .from('clients')
         .select('*')
         .order('created_at', { ascending: false });
-
+      
       if (error) throw error;
 
       const formattedClients: Client[] = data.map(client => ({
@@ -50,8 +53,10 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
       }));
 
       setClients(formattedClients);
+      console.log('✅ Clients loaded successfully:', formattedClients.length);
     } catch (error) {
-      console.error('Error loading clients:', error);
+      console.error('❌ Error loading clients:', error);
+      toast.error('Failed to load clients. Please check your connection.');
     } finally {
       setLoading(false);
     }
@@ -92,6 +97,8 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
     e.preventDefault();
     
     try {
+      console.log('💾 Saving client...', editingClient ? 'updating' : 'creating');
+      
       if (editingClient) {
         // Update existing client
         const { error } = await supabase
@@ -110,8 +117,6 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
             company_registration: formData.companyRegistration
           })
           .eq('id', editingClient.id);
-
-        if (error) throw error;
       } else {
         // Create new client
         const { error } = await supabase
@@ -129,15 +134,18 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
             business_license: formData.businessLicense,
             company_registration: formData.companyRegistration
           });
-
-        if (error) throw error;
       }
       
+      if (error) throw error;
+      
+      console.log('✅ Client saved successfully');
+      toast.success(editingClient ? 'Client updated successfully!' : 'Client created successfully!');
       await loadClients(); // Reload clients
       resetForm();
       setIsDialogOpen(false);
     } catch (error) {
-      console.error('Error saving client:', error);
+      console.error('❌ Error saving client:', error);
+      toast.error(editingClient ? 'Failed to update client' : 'Failed to create client');
     }
   };
 
@@ -161,6 +169,8 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
 
   const handleDelete = async (clientId: string) => {
     try {
+      console.log('🗑️ Deleting client:', clientId);
+      
       const { error } = await supabase
         .from('clients')
         .delete()
@@ -168,9 +178,12 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
 
       if (error) throw error;
       
+      console.log('✅ Client deleted successfully');
+      toast.success('Client deleted successfully!');
       await loadClients(); // Reload clients
     } catch (error) {
-      console.error('Error deleting client:', error);
+      console.error('❌ Error deleting client:', error);
+      toast.error('Failed to delete client');
     }
   };
 

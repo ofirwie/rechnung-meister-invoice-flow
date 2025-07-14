@@ -95,6 +95,9 @@ export default function ServiceManagement({ onServiceSelect, searchTerm: externa
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('💾 Service form submitted:', formData);
+    console.log('Editing service:', editingService?.id || 'new service');
+    
     if (editingService) {
       await updateService(editingService.id, formData);
     } else {
@@ -123,7 +126,7 @@ export default function ServiceManagement({ onServiceSelect, searchTerm: externa
               {t.addService}
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingService ? t.editService : t.addService}
@@ -161,7 +164,7 @@ export default function ServiceManagement({ onServiceSelect, searchTerm: externa
         <CardContent className="p-0">
           {loading ? (
             <div className="p-8 text-center text-muted-foreground">
-              טוען שירותים...
+              Loading services...
             </div>
           ) : (
             <ServiceTable 
