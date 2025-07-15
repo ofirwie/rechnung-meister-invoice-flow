@@ -18,8 +18,11 @@ import { InvoiceHistory } from '../types/invoiceHistory';
 import { translations } from '../utils/translations';
 import { generateInvoiceNumber, calculateDueDate } from '../utils/formatters';
 import { getNextInvoiceNumber } from '../utils/invoiceNumberManager';
+import { generateAutoInvoiceNumber, checkInvoiceNumberExists } from '../utils/autoInvoiceNumber';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useLanguage } from '../hooks/useLanguage';
+import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
+import { toast } from 'sonner';
 
 // Global counter for debugging
 if (typeof window !== 'undefined') {
@@ -46,9 +49,10 @@ export default function InvoiceForm({
   setCurrentView 
 }: InvoiceFormProps) {
   const { language, t, changeLanguage } = useLanguage();
+  const { saveInvoice, invoiceHistory } = useSupabaseInvoices();
   
   const [clients] = useLocalStorage<Client[]>('invoice-clients', []);
-  const [invoiceHistory] = useLocalStorage<InvoiceHistory[]>('invoice-history', []);
+  const [isGeneratingNumber, setIsGeneratingNumber] = useState(false);
   
   // Initialize service period dates with current month defaults
   const getCurrentMonthDates = () => {
@@ -71,7 +75,8 @@ export default function InvoiceForm({
     language: language as 'de' | 'en',
     currency: 'EUR',
     clientCountry: 'Israel',
-    services: []
+    services: [],
+    invoiceNumber: '' // Will be auto-generated
   });
 
   const [services, setServices] = useState<InvoiceService[]>([
@@ -90,13 +95,26 @@ export default function InvoiceForm({
     }
   }, [formData.invoiceDate]);
 
-  // Auto-generate invoice number when client company changes
+  // Auto-generate invoice number when component mounts
   useEffect(() => {
-    if (formData.clientCompany) {
-      const invoiceNumber = `${formData.clientCompany}-1`;
-      setFormData(prev => ({ ...prev, invoiceNumber }));
-    }
-  }, [formData.clientCompany]);
+    const generateInvoiceNumber = async () => {
+      if (!formData.invoiceNumber) {
+        setIsGeneratingNumber(true);
+        try {
+          const autoNumber = await generateAutoInvoiceNumber();
+          setFormData(prev => ({ ...prev, invoiceNumber: autoNumber }));
+          console.log('✅ Auto-generated invoice number:', autoNumber);
+        } catch (error) {
+          console.error('❌ Failed to generate invoice number:', error);
+          toast.error('Failed to generate invoice number. Please try refreshing the page.');
+        } finally {
+          setIsGeneratingNumber(false);
+        }
+      }
+    };
+    
+    generateInvoiceNumber();
+  }, []); // Only run once on mount
 
   // Handle client selection
   useEffect(() => {
@@ -111,7 +129,6 @@ export default function InvoiceForm({
         clientAddress: client.address,
         clientEmail: client.email,
         clientCountry: client.country,
-        invoiceNumber: nextInvoiceNumber,
         clientReference: client.customerReference || ''
       }));
     }
@@ -188,29 +205,59 @@ export default function InvoiceForm({
     setServices(newServices);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const addedServices = services.filter(s => s.addedToInvoice);
     
     if (addedServices.length === 0) {
-      alert(t.pleaseAddService);
+      toast.error(t.pleaseAddService || 'Please add at least one service to the invoice');
       return;
     }
     
-    const invoice: InvoiceData = {
-      ...formData as InvoiceData,
-      services: addedServices,
-      currency: formData.currency || 'EUR',
-      subtotal: totals.subtotal,
-      vatRate: 0,
-      vatAmount: totals.vatAmount,
-      total: totals.total,
-      exchangeRate: exchangeRate,
-      createdAt: new Date().toISOString()
-    };
+    // Validate that we have an invoice number
+    if (!formData.invoiceNumber) {
+      toast.error('Invoice number is required. Please refresh the page to generate a new number.');
+      return;
+    }
     
-    onInvoiceGenerated(invoice);
+    try {
+      // Check if invoice number already exists (double-check for uniqueness)
+      const exists = await checkInvoiceNumberExists(formData.invoiceNumber);
+      if (exists) {
+        toast.error('Invoice number already exists. Generating a new one...');
+        
+        // Generate a new unique number
+        const newNumber = await generateAutoInvoiceNumber();
+        setFormData(prev => ({ ...prev, invoiceNumber: newNumber }));
+        toast.success(`New invoice number generated: ${newNumber}`);
+        return;
+      }
+      
+      const invoice: InvoiceData = {
+        ...formData as InvoiceData,
+        services: addedServices,
+        currency: formData.currency || 'EUR',
+        subtotal: totals.subtotal,
+        vatRate: 0,
+        vatAmount: totals.vatAmount,
+        total: totals.total,
+        exchangeRate: exchangeRate,
+        status: 'draft',
+        createdAt: new Date().toISOString()
+      };
+      
+      // Save to database
+      await saveInvoice(invoice);
+      toast.success(`Invoice ${invoice.invoiceNumber} saved successfully!`);
+      
+      // Also call the callback for any additional processing
+      onInvoiceGenerated(invoice);
+      
+    } catch (error) {
+      console.error('Error saving invoice:', error);
+      toast.error('Failed to save invoice. Please try again.');
+    }
   };
 
   return (
@@ -297,13 +344,40 @@ export default function InvoiceForm({
           </div>
 
           <div>
-            <Label htmlFor="invoiceNumber">{t.invoiceNumber}</Label>
-            <Input
-              id="invoiceNumber"
-              value={formData.invoiceNumber || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, invoiceNumber: e.target.value }))}
-              required
-            />
+            <Label htmlFor="invoiceNumber">
+              {t.invoiceNumber}
+              <span className="text-xs text-muted-foreground ml-2">(Auto-generated)</span>
+            </Label>
+            <div className="flex gap-2">
+              <Input
+                id="invoiceNumber"
+                value={formData.invoiceNumber || (isGeneratingNumber ? 'Generating...' : '')}
+                readOnly
+                disabled={isGeneratingNumber}
+                className="bg-muted cursor-not-allowed flex-1"
+                placeholder={isGeneratingNumber ? 'Generating unique number...' : 'Auto-generated'}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  setIsGeneratingNumber(true);
+                  try {
+                    const newNumber = await generateAutoInvoiceNumber();
+                    setFormData(prev => ({ ...prev, invoiceNumber: newNumber }));
+                    toast.success(`New invoice number generated: ${newNumber}`);
+                  } catch (error) {
+                    toast.error('Failed to generate new invoice number');
+                  } finally {
+                    setIsGeneratingNumber(false);
+                  }
+                }}
+                disabled={isGeneratingNumber}
+              >
+                {isGeneratingNumber ? 'Generating...' : 'Regenerate'}
+              </Button>
+            </div>
           </div>
 
           <div>
