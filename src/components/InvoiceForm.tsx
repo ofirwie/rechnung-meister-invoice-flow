@@ -106,7 +106,12 @@ export default function InvoiceForm({
           console.log('✅ Auto-generated invoice number:', autoNumber);
         } catch (error) {
           console.error('❌ Failed to generate invoice number:', error);
-          toast.error('Failed to generate invoice number. Please try refreshing the page.');
+          
+          // Fallback to timestamp-based number if auto-generation fails
+          const fallbackNumber = `${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`;
+          setFormData(prev => ({ ...prev, invoiceNumber: fallbackNumber }));
+          
+          toast.error('Could not generate automatic invoice number. Using fallback number.');
         } finally {
           setIsGeneratingNumber(false);
         }
@@ -368,7 +373,13 @@ export default function InvoiceForm({
                     setFormData(prev => ({ ...prev, invoiceNumber: newNumber }));
                     toast.success(`New invoice number generated: ${newNumber}`);
                   } catch (error) {
-                    toast.error('Failed to generate new invoice number');
+                    console.error('Failed to regenerate invoice number:', error);
+                    
+                    // Fallback to timestamp-based number
+                    const fallbackNumber = `${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`;
+                    setFormData(prev => ({ ...prev, invoiceNumber: fallbackNumber }));
+                    
+                    toast.error('Could not generate automatic invoice number. Using fallback number.');
                   } finally {
                     setIsGeneratingNumber(false);
                   }

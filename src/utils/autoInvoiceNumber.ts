@@ -8,11 +8,13 @@ export async function generateAutoInvoiceNumber(): Promise<string> {
   try {
     console.log('🔢 Generating automatic invoice number...');
     
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    // Get current user from session (more reliable than getUser)
+    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    if (authError || !session?.user) {
       throw new Error('User not authenticated');
     }
+    
+    const user = session.user;
 
     const currentYear = new Date().getFullYear();
     const yearPrefix = currentYear.toString();
@@ -62,10 +64,12 @@ export async function generateAutoInvoiceNumber(): Promise<string> {
  */
 export async function checkInvoiceNumberExists(invoiceNumber: string): Promise<boolean> {
   try {
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
+    const { data: { session }, error: authError } = await supabase.auth.getSession();
+    if (authError || !session?.user) {
       throw new Error('User not authenticated');
     }
+    
+    const user = session.user;
 
     const { data, error } = await supabase
       .from('invoices')

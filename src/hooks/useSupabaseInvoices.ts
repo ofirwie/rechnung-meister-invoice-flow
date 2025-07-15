@@ -92,12 +92,14 @@ export function useSupabaseInvoices() {
 
   const saveInvoice = async (invoice: InvoiceData) => {
     try {
-      // Get current user
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      // Get current user from session
+      const { data: { session }, error: authError } = await supabase.auth.getSession();
       
-      if (authError || !user) {
+      if (authError || !session?.user) {
         throw new Error('User not authenticated. Please log in to save invoices.');
       }
+      
+      const user = session.user;
 
       const { error } = await supabase
         .from('invoices')
@@ -140,12 +142,14 @@ export function useSupabaseInvoices() {
 
   const updateInvoiceStatus = async (invoiceNumber: string, status: InvoiceData['status']) => {
     try {
-      // Get current user
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      // Get current user from session
+      const { data: { session }, error: authError } = await supabase.auth.getSession();
       
-      if (authError || !user) {
+      if (authError || !session?.user) {
         throw new Error('User not authenticated. Please log in to update invoice status.');
       }
+      
+      const user = session.user;
 
       const updateData: any = { status };
       
@@ -174,12 +178,14 @@ export function useSupabaseInvoices() {
 
   const deleteInvoice = async (invoiceNumber: string) => {
     try {
-      // Get current user
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      // Get current user from session
+      const { data: { session }, error: authError } = await supabase.auth.getSession();
       
-      if (authError || !user) {
+      if (authError || !session?.user) {
         throw new Error('User not authenticated. Please log in to delete invoices.');
       }
+      
+      const user = session.user;
 
       // First, get the invoice to check its status
       const { data: invoiceData, error: fetchError } = await supabase
