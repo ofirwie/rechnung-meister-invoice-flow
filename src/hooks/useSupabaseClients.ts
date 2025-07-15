@@ -28,6 +28,22 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
     try {
       console.log('🔍 Loading clients...');
       
+      // Check if user is authenticated first
+      const { data: { session }, error: authError } = await supabase.auth.getSession();
+      
+      if (authError) {
+        console.error('❌ Auth error:', authError);
+        throw authError;
+      }
+      
+      if (!session?.user) {
+        console.log('⚠️ No authenticated user - clients will be empty');
+        setClients([]);
+        return;
+      }
+      
+      console.log('🔑 Fetching clients for user:', session.user.email);
+      
       const { data, error } = await supabase
         .from('clients')
         .select('*')
@@ -99,6 +115,13 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
     try {
       console.log('💾 Saving client...', editingClient ? 'updating' : 'creating');
       
+      // Get current user for RLS compliance
+      const { data: { session }, error: authError } = await supabase.auth.getSession();
+      
+      if (authError || !session?.user) {
+        throw new Error('You must be logged in to save clients');
+      }
+      
       if (editingClient) {
         // Update existing client
         const { error } = await supabase
@@ -117,8 +140,10 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
             company_registration: formData.companyRegistration
           })
           .eq('id', editingClient.id);
+          
+        if (error) throw error;
       } else {
-        // Create new client
+        // Create new client with user_id for RLS
         const { error } = await supabase
           .from('clients')
           .insert({
@@ -132,11 +157,12 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
             phone: formData.phone,
             tax_id: formData.taxId,
             business_license: formData.businessLicense,
-            company_registration: formData.companyRegistration
+            company_registration: formData.companyRegistration,
+            user_id: session.user.id // IMPORTANT: Include user_id for RLS
           });
+          
+        if (error) throw error;
       }
-      
-      if (error) throw error;
       
       console.log('✅ Client saved successfully');
       toast.success(editingClient ? 'Client updated successfully!' : 'Client created successfully!');
@@ -171,10 +197,18 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
     try {
       console.log('🗑️ Deleting client:', clientId);
       
+      // Get current user for RLS compliance
+      const { data: { session }, error: authError } = await supabase.auth.getSession();
+      
+      if (authError || !session?.user) {
+        throw new Error('You must be logged in to delete clients');
+      }
+      
       const { error } = await supabase
         .from('clients')
         .delete()
-        .eq('id', clientId);
+        .eq('id', clientId)
+        .eq('user_id', session.user.id); // Only delete user's own clients
 
       if (error) throw error;
       
