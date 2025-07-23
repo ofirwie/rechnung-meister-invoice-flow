@@ -9,54 +9,33 @@ export const useCompanies = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchCompanies = async () => {
-    console.log('🚀 fetchCompanies called');
     try {
       setLoading(true);
       setError(null);
-      console.log('🚀 Loading set to true');
 
-      // console.log('🔍 Fetching companies...');
-
-      // Get current user directly from session (bypassing problematic getUser)
-      let user: any = null;
-      
-      console.log('🔄 Getting user from session...');
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
-        console.error('❌ Session error:', sessionError);
         throw new Error('Session error: ' + sessionError.message);
       }
       
-      if (session?.user) {
-        user = session.user;
-        console.log('✅ Got user from session:', user.email);
-      }
-
-      if (!user) {
-        console.error('❌ No user found after all attempts');
+      if (!session?.user) {
         throw new Error('User not logged in');
       }
 
-      // console.log('✅ Current user:', user.id, user.email);
-
-      // Check if user is root admin
+      const user = session.user;
       const rootAdminEmails = ['ofir.wienerman@gmail.com', 'firestar393@gmail.com'];
       const isRootAdmin = rootAdminEmails.includes(user.email || '');
       
-      // Fetch companies where user is root admin or has access
-      console.log('🔍 Fetching companies from database...');
       let query;
       
       if (isRootAdmin) {
-        // Root admins see all companies
         query = supabase
           .from('companies')
           .select('*')
           .eq('active', true)
           .order('created_at', { ascending: false });
       } else {
-        // Regular users see companies they belong to
         query = supabase
           .from('company_users')
           .select(`
@@ -75,28 +54,19 @@ export const useCompanies = () => {
       } else if (companiesData) {
         allCompanies = companiesData.map((item: any) => item.companies).filter(Boolean);
       }
-      
-      console.log('📊 Companies fetched:', allCompanies);
 
       if (companiesError) {
-        console.error('❌ Companies query failed:', companiesError);
-        
         if (companiesError.code === '42P17') {
-          console.error('🔥 RLS INFINITE RECURSION detected!');
           throw new Error('Permission issue in companies query. Need to fix RLS policies in Supabase Dashboard.');
         }
-        
         throw companiesError;
       }
 
       let activeCompanies: Company[] = [];
       
       if (isRootAdmin) {
-        // Root admins see all companies
         activeCompanies = allCompanies as Company[];
-        // console.log(`✅ Root admin access: showing all ${activeCompanies.length} companies`);
       } else {
-        // Regular users - filter by membership
         const { data: userMemberships, error: membershipsError } = await supabase
           .from('company_users')
           .select('company_id')
@@ -104,32 +74,16 @@ export const useCompanies = () => {
           .eq('active', true);
 
         if (membershipsError) {
-          console.error('❌ User memberships query failed:', membershipsError);
           throw membershipsError;
         }
 
-        // Filter companies to only those the user is a member of
         const userCompanyIds = userMemberships?.map(m => m.company_id) || [];
         activeCompanies = (allCompanies || []).filter((company: Company) => 
           userCompanyIds.includes(company.id)
         ) as Company[];
-        // console.log(`✅ Regular user: showing ${activeCompanies.length} assigned companies`);
       }
-
-      console.log('🔥 MOCK DEBUG: About to setCompanies with mock data:', activeCompanies);
-      console.log('🔥 MOCK DEBUG: activeCompanies.length:', activeCompanies.length);
       
       setCompanies(activeCompanies);
-      
-      console.log('🔥 MOCK DEBUG: setCompanies called with mock data. State should update now.');
-      
-      if (activeCompanies.length === 0) {
-        console.log('⚠️ No companies found for user');
-        toast.info('No companies found for current user');
-      } else {
-        console.log(`✅ Successfully loaded ${activeCompanies.length} mock companies`);
-        toast.success(`Mock companies loaded: ${activeCompanies.map(c => c.name).join(', ')}`);
-      }
 
     } catch (err) {
       console.error('❌ Error fetching companies:', err);
