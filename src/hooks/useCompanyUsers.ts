@@ -21,7 +21,7 @@ function getDefaultPermissions(role: UserRole): UserPermissions {
         reports: { export: true, view_all: true },
         company: { manage_users: true, manage_settings: false, view_sensitive: true }
       };
-    case 'member':
+    case 'user':
       return {
         expenses: { create: true, read: true, update: true, delete: false },
         suppliers: { create: true, read: true, update: false, delete: false },
@@ -83,13 +83,13 @@ export const useCompanyUsers = (companyId?: string) => {
       const { data, error } = await supabase
         .from('company_users')
         .select(`
-          *,
-          profiles!company_users_user_id_fkey (
-            id,
-            email,
-            display_name,
-            is_active
-          )
+          id,
+          company_id,
+          user_id,
+          role,
+          permissions,
+          active,
+          created_at
         `)
         .eq('company_id', companyId)
         .eq('active', true)
@@ -100,20 +100,38 @@ export const useCompanyUsers = (companyId?: string) => {
         throw error;
       }
 
-      const formattedUsers: CompanyUserWithProfile[] = data.map(item => ({
-        id: item.id,
-        company_id: item.company_id,
-        user_id: item.user_id,
-        role: item.role as UserRole,
-        permissions: item.permissions as UserPermissions,
-        active: item.active,
-        created_at: item.created_at,
-        updated_at: item.updated_at,
-        user_email: item.profiles?.email || '',
-        user_display_name: item.profiles?.display_name || null,
-        user_is_active: item.profiles?.is_active || false,
-        profiles: item.profiles
-      }));
+      // Get profile data separately
+      const userIds = data.map(item => item.user_id);
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, email, display_name, is_active')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+      }
+
+      const formattedUsers: CompanyUserWithProfile[] = data.map(item => {
+        const profile = profiles?.find(p => p.id === item.user_id);
+        return {
+          id: item.id,
+          company_id: item.company_id,
+          user_id: item.user_id,
+          role: item.role as UserRole,
+          permissions: (item.permissions as unknown) as UserPermissions,
+          active: item.active,
+          created_at: item.created_at,
+          user_email: profile?.email || '',
+          user_display_name: profile?.display_name || null,
+          user_is_active: profile?.is_active || false,
+          profiles: profile ? {
+            id: profile.id,
+            email: profile.email,
+            display_name: profile.display_name,
+            is_active: profile.is_active
+          } : undefined
+        };
+      });
 
       console.log('📊 Company users fetched:', formattedUsers);
       setUsers(formattedUsers);
@@ -166,7 +184,7 @@ export const useCompanyUsers = (companyId?: string) => {
           company_id: companyId,
           user_id: profileData.id,
           role: role,
-          permissions: permissions || getDefaultPermissions(role),
+          permissions: JSON.stringify(permissions || getDefaultPermissions(role)),
           active: true
         });
 

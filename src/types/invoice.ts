@@ -9,6 +9,9 @@ export interface InvoiceData {
   
   // Client information
   clientCompany: string;
+  clientName?: string;
+  clientEmail?: string;
+  clientReference?: string;
   clientAddress: string;
   clientCity: string;
   clientPostalCode: string;
@@ -21,6 +24,9 @@ export interface InvoiceData {
   
   // Exchange rate (when converting from ILS to EUR)
   exchangeRate?: number;
+  
+  // VAT settings
+  vatRate?: number;
   
   // Calculated totals
   subtotal: number;

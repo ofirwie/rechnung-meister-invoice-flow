@@ -140,7 +140,7 @@ export const DebugCompanies: React.FC = () => {
       
       // Raw SQL equivalent test
       const { data: rawCompanies, error: rawError } = await supabase
-        .rpc('get_user_companies', { user_email: user.email });
+        .rpc('get_current_user_role');
       
       if (rawError) {
         addLog('7. Testing direct database access', 'error', null, rawError);

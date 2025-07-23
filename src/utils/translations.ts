@@ -44,9 +44,26 @@ export const translations = {
     
     // Actions
     generateInvoice: 'Rechnung erstellen',
+    newInvoice: 'Neue Rechnung',
     print: 'Drucken',
     reset: 'Zurücksetzen',
     home: 'Startseite',
+    
+    // Missing translations
+    pleaseAddService: 'Bitte fügen Sie eine Leistung hinzu',
+    selectDate: 'Datum auswählen',
+    servicePeriod: 'Leistungszeitraum',
+    clientReference: 'Kundenreferenz',
+    optional: 'Optional',
+    clientDetails: 'Kundendetails',
+    clientName: 'Kundenname',
+    companyName: 'Firmenname',
+    clientEmail: 'Kunden-E-Mail',
+    other: 'Sonstiges',
+    includeInInvoice: 'In Rechnung einbeziehen',
+    notIncluded: 'Nicht enthalten',
+    rate: 'Satz',
+    vat: 'MwSt',
     
     // New features
     clients: 'Kunden',
