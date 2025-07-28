@@ -27,7 +27,7 @@ export const translations = {
     addService: 'Leistung hinzufügen',
     serviceDescription: 'Beschreibung der Leistung',
     hours: 'Stunden',
-    hourlyRate: 'Stundensatz (EUR)',
+    hourlyRate: 'Stundensatz',
     amount: 'Betrag',
     
     // Invoice display
@@ -220,7 +220,7 @@ export const translations = {
     addService: 'Add Service',
     serviceDescription: 'Service Description',
     hours: 'Hours',
-    hourlyRate: 'Hourly Rate (EUR)',
+    hourlyRate: 'Hourly Rate',
     amount: 'Amount',
     
     // Invoice display
@@ -410,7 +410,7 @@ export const translations = {
     addService: 'הוסף שירות',
     serviceDescription: 'תיאור השירות',
     hours: 'שעות',
-    hourlyRate: 'תעריף לשעה (יורו)',
+    hourlyRate: 'תעריף לשעה',
     amount: 'סכום',
     
     // Invoice display
