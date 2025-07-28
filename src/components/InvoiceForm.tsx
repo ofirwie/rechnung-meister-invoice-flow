@@ -125,7 +125,7 @@ export default function InvoiceForm({
   useEffect(() => {
     if (selectedClient) {
       const client = selectedClient;
-      const nextInvoiceNumber = getNextInvoiceNumber(invoiceHistory, client.company);
+      const nextInvoiceNumber = getNextInvoiceNumber(client.id, client.company_name, invoiceHistory);
       
       setFormData(prev => ({
         ...prev,

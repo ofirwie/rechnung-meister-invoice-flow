@@ -51,10 +51,10 @@ export default function ClientTable({
               className="font-medium"
               onClick={() => onClientSelect(client)}
             >
-              {client.companyName}
+              {client.company_name}
             </TableCell>
             <TableCell onClick={() => onClientSelect(client)}>
-              {client.contactName}
+              {client.contact_name}
             </TableCell>
             <TableCell onClick={() => onClientSelect(client)}>
               {client.city}, {client.country}

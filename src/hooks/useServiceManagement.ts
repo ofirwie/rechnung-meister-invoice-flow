@@ -66,8 +66,11 @@ export function useServiceManagement(externalSearchTerm?: string, onSearchChange
       const newService: Service = {
         id: Date.now().toString(),
         ...formData,
+        default_rate: formData.hourlyRate,
         isActive: true,
+        created_at: new Date().toISOString(),
         createdAt: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
       setServices(prev => [...prev, newService]);

@@ -53,18 +53,26 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
 
       const formattedClients: Client[] = data.map(client => ({
         id: client.id,
+        company_name: client.company_name,
         companyName: client.company_name,
+        contact_name: client.contact_name,
         contactName: client.contact_name,
         address: client.address,
         city: client.city,
+        postal_code: client.postal_code,
         postalCode: client.postal_code,
         country: client.country,
         email: client.email,
         phone: client.phone,
+        tax_id: client.tax_id,
         taxId: client.tax_id,
+        business_license: client.business_license,
         businessLicense: client.business_license,
+        company_registration: client.company_registration,
         companyRegistration: client.company_registration,
+        created_at: client.created_at,
         createdAt: client.created_at,
+        updated_at: client.updated_at,
         updatedAt: client.updated_at
       }));
 
@@ -83,8 +91,8 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
   }, []);
 
   const filteredClients = clients.filter(client =>
-    client.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.contactName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.contact_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.city.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -178,8 +186,8 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
   const handleEdit = (client: Client) => {
     setEditingClient(client);
     setFormData({
-      companyName: client.companyName,
-      contactName: client.contactName || '',
+      companyName: client.company_name,
+      contactName: client.contact_name || '',
       address: client.address,
       city: client.city,
       postalCode: client.postalCode || '',

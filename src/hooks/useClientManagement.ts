@@ -22,8 +22,8 @@ export function useClientManagement(onClientSelect?: (client: Client) => void) {
   });
 
   const filteredClients = clients.filter(client =>
-    client.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.contactName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.contact_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.city.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -55,8 +55,18 @@ export function useClientManagement(onClientSelect?: (client: Client) => void) {
       // Update existing client
       const updatedClient: Client = {
         ...editingClient,
-        ...formData,
-        updatedAt: new Date().toISOString()
+        company_name: formData.companyName,
+        contact_name: formData.contactName,
+        address: formData.address,
+        city: formData.city,
+        postal_code: formData.postalCode,
+        country: formData.country,
+        email: formData.email,
+        phone: formData.phone,
+        tax_id: formData.taxId,
+        business_license: formData.businessLicense,
+        company_registration: formData.companyRegistration,
+        updated_at: new Date().toISOString(),
       };
       setClients(prev => prev.map(client => 
         client.id === editingClient.id ? updatedClient : client
@@ -65,9 +75,28 @@ export function useClientManagement(onClientSelect?: (client: Client) => void) {
       // Create new client
       const newClient: Client = {
         id: Date.now().toString(),
-        ...formData,
+        company_name: formData.companyName,
+        
+        contact_name: formData.contactName,
+        
+        address: formData.address,
+        city: formData.city,
+        postal_code: formData.postalCode,
+        
+        country: formData.country,
+        email: formData.email,
+        phone: formData.phone,
+        tax_id: formData.taxId,
+        
+        business_license: formData.businessLicense,
+        
+        company_registration: formData.companyRegistration,
+        
+        created_at: new Date().toISOString(),
         createdAt: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         updatedAt: new Date().toISOString()
+        
       };
       setClients(prev => [...prev, newClient]);
     }
@@ -79,17 +108,17 @@ export function useClientManagement(onClientSelect?: (client: Client) => void) {
   const handleEdit = (client: Client) => {
     setEditingClient(client);
     setFormData({
-      companyName: client.companyName,
-      contactName: client.contactName || '',
+      companyName: client.company_name,
+      contactName: client.contact_name || '',
       address: client.address,
       city: client.city,
-      postalCode: client.postalCode || '',
+      postalCode: client.postal_code || '',
       country: client.country,
       email: client.email || '',
       phone: client.phone || '',
-      taxId: client.taxId || '',
-      businessLicense: client.businessLicense || '',
-      companyRegistration: client.companyRegistration || ''
+      taxId: client.tax_id || '',
+      businessLicense: client.business_license || '',
+      companyRegistration: client.company_registration || ''
     });
     setIsDialogOpen(true);
   };

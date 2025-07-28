@@ -104,10 +104,13 @@ export default function ServiceManagement({ onServiceSelect, searchTerm: externa
       await addService({
         name: formData.name,
         description: formData.description,
+        default_rate: formData.hourlyRate,
         hourlyRate: formData.hourlyRate,
         currency: formData.currency,
         category: formData.category,
-        isActive: true
+        isActive: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       });
     }
     

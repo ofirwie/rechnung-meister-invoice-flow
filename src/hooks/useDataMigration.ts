@@ -31,8 +31,8 @@ export function useDataMigration() {
         setMigrationStatus(`מעביר ${localClients.length} לקוחות...`);
         
         const clientsData = localClients.map(client => ({
-          company_name: client.companyName,
-          contact_name: client.contactName,
+          company_name: client.company_name,
+          contact_name: client.contact_name,
           address: client.address,
           city: client.city,
           postal_code: client.postalCode,

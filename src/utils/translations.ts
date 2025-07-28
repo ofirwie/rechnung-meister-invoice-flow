@@ -365,7 +365,21 @@ export const translations = {
     extendSession: 'Extend Session',
     loginAgain: 'Login Again',
     sessionWarning: 'Your session will expire in {minutes} minutes.',
-    logout: 'Logout'
+    logout: 'Logout',
+    pleaseAddService: 'Please add at least one service',
+    newInvoice: 'New Invoice',
+    selectDate: 'Select Date',
+    servicePeriod: 'Service Period',
+    clientReference: 'Client Reference',
+    optional: '(optional)',
+    clientDetails: 'Client Details',
+    clientName: 'Client Name',
+    companyName: 'Company Name',
+    other: 'Other',
+    includeInInvoice: 'Include in Invoice',
+    notIncluded: 'Not Included',
+    rate: 'Rate',
+    vat: 'VAT'
   },
   
   he: {
@@ -541,6 +555,20 @@ export const translations = {
     extendSession: 'הארך התחברות',
     loginAgain: 'התחבר שוב',
     sessionWarning: 'ההתחברות שלך תפוג בעוד {minutes} דקות.',
-    logout: 'התנתק'
+    logout: 'התנתק',
+    pleaseAddService: 'אנא הוסף לפחות שירות אחד',
+    newInvoice: 'חשבונית חדשה',
+    selectDate: 'בחר תאריך',
+    servicePeriod: 'תקופת השירות',
+    clientReference: 'הפניית לקוח',
+    optional: '(אופציונלי)',
+    clientDetails: 'פרטי הלקוח',
+    clientName: 'שם הלקוח',
+    companyName: 'שם החברה',
+    other: 'אחר',
+    includeInInvoice: 'כלול בחשבונית',
+    notIncluded: 'לא כלול',
+    rate: 'תעריף',
+    vat: 'מע"מ'
   }
 };

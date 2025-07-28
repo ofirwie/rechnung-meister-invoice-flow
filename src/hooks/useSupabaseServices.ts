@@ -23,11 +23,14 @@ export function useSupabaseServices() {
         id: service.id,
         name: service.name,
         description: service.description || '',
+        default_rate: service.default_rate,
         hourlyRate: service.default_rate,
         currency: service.currency as 'EUR' | 'ILS',
         category: 'General', // Default category
         isActive: true, // Default active
+        created_at: service.created_at,
         createdAt: service.created_at,
+        updated_at: service.updated_at,
         updatedAt: service.updated_at
       }));
 
