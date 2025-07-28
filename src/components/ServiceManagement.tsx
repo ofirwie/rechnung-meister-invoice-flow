@@ -10,6 +10,7 @@ import { useSupabaseServices } from '../hooks/useSupabaseServices';
 import { useLanguage } from '../hooks/useLanguage';
 import ServiceForm from './ServiceForm';
 import ServiceTable from './ServiceTable';
+import { ServiceDebugInfo } from './ServiceDebugInfo';
 
 interface ServiceManagementProps {
   onServiceSelect?: (service: Service) => void;
@@ -180,6 +181,9 @@ export default function ServiceManagement({ onServiceSelect, searchTerm: externa
           )}
         </CardContent>
       </Card>
+      
+      {/* Debug Info - Remove this after fixing the issue */}
+      <ServiceDebugInfo />
     </div>
   );
 }
