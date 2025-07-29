@@ -11,6 +11,7 @@ import { useLanguage } from '../hooks/useLanguage';
 import ServiceForm from './ServiceForm';
 import ServiceTable from './ServiceTable';
 import { ServiceDebugInfo } from './ServiceDebugInfo';
+import { useCompany } from '../contexts/CompanyContext';
 
 interface ServiceManagementProps {
   onServiceSelect?: (service: Service) => void;
@@ -20,6 +21,7 @@ interface ServiceManagementProps {
 
 export default function ServiceManagement({ onServiceSelect, searchTerm: externalSearchTerm, onSearchChange }: ServiceManagementProps) {
   const { language, t, isRTL } = useLanguage();
+  const { selectedCompany } = useCompany();
   
   const {
     services,
@@ -36,7 +38,7 @@ export default function ServiceManagement({ onServiceSelect, searchTerm: externa
     name: '',
     description: '',
     hourlyRate: 0,
-    currency: 'ILS',
+    currency: (selectedCompany?.default_currency as 'EUR' | 'ILS') || 'EUR',
     category: 'General'
   });
 
@@ -62,7 +64,7 @@ export default function ServiceManagement({ onServiceSelect, searchTerm: externa
       name: '',
       description: '',
       hourlyRate: 0,
-      currency: 'ILS',
+      currency: (selectedCompany?.default_currency as 'EUR' | 'ILS') || 'EUR',
       category: 'General'
     });
     setEditingService(null);
