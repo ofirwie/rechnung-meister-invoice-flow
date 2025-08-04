@@ -44,13 +44,39 @@ export default function InvoiceForm({
   onSelectClient,
   setCurrentView 
 }: InvoiceFormProps) {
-  // Debug: Track renders to detect infinite loops
+  // Circuit breaker to prevent infinite renders
   const renderCountRef = React.useRef(0);
+  const lastPropsRef = React.useRef<string>('');
+  
+  // Create a stable reference for props comparison
+  const currentPropsString = JSON.stringify({ 
+    selectedClient: selectedClient?.id || selectedClient?.company_name, 
+    selectedService: selectedService?.id || selectedService?.name 
+  });
+  
+  // Reset render count when actual props change
+  if (lastPropsRef.current !== currentPropsString) {
+    renderCountRef.current = 0;
+    lastPropsRef.current = currentPropsString;
+  }
+  
   renderCountRef.current += 1;
   
-  // Safety: Detect potential infinite renders
+  // CIRCUIT BREAKER: Stop rendering if infinite loop detected
   if (renderCountRef.current > 50) {
-    console.error('🚨 INFINITE RENDER DETECTED! Component has rendered', renderCountRef.current, 'times');
+    console.error('🚨 INFINITE RENDER DETECTED! Stopping at render', renderCountRef.current);
+    return (
+      <div className="p-4 border border-red-500 bg-red-50">
+        <h3 className="text-red-700 font-bold">Render Loop Detected</h3>
+        <p className="text-red-600">The form has been stopped to prevent infinite rendering. Please refresh the page.</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+        >
+          Refresh Page
+        </button>
+      </div>
+    );
   }
   
   const { language, t, changeLanguage } = useLanguage();
@@ -90,33 +116,46 @@ export default function InvoiceForm({
 
   const [exchangeRate, setExchangeRate] = useState<number>(3.91);
 
-  // Set language to match current language state after mount
+  // Track previous values to prevent unnecessary updates
+  const prevLanguageRef = React.useRef(language);
+  const prevInvoiceDateRef = React.useRef(formData.invoiceDate);
+  const prevClientRef = React.useRef(selectedClient);
+
+  // Set language to match current language state (only when actually different)
   useEffect(() => {
-    setFormData(prev => ({ ...prev, language: language as 'de' | 'en' }));
+    if (prevLanguageRef.current !== language) {
+      prevLanguageRef.current = language;
+      setFormData(prev => ({ ...prev, language: language as 'de' | 'en' }));
+    }
   }, [language]);
 
-  // Auto-calculate due date when invoice date changes
+  // Auto-calculate due date when invoice date changes (prevent loops)
   useEffect(() => {
-    if (formData.invoiceDate && !formData.dueDate) {
-      const invoiceDate = new Date(formData.invoiceDate);
-      const dueDate = new Date(invoiceDate);
-      dueDate.setDate(dueDate.getDate() + 10);
-      const dueDateStr = dueDate.toISOString().split('T')[0];
+    if (formData.invoiceDate !== prevInvoiceDateRef.current) {
+      prevInvoiceDateRef.current = formData.invoiceDate;
       
-      setFormData(prev => ({ ...prev, dueDate: dueDateStr }));
+      if (formData.invoiceDate && !formData.dueDate) {
+        const invoiceDate = new Date(formData.invoiceDate);
+        const dueDate = new Date(invoiceDate);
+        dueDate.setDate(dueDate.getDate() + 10);
+        const dueDateStr = dueDate.toISOString().split('T')[0];
+        
+        setFormData(prev => ({ ...prev, dueDate: dueDateStr }));
+      }
     }
-  }, [formData.invoiceDate]);
+  }, [formData.invoiceDate, formData.dueDate]);
 
-  // Memoize invoice number generation function
-  const generateInvoiceNumberForClient = useCallback(async () => {
-    if (!selectedClient?.company_name && !selectedClient?.company) {
+  // Stable invoice number generation function
+  const generateInvoiceNumberForClient = useCallback(async (clientData: Client | null) => {
+    if (!clientData?.company_name && !clientData?.company) {
       return;
     }
 
     setIsGeneratingNumber(true);
     try {
-      const clientCompanyName = selectedClient.company_name || selectedClient.company || '';
+      const clientCompanyName = clientData.company_name || clientData.company || '';
       const autoNumber = await generateAutoInvoiceNumber(clientCompanyName);
+      
       setFormData(prev => {
         // Only update if different to prevent loops
         if (prev.invoiceNumber !== autoNumber) {
@@ -136,17 +175,18 @@ export default function InvoiceForm({
     } finally {
       setIsGeneratingNumber(false);
     }
-  }, [selectedClient]);
+  }, []);
 
-  // Auto-generate invoice number when client is selected or changed
+  // Handle client selection (with circuit breaker)
   useEffect(() => {
-    generateInvoiceNumberForClient();
-  }, [generateInvoiceNumberForClient]);
-
-  // Handle client selection
-  useEffect(() => {
-    if (selectedClient) {
-      const client = selectedClient;
+    const currentClient = selectedClient;
+    const prevClient = prevClientRef.current;
+    
+    // Only update if client actually changed
+    if (currentClient && currentClient !== prevClient) {
+      prevClientRef.current = currentClient;
+      
+      const client = currentClient;
       
       setFormData(prev => ({
         ...prev,
@@ -159,8 +199,11 @@ export default function InvoiceForm({
         clientCountry: client.country,
         clientReference: client.customerReference || ''
       }));
+      
+      // Generate invoice number for the new client
+      generateInvoiceNumberForClient(currentClient);
     }
-  }, [selectedClient]);
+  }, [selectedClient, generateInvoiceNumberForClient]);
 
   // Handle service selection
   useEffect(() => {
