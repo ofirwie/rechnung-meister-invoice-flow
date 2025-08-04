@@ -23,6 +23,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useLanguage } from '../hooks/useLanguage';
 import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
 import { toast } from 'sonner';
+import { RenderDebugPanel } from './RenderDebugPanel';
 
 
 interface InvoiceFormProps {
@@ -44,9 +45,11 @@ export default function InvoiceForm({
   onSelectClient,
   setCurrentView 
 }: InvoiceFormProps) {
-  // Circuit breaker to prevent infinite renders (moved BEFORE hooks)
+  // Enhanced render tracking for debug panel
   const renderCountRef = React.useRef(0);
   const lastPropsRef = React.useRef<string>('');
+  const renderTriggerRef = React.useRef<string>('initial');
+  const lastStateRef = React.useRef<any>({});
   
   // Create a stable reference for props comparison
   const currentPropsString = useMemo(() => JSON.stringify({ 
@@ -58,6 +61,7 @@ export default function InvoiceForm({
   if (lastPropsRef.current !== currentPropsString) {
     renderCountRef.current = 0;
     lastPropsRef.current = currentPropsString;
+    renderTriggerRef.current = 'props-change';
   }
   
   renderCountRef.current += 1;
@@ -108,8 +112,74 @@ export default function InvoiceForm({
   // Check for infinite loop but don't return early
   const hasRenderLoop = renderCountRef.current > 50;
   
-  // DISABLE ALL DEBUG LOGGING TO PREVENT INFINITE LOOPS
-  // (This useEffect was causing infinite renders because it had no dependency array)
+  // Track render triggers for debug panel
+  const currentState = useMemo(() => ({
+    formData: {
+      invoiceDate: formData.invoiceDate,
+      dueDate: formData.dueDate,
+      language: formData.language,
+      invoiceNumber: formData.invoiceNumber,
+      clientName: formData.clientName,
+      clientCompany: formData.clientCompany
+    },
+    selectedClient: selectedClient ? {
+      id: selectedClient.id,
+      company_name: selectedClient.company_name,
+      contact_name: selectedClient.contact_name
+    } : null,
+    selectedService: selectedService ? {
+      id: selectedService.id,
+      name: selectedService.name,
+      hourlyRate: selectedService.hourlyRate
+    } : null,
+    language: language,
+    isGeneratingNumber: isGeneratingNumber,
+    servicesCount: services.length
+  }), [formData.invoiceDate, formData.dueDate, formData.language, formData.invoiceNumber, formData.clientName, formData.clientCompany, selectedClient, selectedService, language, isGeneratingNumber, services.length]);
+
+  // Detect what caused this render
+  useEffect(() => {
+    const newState = JSON.stringify(currentState);
+    const oldState = JSON.stringify(lastStateRef.current);
+    
+    if (newState !== oldState) {
+      // Find what changed
+      const changes: string[] = [];
+      
+      if (currentState.formData.language !== lastStateRef.current.formData?.language) {
+        changes.push('language');
+        renderTriggerRef.current = 'language-change';
+      }
+      if (currentState.formData.invoiceDate !== lastStateRef.current.formData?.invoiceDate) {
+        changes.push('invoiceDate');
+        renderTriggerRef.current = 'invoiceDate-change';
+      }
+      if (currentState.selectedClient?.id !== lastStateRef.current.selectedClient?.id) {
+        changes.push('selectedClient');
+        renderTriggerRef.current = 'selectedClient-change';
+      }
+      if (currentState.selectedService?.id !== lastStateRef.current.selectedService?.id) {
+        changes.push('selectedService');
+        renderTriggerRef.current = 'selectedService-change';
+      }
+      if (currentState.isGeneratingNumber !== lastStateRef.current.isGeneratingNumber) {
+        changes.push('isGeneratingNumber');
+        renderTriggerRef.current = 'isGeneratingNumber-change';
+      }
+      if (currentState.servicesCount !== lastStateRef.current.servicesCount) {
+        changes.push('services');
+        renderTriggerRef.current = 'services-change';
+      }
+      
+      if (changes.length === 0) {
+        renderTriggerRef.current = 'unknown-state-change';
+      } else if (changes.length > 1) {
+        renderTriggerRef.current = `multiple-changes: ${changes.join(', ')}`;
+      }
+      
+      lastStateRef.current = currentState;
+    }
+  });
 
   // Set language to match current language state (only when actually different)
   useEffect(() => {
@@ -451,7 +521,21 @@ export default function InvoiceForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <>
+      {/* Debug Panel */}
+      <RenderDebugPanel
+        renderCount={renderCountRef.current}
+        triggerSource={renderTriggerRef.current}
+        currentState={currentState}
+        additionalData={{
+          hasRenderLoop,
+          prevLanguage: prevLanguageRef.current,
+          prevInvoiceDate: prevInvoiceDateRef.current,
+          prevClient: prevClientRef.current?.id || null
+        }}
+      />
+      
+      <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>{t.newInvoice}</CardTitle>
@@ -923,5 +1007,6 @@ export default function InvoiceForm({
         </Button>
       </div>
     </form>
+    </>
   );
 }
