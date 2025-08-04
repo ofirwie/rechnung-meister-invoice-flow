@@ -19,6 +19,7 @@ export const translations = {
     clientCompany: 'Firmenname',
     clientAddress: 'Adresse',
     clientCity: 'Stadt',
+    city: 'Stadt',
     postalCode: 'PLZ',
     country: 'Land',
     
@@ -216,6 +217,7 @@ export const translations = {
     clientCompany: 'Company Name',
     clientAddress: 'Address',
     clientCity: 'City',
+    city: 'City',
     postalCode: 'Postal Code',
     country: 'Country',
     
@@ -410,6 +412,7 @@ export const translations = {
     clientCompany: 'שם חברה',
     clientAddress: 'כתובת',
     clientCity: 'עיר',
+    city: 'עיר',
     postalCode: 'מיקוד',
     country: 'מדינה',
     

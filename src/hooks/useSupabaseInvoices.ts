@@ -92,51 +92,104 @@ export function useSupabaseInvoices() {
 
   const saveInvoice = async (invoice: InvoiceData) => {
     try {
+      console.log('🔄 Starting invoice save process...');
+      console.log('📄 Invoice data to save:', invoice);
+      
       // Get current user from session
       const { data: { session }, error: authError } = await supabase.auth.getSession();
       
-      if (authError || !session?.user) {
+      if (authError) {
+        console.error('❌ Authentication error:', authError);
+        throw new Error(`Authentication error: ${authError.message}`);
+      }
+      
+      if (!session?.user) {
+        console.error('❌ No user session found');
         throw new Error('User not authenticated. Please log in to save invoices.');
       }
       
       const user = session.user;
+      console.log('✅ User authenticated:', user.id);
 
-      const { error } = await supabase
+      // Prepare the data for database insertion
+      const dbData = {
+        invoice_number: invoice.invoiceNumber,
+        invoice_date: invoice.invoiceDate,
+        service_period_start: invoice.servicePeriodStart,
+        service_period_end: invoice.servicePeriodEnd,
+        due_date: invoice.dueDate,
+        language: invoice.language,
+        currency: invoice.currency,
+        client_company: invoice.clientCompany,
+        client_address: invoice.clientAddress,
+        client_city: invoice.clientCity || 'Unknown', // Provide fallback for required field
+        client_postal_code: invoice.clientPostalCode || '',
+        client_country: invoice.clientCountry,
+        client_business_license: invoice.clientBusinessLicense || null,
+        client_company_registration: invoice.clientCompanyRegistration || null,
+        services: JSON.stringify(invoice.services),
+        exchange_rate: invoice.exchangeRate || null,
+        subtotal: invoice.subtotal,
+        vat_amount: invoice.vatAmount,
+        total: invoice.total,
+        status: invoice.status,
+        approved_at: invoice.approvedAt || null,
+        approved_by: invoice.approvedBy || null,
+        issued_at: invoice.issuedAt || null,
+        user_id: user.id
+      };
+      
+      console.log('💾 Database payload:', dbData);
+      
+      // Validate required fields before sending to database
+      const requiredFields = ['invoice_number', 'invoice_date', 'client_company', 'client_address', 'client_city', 'client_country'];
+      const missingFields = requiredFields.filter(field => !dbData[field as keyof typeof dbData]);
+      
+      if (missingFields.length > 0) {
+        console.error('❌ Missing required fields:', missingFields);
+        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+      }
+
+      const { data, error } = await supabase
         .from('invoices')
-        .upsert({
-          invoice_number: invoice.invoiceNumber,
-          invoice_date: invoice.invoiceDate,
-          service_period_start: invoice.servicePeriodStart,
-          service_period_end: invoice.servicePeriodEnd,
-          due_date: invoice.dueDate,
-          language: invoice.language,
-          currency: invoice.currency,
-          client_company: invoice.clientCompany,
-          client_address: invoice.clientAddress,
-          client_city: invoice.clientCity,
-          client_postal_code: invoice.clientPostalCode,
-          client_country: invoice.clientCountry,
-          client_business_license: invoice.clientBusinessLicense,
-          client_company_registration: invoice.clientCompanyRegistration,
-          services: JSON.stringify(invoice.services),
-          exchange_rate: invoice.exchangeRate,
-          subtotal: invoice.subtotal,
-          vat_amount: invoice.vatAmount,
-          total: invoice.total,
-          status: invoice.status,
-          approved_at: invoice.approvedAt,
-          approved_by: invoice.approvedBy,
-          issued_at: invoice.issuedAt,
-          user_id: user.id  // Add user_id to satisfy RLS policy
-        });
+        .upsert(dbData)
+        .select(); // Add select to get the inserted data back
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        
+        // Provide more specific error messages based on common issues
+        if (error.code === '23502') {
+          throw new Error(`Database constraint violation: ${error.message}. Please check all required fields are filled.`);
+        } else if (error.code === '23505') {
+          throw new Error(`Duplicate entry: ${error.message}. This invoice number may already exist.`);
+        } else if (error.code === '42703') {
+          throw new Error(`Database column error: ${error.message}. There may be a field mapping issue.`);
+        } else {
+          throw new Error(`Database error: ${error.message}`);
+        }
+      }
+      
+      console.log('✅ Invoice saved successfully:', data);
       
       await loadInvoices();
       await loadInvoiceHistory();
+      
+      console.log('✅ Invoice save process completed successfully');
     } catch (error) {
-      console.error('Error saving invoice:', error);
-      throw error;
+      console.error('❌ Error saving invoice:', error);
+      
+      // Re-throw with more context if it's a generic error
+      if (error instanceof Error) {
+        throw error;
+      } else {
+        throw new Error(`Unknown error occurred while saving invoice: ${String(error)}`);
+      }
     }
   };
 

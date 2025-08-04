@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -24,10 +24,6 @@ import { useLanguage } from '../hooks/useLanguage';
 import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
 import { toast } from 'sonner';
 
-// Global counter for debugging
-if (typeof window !== 'undefined') {
-  (window as any).calcCount = 0;
-}
 
 interface InvoiceFormProps {
   onInvoiceGenerated: (invoice: InvoiceData) => void;
@@ -48,14 +44,23 @@ export default function InvoiceForm({
   onSelectClient,
   setCurrentView 
 }: InvoiceFormProps) {
+  // Debug: Track renders to detect infinite loops
+  const renderCountRef = React.useRef(0);
+  renderCountRef.current += 1;
+  
+  // Safety: Detect potential infinite renders
+  if (renderCountRef.current > 50) {
+    console.error('🚨 INFINITE RENDER DETECTED! Component has rendered', renderCountRef.current, 'times');
+  }
+  
   const { language, t, changeLanguage } = useLanguage();
   const { saveInvoice, invoiceHistory } = useSupabaseInvoices();
   
   const [clients] = useLocalStorage<Client[]>('invoice-clients', []);
   const [isGeneratingNumber, setIsGeneratingNumber] = useState(false);
   
-  // Initialize service period dates with current month defaults
-  const getCurrentMonthDates = () => {
+  // Memoize date calculations to prevent infinite re-renders
+  const monthDates = useMemo(() => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -63,82 +68,99 @@ export default function InvoiceForm({
       start: startOfMonth.toISOString().split('T')[0],
       end: endOfMonth.toISOString().split('T')[0]
     };
-  };
+  }, []); // Empty dependency array - only calculate once
 
-  const monthDates = getCurrentMonthDates();
-
-  const [formData, setFormData] = useState<Partial<InvoiceData>>({
+  const [formData, setFormData] = useState<Partial<InvoiceData>>(() => ({
     invoiceDate: new Date().toISOString().split('T')[0],
     servicePeriodStart: monthDates.start,
     servicePeriodEnd: monthDates.end,
     dueDate: '',
-    language: language as 'de' | 'en',
+    language: 'de', // Set static initial value
     currency: 'EUR',
     clientCountry: 'Israel',
+    clientCity: '',
+    clientPostalCode: '',
     services: [],
     invoiceNumber: '' // Will be auto-generated
-  });
+  }));
 
   const [services, setServices] = useState<InvoiceService[]>([
-    { id: '1', description: '', hours: 0, rate: 0, currency: 'EUR', amount: 0, addedToInvoice: false }
+    { id: '1', description: '', hours: 0, rate: 0, currency: 'EUR', amount: 0, addedToInvoice: true }
   ]);
 
   const [exchangeRate, setExchangeRate] = useState<number>(3.91);
 
+  // Set language to match current language state after mount
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, language: language as 'de' | 'en' }));
+  }, [language]);
+
   // Auto-calculate due date when invoice date changes
   useEffect(() => {
-    if (formData.invoiceDate) {
+    if (formData.invoiceDate && !formData.dueDate) {
       const invoiceDate = new Date(formData.invoiceDate);
       const dueDate = new Date(invoiceDate);
       dueDate.setDate(dueDate.getDate() + 10);
-      setFormData(prev => ({ ...prev, dueDate: dueDate.toISOString().split('T')[0] }));
+      const dueDateStr = dueDate.toISOString().split('T')[0];
+      
+      setFormData(prev => ({ ...prev, dueDate: dueDateStr }));
     }
   }, [formData.invoiceDate]);
 
+  // Memoize invoice number generation function
+  const generateInvoiceNumberForClient = useCallback(async () => {
+    if (!selectedClient?.company_name && !selectedClient?.company) {
+      return;
+    }
+
+    setIsGeneratingNumber(true);
+    try {
+      const clientCompanyName = selectedClient.company_name || selectedClient.company || '';
+      const autoNumber = await generateAutoInvoiceNumber(clientCompanyName);
+      setFormData(prev => {
+        // Only update if different to prevent loops
+        if (prev.invoiceNumber !== autoNumber) {
+          return { ...prev, invoiceNumber: autoNumber };
+        }
+        return prev;
+      });
+      console.log('✅ Auto-generated invoice number for client:', clientCompanyName, '→', autoNumber);
+    } catch (error) {
+      console.error('❌ Failed to generate invoice number:', error);
+      
+      // Fallback to timestamp-based number if auto-generation fails
+      const fallbackNumber = `${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`;
+      setFormData(prev => ({ ...prev, invoiceNumber: fallbackNumber }));
+      
+      toast.error('Could not generate automatic invoice number. Using fallback number.');
+    } finally {
+      setIsGeneratingNumber(false);
+    }
+  }, [selectedClient]);
+
   // Auto-generate invoice number when client is selected or changed
   useEffect(() => {
-    const generateInvoiceNumberForClient = async () => {
-      if (selectedClient?.company_name || selectedClient?.company) {
-        setIsGeneratingNumber(true);
-        try {
-          const clientCompanyName = selectedClient.company_name || selectedClient.company || '';
-          const autoNumber = await generateAutoInvoiceNumber(clientCompanyName);
-          setFormData(prev => ({ ...prev, invoiceNumber: autoNumber }));
-          console.log('✅ Auto-generated invoice number for client:', clientCompanyName, '→', autoNumber);
-        } catch (error) {
-          console.error('❌ Failed to generate invoice number:', error);
-          
-          // Fallback to timestamp-based number if auto-generation fails
-          const fallbackNumber = `${new Date().getFullYear()}-${Date.now().toString().slice(-4)}`;
-          setFormData(prev => ({ ...prev, invoiceNumber: fallbackNumber }));
-          
-          toast.error('Could not generate automatic invoice number. Using fallback number.');
-        } finally {
-          setIsGeneratingNumber(false);
-        }
-      }
-    };
-    
     generateInvoiceNumberForClient();
-  }, [selectedClient]); // Regenerate when client changes
+  }, [generateInvoiceNumberForClient]);
 
   // Handle client selection
   useEffect(() => {
     if (selectedClient) {
       const client = selectedClient;
-      const nextInvoiceNumber = getNextInvoiceNumber(client.id, client.company_name, invoiceHistory);
       
       setFormData(prev => ({
         ...prev,
         clientName: client.contact_name || client.contactPerson || '',
         clientCompany: client.company_name || client.company || '',
         clientAddress: client.address,
+        clientCity: client.city || '',
+        clientPostalCode: client.postal_code || '',
         clientEmail: client.email,
         clientCountry: client.country,
         clientReference: client.customerReference || ''
       }));
     }
-  }, [selectedClient, invoiceHistory]);
+  }, [selectedClient]);
 
   // Handle service selection
   useEffect(() => {
@@ -158,11 +180,6 @@ export default function InvoiceForm({
   }, [selectedService]);
 
   const calculateTotals = () => {
-    // Increment global counter
-    if (typeof window !== 'undefined') {
-      (window as any).calcCount = ((window as any).calcCount || 0) + 1;
-    }
-    
     const subtotal = services
       .filter(service => service.addedToInvoice)
       .reduce((sum, service) => {
@@ -216,23 +233,40 @@ export default function InvoiceForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('🔄 Starting invoice submission process...');
+    
     const addedServices = services.filter(s => s.addedToInvoice);
     
     if (addedServices.length === 0) {
+      console.log('❌ No services added to invoice');
       toast.error(t.pleaseAddService || 'Please add at least one service to the invoice');
       return;
     }
     
     // Validate that we have an invoice number
     if (!formData.invoiceNumber) {
+      console.log('❌ No invoice number found');
       toast.error('Invoice number is required. Please refresh the page to generate a new number.');
       return;
     }
     
+    // Validate required fields
+    const requiredFields = ['clientName', 'clientCompany', 'clientAddress', 'clientCity', 'clientEmail'];
+    const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
+    
+    if (missingFields.length > 0) {
+      console.log('❌ Missing required fields:', missingFields);
+      toast.error(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      return;
+    }
+    
     try {
+      console.log('🔄 Checking if invoice number exists:', formData.invoiceNumber);
+      
       // Check if invoice number already exists (double-check for uniqueness)
       const exists = await checkInvoiceNumberExists(formData.invoiceNumber);
       if (exists) {
+        console.log('⚠️ Invoice number already exists, generating new one');
         toast.error('Invoice number already exists. Generating a new one...');
         
         // Generate a new unique number
@@ -242,6 +276,8 @@ export default function InvoiceForm({
         toast.success(`New invoice number generated: ${newNumber}`);
         return;
       }
+      
+      console.log('✅ Invoice number is unique, preparing invoice data...');
       
       const invoice: InvoiceData = {
         ...formData as InvoiceData,
@@ -256,16 +292,86 @@ export default function InvoiceForm({
         createdAt: new Date().toISOString()
       };
       
-      // Save to database
-      await saveInvoice(invoice);
-      toast.success(`Invoice ${invoice.invoiceNumber} saved successfully!`);
+      console.log('🔄 Attempting to save invoice:', {
+        invoiceNumber: invoice.invoiceNumber,
+        clientCompany: invoice.clientCompany,
+        total: invoice.total,
+        services: invoice.services.length,
+        formDataKeys: Object.keys(formData),
+        invoiceKeys: Object.keys(invoice)
+      });
       
-      // Also call the callback for any additional processing
-      onInvoiceGenerated(invoice);
+      // Enhanced error handling with more specific messages
+      try {
+        // Save to database
+        await saveInvoice(invoice);
+        
+        console.log('✅ Invoice saved successfully!');
+        toast.success(`Invoice ${invoice.invoiceNumber} saved successfully!`);
+        
+        // Also call the callback for any additional processing
+        onInvoiceGenerated(invoice);
+        
+      } catch (saveError) {
+        console.error('❌ Detailed save error:', saveError);
+        
+        // Provide more helpful error messages based on error type
+        let errorMessage = 'Failed to save invoice';
+        
+        if (saveError instanceof Error) {
+          const error = saveError;
+          
+          if (error.message.includes('Authentication')) {
+            errorMessage = 'Authentication error. Please log in again and try saving.';
+          } else if (error.message.includes('constraint')) {
+            errorMessage = 'Data validation error. Please check all required fields are properly filled.';
+          } else if (error.message.includes('duplicate') || error.message.includes('23505')) {
+            errorMessage = 'This invoice number already exists. A new number will be generated.';
+            
+            // Auto-generate new number and retry
+            const clientCompanyName = selectedClient?.company_name || selectedClient?.company || formData.clientCompany || '';
+            const newNumber = await generateAutoInvoiceNumber(clientCompanyName);
+            setFormData(prev => ({ ...prev, invoiceNumber: newNumber }));
+            toast.success(`New invoice number generated: ${newNumber}. Please try saving again.`);
+            return;
+          } else if (error.message.includes('Missing required fields')) {
+            errorMessage = `Missing data: ${error.message}`;
+          } else {
+            errorMessage = `Save error: ${error.message}`;
+          }
+        }
+        
+        toast.error(errorMessage);
+        throw saveError; // Re-throw for the outer catch block
+      }
       
     } catch (error) {
-      console.error('Error saving invoice:', error);
-      toast.error('Failed to save invoice. Please try again.');
+      console.error('❌ Error saving invoice:', error);
+      console.error('❌ Complete error context:', {
+        error: error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack trace',
+        formData: {
+          invoiceNumber: formData.invoiceNumber,
+          clientCompany: formData.clientCompany,
+          clientName: formData.clientName,
+          clientAddress: formData.clientAddress,
+          clientCity: formData.clientCity,
+          clientEmail: formData.clientEmail,
+          services: addedServices.length,
+          total: totals.total
+        },
+        environment: {
+          userAgent: navigator.userAgent,
+          timestamp: new Date().toISOString(),
+          url: window.location.href
+        }
+      });
+      
+      // Final fallback error message if not already handled above
+      if (!error?.message?.includes('New invoice number generated')) {
+        toast.error(`Failed to save invoice: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
     }
   };
 
@@ -467,7 +573,31 @@ export default function InvoiceForm({
               onChange={(e) => setFormData(prev => ({ ...prev, clientAddress: e.target.value }))}
               rows={3}
               required
+              placeholder="Street address, building number"
             />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="clientCity">{t.clientCity || 'City'}</Label>
+              <Input
+                id="clientCity"
+                value={formData.clientCity || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, clientCity: e.target.value }))}
+                required
+                placeholder="City"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="clientPostalCode">{t.postalCode || 'Postal Code'}</Label>
+              <Input
+                id="clientPostalCode"
+                value={formData.clientPostalCode || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, clientPostalCode: e.target.value }))}
+                placeholder="Postal/ZIP code"
+              />
+            </div>
           </div>
 
           <div>
@@ -676,6 +806,7 @@ export default function InvoiceForm({
                       <SelectContent>
                         <SelectItem value="EUR">EUR</SelectItem>
                         <SelectItem value="USD">USD</SelectItem>
+                        <SelectItem value="ILS">ILS</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

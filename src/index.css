@@ -7,6 +7,63 @@ Professional corporate styling with German business standards
 All colors MUST be HSL.
 */
 
+/* Fix for deprecated -ms-high-contrast CSS property warnings */
+@media screen and (-ms-high-contrast: active) {
+  /* Legacy support for older browsers */
+  :root {
+    --high-contrast-mode: active;
+  }
+}
+
+@media screen and (-ms-high-contrast: black-on-white) {
+  :root {
+    --high-contrast-mode: black-on-white;
+  }
+}
+
+@media screen and (-ms-high-contrast: white-on-black) {
+  :root {
+    --high-contrast-mode: white-on-black;
+  }
+}
+
+/* Modern Forced Colors Mode support */
+@media (forced-colors: active) {
+  :root {
+    --forced-colors-mode: active;
+  }
+  
+  /* Ensure proper contrast in forced colors mode */
+  .invoice-form,
+  .form-field,
+  .button {
+    forced-color-adjust: auto;
+  }
+  
+  /* Fix button and input visibility in forced colors */
+  button, input, select, textarea {
+    border: 1px solid ButtonText !important;
+  }
+  
+  button:hover, button:focus {
+    background-color: Highlight !important;
+    color: HighlightText !important;
+  }
+}
+
+/* Prevent browser extension CSS loops */
+* {
+  -ms-high-contrast-adjust: auto;
+  forced-color-adjust: auto;
+}
+
+/* Suppress repeated deprecation warnings by providing stable styles */
+@supports (-ms-high-contrast: active) {
+  :root {
+    --legacy-high-contrast: supported;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 98%;

@@ -5,7 +5,7 @@ export interface InvoiceData {
   servicePeriodEnd: string;
   dueDate: string;
   language: 'de' | 'en';
-  currency: 'EUR';
+  currency: 'EUR' | 'USD' | 'ILS';
   
   // Client information
   clientCompany: string;
@@ -46,7 +46,7 @@ export interface InvoiceService {
   description: string;
   hours: number;
   rate: number;
-  currency: 'EUR' | 'ILS';
+  currency: 'EUR' | 'USD' | 'ILS';
   amount: number; // Always in EUR for the invoice
   originalAmount?: number; // Original amount in service currency
   exchangeRateUsed?: number; // Exchange rate used for conversion
