@@ -62,13 +62,7 @@ export default function InvoiceForm({
   
   renderCountRef.current += 1;
   
-  // Check for infinite loop but don't return early
-  const hasRenderLoop = renderCountRef.current > 50;
-  if (hasRenderLoop) {
-    console.error('🚨 INFINITE RENDER DETECTED! Render count:', renderCountRef.current);
-  }
-  
-  // ALWAYS call hooks in the same order
+  // ALWAYS call hooks in the same order FIRST
   const { language, t, changeLanguage } = useLanguage();
   const { saveInvoice, invoiceHistory } = useSupabaseInvoices();
   
@@ -111,9 +105,42 @@ export default function InvoiceForm({
   const prevInvoiceDateRef = React.useRef(formData.invoiceDate);
   const prevClientRef = React.useRef(selectedClient);
 
+  // REAL DEBUGGING: Track every render with detailed info (AFTER all variables are declared)
+  console.log('🎯 RENDER #' + renderCountRef.current, {
+    timestamp: new Date().toISOString().split('T')[1],
+    formData: {
+      invoiceDate: formData.invoiceDate,
+      dueDate: formData.dueDate,
+      language: formData.language,
+      invoiceNumber: formData.invoiceNumber
+    },
+    props: {
+      selectedClient: selectedClient?.id || selectedClient?.company_name,
+      selectedService: selectedService?.id || selectedService?.name
+    },
+    hooks: {
+      language: language,
+      isGeneratingNumber: isGeneratingNumber
+    }
+  });
+  
+  // Check for infinite loop but don't return early
+  const hasRenderLoop = renderCountRef.current > 50;
+  if (hasRenderLoop) {
+    console.error('🚨 INFINITE RENDER DETECTED! Render count:', renderCountRef.current);
+  }
+
   // Set language to match current language state (only when actually different)
   useEffect(() => {
+    console.log('🔄 LANGUAGE EFFECT FIRED:', {
+      prevLanguage: prevLanguageRef.current,
+      currentLanguage: language,
+      formDataLanguage: formData.language,
+      willUpdate: prevLanguageRef.current !== language
+    });
+    
     if (prevLanguageRef.current !== language) {
+      console.log('🔄 LANGUAGE UPDATING:', prevLanguageRef.current, '->', language);
       prevLanguageRef.current = language;
       setFormData(prev => ({ ...prev, language: language as 'de' | 'en' }));
     }
@@ -121,7 +148,16 @@ export default function InvoiceForm({
 
   // Auto-calculate due date when invoice date changes (prevent loops)
   useEffect(() => {
+    console.log('🔄 DUE DATE EFFECT FIRED:', {
+      currentInvoiceDate: formData.invoiceDate,
+      prevInvoiceDate: prevInvoiceDateRef.current,
+      currentDueDate: formData.dueDate,
+      dateChanged: formData.invoiceDate !== prevInvoiceDateRef.current,
+      shouldCalculate: formData.invoiceDate && !formData.dueDate
+    });
+    
     if (formData.invoiceDate !== prevInvoiceDateRef.current) {
+      console.log('🔄 INVOICE DATE CHANGED:', prevInvoiceDateRef.current, '->', formData.invoiceDate);
       prevInvoiceDateRef.current = formData.invoiceDate;
       
       if (formData.invoiceDate && !formData.dueDate) {
@@ -130,6 +166,7 @@ export default function InvoiceForm({
         dueDate.setDate(dueDate.getDate() + 10);
         const dueDateStr = dueDate.toISOString().split('T')[0];
         
+        console.log('🔄 SETTING DUE DATE:', dueDateStr);
         setFormData(prev => ({ ...prev, dueDate: dueDateStr }));
       }
     }
@@ -172,12 +209,25 @@ export default function InvoiceForm({
     const currentClient = selectedClient;
     const prevClient = prevClientRef.current;
     
+    console.log('🔄 CLIENT EFFECT FIRED:', {
+      currentClient: currentClient?.id || currentClient?.company_name,
+      prevClient: prevClient?.id || prevClient?.company_name,
+      clientChanged: currentClient !== prevClient,
+      willUpdate: currentClient && currentClient !== prevClient
+    });
+    
     // Only update if client actually changed
     if (currentClient && currentClient !== prevClient) {
+      console.log('🔄 CLIENT CHANGED:', {
+        from: prevClient?.company_name || 'none',
+        to: currentClient?.company_name || 'none'
+      });
+      
       prevClientRef.current = currentClient;
       
       const client = currentClient;
       
+      console.log('🔄 UPDATING CLIENT DATA');
       setFormData(prev => ({
         ...prev,
         clientName: client.contact_name || client.contactPerson || '',
@@ -191,13 +241,21 @@ export default function InvoiceForm({
       }));
       
       // Generate invoice number for the new client
+      console.log('🔄 GENERATING INVOICE NUMBER FOR CLIENT');
       generateInvoiceNumberForClient(currentClient);
     }
   }, [selectedClient]); // Removed generateInvoiceNumberForClient to prevent loop
 
   // Handle service selection
   useEffect(() => {
+    console.log('🔄 SERVICE EFFECT FIRED:', {
+      selectedService: selectedService?.id || selectedService?.name,
+      hasService: !!selectedService,
+      willUpdate: !!selectedService
+    });
+    
     if (selectedService) {
+      console.log('🔄 UPDATING SERVICE:', selectedService.name);
       const serviceRate = selectedService.hourlyRate || selectedService.default_rate || 0;
       const serviceCurrency = selectedService.currency || 'EUR';
       setServices([{
