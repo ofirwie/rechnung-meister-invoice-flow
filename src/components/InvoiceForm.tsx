@@ -23,7 +23,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useLanguage } from '../hooks/useLanguage';
 import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
 import { toast } from 'sonner';
-import { RenderDebugPanel } from './RenderDebugPanel';
+import { DebugModal } from './DebugModal';
 
 
 interface InvoiceFormProps {
@@ -521,21 +521,7 @@ export default function InvoiceForm({
   }
 
   return (
-    <>
-      {/* Debug Panel */}
-      <RenderDebugPanel
-        renderCount={renderCountRef.current}
-        triggerSource={renderTriggerRef.current}
-        currentState={currentState}
-        additionalData={{
-          hasRenderLoop,
-          prevLanguage: prevLanguageRef.current,
-          prevInvoiceDate: prevInvoiceDateRef.current,
-          prevClient: prevClientRef.current?.id || null
-        }}
-      />
-      
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>{t.newInvoice}</CardTitle>
@@ -1006,7 +992,13 @@ export default function InvoiceForm({
           {t.generateInvoice}
         </Button>
       </div>
+
+      {/* Clean Debug Modal - Only renders when opened */}
+      <DebugModal
+        renderCount={renderCountRef.current}
+        triggerSource={renderTriggerRef.current}
+        componentState={currentState}
+      />
     </form>
-    </>
   );
 }
