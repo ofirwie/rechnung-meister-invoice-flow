@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { Company, CompanyUser, UserRole, UserPermissions } from '@/types/company';
 import { supabase } from '@/integrations/supabase/client';
 import { useCompanies } from '@/hooks/useCompanies';
@@ -34,6 +34,24 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [permissions, setPermissions] = useState<UserPermissions | null>(null);
   const [userEmail, setUserEmail] = useState<string>('');
+  
+  // DEBUGGING: Add render counter to detect infinite loops
+  const renderCounter = useRef(0);
+  const emergencyStop = useRef(0);
+  
+  renderCounter.current++;
+  emergencyStop.current++;
+  
+  console.log(`🔄 [CompanyProvider] Render #${renderCounter.current}`);
+  
+  if (renderCounter.current > 100) {
+    console.error(`🚨 INFINITE LOOP DETECTED in CompanyProvider - Render #${renderCounter.current}`);
+    console.trace('CompanyProvider infinite loop stack trace');
+  }
+  
+  if (emergencyStop.current > 5000) {
+    throw new Error('EMERGENCY STOP - CompanyProvider infinite loop detected');
+  }
   
   // Use the useCompanies hook that has the proper JOIN logic
   const { companies, loading: companiesLoading, fetchCompanies } = useCompanies();
@@ -131,8 +149,16 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
 
   // Effect to select the first company when companies are loaded
   useEffect(() => {
+    console.log('🎯 [CompanyProvider] useEffect #1 fired with deps:', {
+      companiesCount: companies.length,
+      companiesLoading,
+      selectedCompanyId: selectedCompany?.id,
+      switchCompanyRef: switchCompany.toString().slice(0, 50)
+    });
+    
     // Only auto-select if we have companies and no company is selected
     if (!companiesLoading && companies.length > 0 && !selectedCompany) {
+      console.log('🎯 [CompanyProvider] Auto-selecting company...');
       // Try to restore the previously selected company from localStorage
       const savedCompanyId = localStorage.getItem('selectedCompanyId');
       const companyToSelect = savedCompanyId 
@@ -145,9 +171,15 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
 
   // Reset selected company when companies list changes and current selection is no longer valid
   useEffect(() => {
+    console.log('🎯 [CompanyProvider] useEffect #2 fired with deps:', {
+      selectedCompanyId: selectedCompany?.id,
+      companiesCount: companies.length
+    });
+    
     if (selectedCompany && companies.length > 0) {
       const stillExists = companies.some(c => c.id === selectedCompany.id);
       if (!stillExists) {
+        console.log('🎯 [CompanyProvider] Resetting selected company - no longer exists');
         setSelectedCompany(null);
         setUserRole(null);
         setPermissions(null);

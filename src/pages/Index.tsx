@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import InvoiceForm from '../components/InvoiceForm';
 import InvoicePreview from '../components/InvoicePreview';
 import ClientManagement from '../components/ClientManagement';
@@ -28,6 +28,24 @@ import { DebugPanel } from '../components/DebugPanel';
 import { TestCompanies } from '../components/TestCompanies';
 
 const Index = () => {
+  // DEBUGGING: Add render counter to detect infinite loops
+  const renderCounter = useRef(0);
+  const emergencyStop = useRef(0);
+  
+  renderCounter.current++;
+  emergencyStop.current++;
+  
+  console.log(`🔄 [Index] Render #${renderCounter.current}`);
+  
+  if (renderCounter.current > 100) {
+    console.error(`🚨 INFINITE LOOP DETECTED in Index - Render #${renderCounter.current}`);
+    console.trace('Index infinite loop stack trace');
+  }
+  
+  if (emergencyStop.current > 5000) {
+    throw new Error('EMERGENCY STOP - Index infinite loop detected');
+  }
+
   const navigate = useNavigate();
   const { language, t } = useLanguage();
   const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'companies'>('invoice');
