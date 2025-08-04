@@ -95,15 +95,16 @@ export default function InvoiceForm({
     }
   }, [formData.invoiceDate]);
 
-  // Auto-generate invoice number when component mounts
+  // Auto-generate invoice number when client is selected or changed
   useEffect(() => {
-    const generateInvoiceNumber = async () => {
-      if (!formData.invoiceNumber) {
+    const generateInvoiceNumberForClient = async () => {
+      if (selectedClient?.company_name || selectedClient?.company) {
         setIsGeneratingNumber(true);
         try {
-          const autoNumber = await generateAutoInvoiceNumber();
+          const clientCompanyName = selectedClient.company_name || selectedClient.company || '';
+          const autoNumber = await generateAutoInvoiceNumber(clientCompanyName);
           setFormData(prev => ({ ...prev, invoiceNumber: autoNumber }));
-          console.log('✅ Auto-generated invoice number:', autoNumber);
+          console.log('✅ Auto-generated invoice number for client:', clientCompanyName, '→', autoNumber);
         } catch (error) {
           console.error('❌ Failed to generate invoice number:', error);
           
@@ -118,8 +119,8 @@ export default function InvoiceForm({
       }
     };
     
-    generateInvoiceNumber();
-  }, []); // Only run once on mount
+    generateInvoiceNumberForClient();
+  }, [selectedClient]); // Regenerate when client changes
 
   // Handle client selection
   useEffect(() => {
@@ -129,8 +130,8 @@ export default function InvoiceForm({
       
       setFormData(prev => ({
         ...prev,
-        clientName: client.contactPerson,
-        clientCompany: client.company,
+        clientName: client.contact_name || client.contactPerson || '',
+        clientCompany: client.company_name || client.company || '',
         clientAddress: client.address,
         clientEmail: client.email,
         clientCountry: client.country,
@@ -233,7 +234,8 @@ export default function InvoiceForm({
         toast.error('Invoice number already exists. Generating a new one...');
         
         // Generate a new unique number
-        const newNumber = await generateAutoInvoiceNumber();
+        const clientCompanyName = selectedClient?.company_name || selectedClient?.company || formData.clientCompany || '';
+        const newNumber = await generateAutoInvoiceNumber(clientCompanyName);
         setFormData(prev => ({ ...prev, invoiceNumber: newNumber }));
         toast.success(`New invoice number generated: ${newNumber}`);
         return;
@@ -369,7 +371,8 @@ export default function InvoiceForm({
                 onClick={async () => {
                   setIsGeneratingNumber(true);
                   try {
-                    const newNumber = await generateAutoInvoiceNumber();
+                    const clientCompanyName = selectedClient?.company_name || selectedClient?.company || formData.clientCompany || '';
+                    const newNumber = await generateAutoInvoiceNumber(clientCompanyName);
                     setFormData(prev => ({ ...prev, invoiceNumber: newNumber }));
                     toast.success(`New invoice number generated: ${newNumber}`);
                   } catch (error) {

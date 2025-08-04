@@ -1,12 +1,51 @@
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Generates a unique automatic invoice number
- * Format: YYYY-NNNN (e.g., 2024-0001, 2024-0002)
+ * Generates a company abbreviation from company name
+ * Takes first 4 characters from words, removes spaces and special characters
  */
-export async function generateAutoInvoiceNumber(): Promise<string> {
+function generateCompanyAbbreviation(companyName: string): string {
+  if (!companyName) return 'UNKN';
+  
+  // Remove common suffixes and clean the name
+  const cleanName = companyName
+    .replace(/\b(Ltd|LLC|Inc|Corp|GmbH|AG|SA|BV|Pty|Co\.?)\b/gi, '')
+    .replace(/[^a-zA-Z\s]/g, '')
+    .trim();
+  
+  // Split into words and take first letters
+  const words = cleanName.split(/\s+/).filter(word => word.length > 0);
+  
+  if (words.length === 1) {
+    // Single word - take first 4 characters
+    return words[0].substring(0, 4).toUpperCase();
+  } else {
+    // Multiple words - take first letter of each word, then pad with remaining chars from first word
+    let abbreviation = '';
+    words.forEach(word => {
+      if (abbreviation.length < 4) {
+        abbreviation += word.charAt(0).toUpperCase();
+      }
+    });
+    
+    // If still less than 4 chars, pad with remaining chars from first word
+    if (abbreviation.length < 4 && words[0].length > 1) {
+      const remaining = words[0].substring(1, 1 + (4 - abbreviation.length)).toUpperCase();
+      abbreviation += remaining;
+    }
+    
+    // Ensure exactly 4 characters
+    return abbreviation.substring(0, 4).padEnd(4, 'X');
+  }
+}
+
+/**
+ * Generates a unique automatic invoice number
+ * Format: YYYY-MM-COMP-NNN (e.g., 2024-01-ACME-001, 2024-01-ACME-002)
+ */
+export async function generateAutoInvoiceNumber(clientCompanyName?: string): Promise<string> {
   try {
-    console.log('🔢 Generating automatic invoice number...');
+    console.log('🔢 Generating automatic invoice number for company:', clientCompanyName);
     
     // Get current user from session (more reliable than getUser)
     const { data: { session }, error: authError } = await supabase.auth.getSession();
@@ -16,15 +55,25 @@ export async function generateAutoInvoiceNumber(): Promise<string> {
     
     const user = session.user;
 
-    const currentYear = new Date().getFullYear();
-    const yearPrefix = currentYear.toString();
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; // getMonth() returns 0-11
     
-    // Get the highest invoice number for this year for this user
+    const yearStr = currentYear.toString();
+    const monthStr = currentMonth.toString().padStart(2, '0');
+    
+    // Generate company abbreviation
+    const companyAbbr = generateCompanyAbbreviation(clientCompanyName || '');
+    const monthYearCompanyPrefix = `${yearStr}-${monthStr}-${companyAbbr}`;
+    
+    console.log('📅 Generated prefix:', monthYearCompanyPrefix);
+    
+    // Get the highest invoice number for this year-month-company combination for this user
     const { data: invoices, error } = await supabase
       .from('invoices')
       .select('invoice_number')
       .eq('user_id', user.id)
-      .like('invoice_number', `${yearPrefix}-%`)
+      .like('invoice_number', `${monthYearCompanyPrefix}-%`)
       .order('invoice_number', { ascending: false })
       .limit(1);
 
@@ -39,17 +88,17 @@ export async function generateAutoInvoiceNumber(): Promise<string> {
       const lastInvoiceNumber = invoices[0].invoice_number;
       console.log('📋 Last invoice number:', lastInvoiceNumber);
       
-      // Extract number from format YYYY-NNNN
-      const match = lastInvoiceNumber.match(/^\d{4}-(\d{4})$/);
+      // Extract number from format YYYY-MM-COMP-NNN
+      const match = lastInvoiceNumber.match(/^\d{4}-\d{2}-[A-Z]{4}-(\d{3})$/);
       if (match) {
         const lastNumber = parseInt(match[1], 10);
         nextNumber = lastNumber + 1;
       }
     }
 
-    // Format with leading zeros (e.g., 0001, 0002)
-    const formattedNumber = nextNumber.toString().padStart(4, '0');
-    const invoiceNumber = `${yearPrefix}-${formattedNumber}`;
+    // Format with leading zeros (e.g., 001, 002, 003)
+    const formattedNumber = nextNumber.toString().padStart(3, '0');
+    const invoiceNumber = `${monthYearCompanyPrefix}-${formattedNumber}`;
     
     console.log('✅ Generated invoice number:', invoiceNumber);
     return invoiceNumber;
@@ -91,9 +140,14 @@ export async function checkInvoiceNumberExists(invoiceNumber: string): Promise<b
 }
 
 /**
- * Validates invoice number format (YYYY-NNNN)
+ * Validates invoice number format (YYYY-MM-COMP-NNN)
  */
 export function validateInvoiceNumberFormat(invoiceNumber: string): boolean {
-  const pattern = /^\d{4}-\d{4}$/;
+  const pattern = /^\d{4}-\d{2}-[A-Z]{4}-\d{3}$/;
   return pattern.test(invoiceNumber);
 }
+
+/**
+ * Exports the company abbreviation function for use in other components
+ */
+export { generateCompanyAbbreviation };
