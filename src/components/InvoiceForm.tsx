@@ -108,32 +108,8 @@ export default function InvoiceForm({
   // Check for infinite loop but don't return early
   const hasRenderLoop = renderCountRef.current > 50;
   
-  // Move debug logging to useEffect to prevent render performance issues
-  useEffect(() => {
-    if (renderCountRef.current <= 5 || renderCountRef.current % 10 === 0) {
-      console.log('🎯 RENDER #' + renderCountRef.current, {
-        timestamp: new Date().toISOString().split('T')[1],
-        formData: {
-          invoiceDate: formData.invoiceDate,
-          dueDate: formData.dueDate,
-          language: formData.language,
-          invoiceNumber: formData.invoiceNumber
-        },
-        props: {
-          selectedClient: selectedClient?.id || selectedClient?.company_name,
-          selectedService: selectedService?.id || selectedService?.name
-        },
-        hooks: {
-          language: language,
-          isGeneratingNumber: isGeneratingNumber
-        }
-      });
-    }
-    
-    if (hasRenderLoop) {
-      console.error('🚨 INFINITE RENDER DETECTED! Render count:', renderCountRef.current);
-    }
-  });
+  // DISABLE ALL DEBUG LOGGING TO PREVENT INFINITE LOOPS
+  // (This useEffect was causing infinite renders because it had no dependency array)
 
   // Set language to match current language state (only when actually different)
   useEffect(() => {
