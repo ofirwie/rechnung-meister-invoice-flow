@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Company, CompanyUser, CompanyFormData } from '@/types/company';
 import { toast } from 'sonner';
@@ -26,7 +26,7 @@ export const useCompanies = () => {
     throw new Error('EMERGENCY STOP - useCompanies infinite loop detected');
   }
 
-  const fetchCompanies = async () => {
+  const fetchCompanies = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -114,7 +114,7 @@ export const useCompanies = () => {
       console.log('🏁 Finally block - setting loading to false');
       setLoading(false);
     }
-  };
+  }, []); // Empty dependency array since this function doesn't depend on any state
 
   const createCompany = async (companyData: CompanyFormData): Promise<Company | null> => {
     try {
@@ -303,7 +303,7 @@ export const useCompanies = () => {
   useEffect(() => {
     console.log('🎯 [useCompanies] useEffect fired - fetching companies...');
     fetchCompanies();
-  }, []);
+  }, [fetchCompanies]);
 
   return {
     companies,

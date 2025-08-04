@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import InvoiceForm from '../components/InvoiceForm';
 import InvoicePreview from '../components/InvoicePreview';
 import ClientManagement from '../components/ClientManagement';
@@ -88,9 +88,9 @@ const Index = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [hasLocalData]);
+  }, []); // Fix: Remove hasLocalData dependency that was causing infinite loop
 
-  const handleMigration = async () => {
+  const handleMigration = useCallback(async () => {
     const success = await migrateToSupabase();
     if (success) {
       setTimeout(() => {
@@ -98,9 +98,9 @@ const Index = () => {
         window.location.reload(); // Refresh to load from Supabase
       }, 2000);
     }
-  };
+  }, [migrateToSupabase]);
 
-  const handleInvoiceGenerated = async (invoice: InvoiceData) => {
+  const handleInvoiceGenerated = useCallback(async (invoice: InvoiceData) => {
     try {
       await saveInvoice(invoice);
       setCurrentInvoice(invoice);
@@ -109,9 +109,9 @@ const Index = () => {
       console.error('Failed to save invoice:', error);
       alert(t.errorSavingInvoice);
     }
-  };
+  }, [saveInvoice, t.errorSavingInvoice]);
 
-  const handleInvoiceStatusChange = async (newStatus: InvoiceData['status']) => {
+  const handleInvoiceStatusChange = useCallback(async (newStatus: InvoiceData['status']) => {
     if (currentInvoice) {
       try {
         await updateInvoiceStatus(currentInvoice.invoiceNumber, newStatus);
@@ -128,11 +128,11 @@ const Index = () => {
         alert(t.errorUpdatingStatus);
       }
     }
-  };
+  }, [currentInvoice, updateInvoiceStatus, t.errorUpdatingStatus]);
 
-  const handleBackToForm = () => {
+  const handleBackToForm = useCallback(() => {
     setCurrentInvoice(null);
-  };
+  }, []);
 
 
   if (currentInvoice) {

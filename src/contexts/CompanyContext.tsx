@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode, useMemo } from 'react';
 import { Company, CompanyUser, UserRole, UserPermissions } from '@/types/company';
 import { supabase } from '@/integrations/supabase/client';
 import { useCompanies } from '@/hooks/useCompanies';
@@ -135,6 +135,20 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
     return resourcePermissions[action as keyof typeof resourcePermissions] === true;
   }, [permissions]);
 
+  const loading = companiesLoading;
+
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    selectedCompany,
+    companies,
+    userRole,
+    permissions,
+    loading,
+    switchCompany,
+    refreshCompanies,
+    canAccess,
+  }), [selectedCompany, companies, userRole, permissions, loading, switchCompany, refreshCompanies, canAccess]);
+
   // Get current user email
   useEffect(() => {
     const getUserEmail = async () => {
@@ -188,26 +202,13 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
     }
   }, [companies, selectedCompany]);
 
-  const loading = companiesLoading;
-
   // If not loading and user has no companies, show the NoCompanyScreen
   if (!loading && companies.length === 0 && userEmail) {
     return <NoCompanyScreen userEmail={userEmail} />;
   }
 
   return (
-    <CompanyContext.Provider
-      value={{
-        selectedCompany,
-        companies,
-        userRole,
-        permissions,
-        loading,
-        switchCompany,
-        refreshCompanies,
-        canAccess,
-      }}
-    >
+    <CompanyContext.Provider value={contextValue}>
       {children}
     </CompanyContext.Provider>
   );
