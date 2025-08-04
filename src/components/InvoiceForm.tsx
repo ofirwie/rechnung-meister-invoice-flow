@@ -143,13 +143,15 @@ export default function InvoiceForm({
   // Handle service selection
   useEffect(() => {
     if (selectedService) {
+      const serviceRate = selectedService.hourlyRate || selectedService.default_rate || 0;
+      const serviceCurrency = selectedService.currency || 'EUR';
       setServices([{
         id: '1',
         description: selectedService.name || '',
         hours: 1,
-        rate: selectedService.rate || 0,
-        currency: 'EUR',
-        amount: selectedService.rate || 0,
+        rate: serviceRate,
+        currency: serviceCurrency,
+        amount: serviceRate,
         addedToInvoice: true
       }]);
     }
@@ -496,6 +498,78 @@ export default function InvoiceForm({
               </SelectContent>
             </Select>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>{t.serviceSelection}</CardTitle>
+          <div className="flex gap-2">
+            {selectedService && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={onServiceClear}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (setCurrentView) {
+                  setCurrentView('services');
+                }
+              }}
+            >
+              {t.selectService}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {selectedService ? (
+            <div className="p-4 bg-muted rounded-lg">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h4 className="font-medium">{selectedService.name}</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {selectedService.description}
+                  </p>
+                  <p className="text-sm font-medium mt-2">
+                    {selectedService.currency === 'EUR' ? '€' : '₪'}{selectedService.hourlyRate?.toFixed(2) || selectedService.default_rate?.toFixed(2)} / {t.hour}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={onServiceClear}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 border-2 border-dashed border-muted rounded-lg text-center text-muted-foreground">
+              <p>{t.noServiceSelected}</p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={() => {
+                  if (setCurrentView) {
+                    setCurrentView('services');
+                  }
+                }}
+              >
+                {t.selectService}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
