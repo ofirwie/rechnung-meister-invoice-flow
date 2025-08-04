@@ -44,7 +44,7 @@ export default function InvoiceForm({
   onSelectClient,
   setCurrentView 
 }: InvoiceFormProps) {
-  // Circuit breaker to prevent infinite renders
+  // Circuit breaker to prevent infinite renders (moved BEFORE hooks)
   const renderCountRef = React.useRef(0);
   const lastPropsRef = React.useRef<string>('');
   
@@ -62,23 +62,13 @@ export default function InvoiceForm({
   
   renderCountRef.current += 1;
   
-  // CIRCUIT BREAKER: Stop rendering if infinite loop detected
-  if (renderCountRef.current > 50) {
-    console.error('🚨 INFINITE RENDER DETECTED! Stopping at render', renderCountRef.current);
-    return (
-      <div className="p-4 border border-red-500 bg-red-50">
-        <h3 className="text-red-700 font-bold">Render Loop Detected</h3>
-        <p className="text-red-600">The form has been stopped to prevent infinite rendering. Please refresh the page.</p>
-        <button 
-          onClick={() => window.location.reload()} 
-          className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-        >
-          Refresh Page
-        </button>
-      </div>
-    );
+  // Check for infinite loop but don't return early
+  const hasRenderLoop = renderCountRef.current > 50;
+  if (hasRenderLoop) {
+    console.error('🚨 INFINITE RENDER DETECTED! Render count:', renderCountRef.current);
   }
   
+  // ALWAYS call hooks in the same order
   const { language, t, changeLanguage } = useLanguage();
   const { saveInvoice, invoiceHistory } = useSupabaseInvoices();
   
@@ -417,6 +407,22 @@ export default function InvoiceForm({
       }
     }
   };
+
+  // CIRCUIT BREAKER: Render error state if infinite loop detected
+  if (hasRenderLoop) {
+    return (
+      <div className="p-4 border border-red-500 bg-red-50">
+        <h3 className="text-red-700 font-bold">Render Loop Detected</h3>
+        <p className="text-red-600">The form has been stopped to prevent infinite rendering. Please refresh the page.</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="mt-2 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+        >
+          Refresh Page
+        </button>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
