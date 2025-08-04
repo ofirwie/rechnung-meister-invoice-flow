@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recovery URL Fixer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .recovery-link {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #4caf50;
+            margin: 20px 0;
+            word-break: break-all;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Recovery URL Fixer</h1>
+        
+        <p><strong>Your current recovery token is valid but points to localhost.</strong></p>
+        <p>Here's the corrected URL that will work with your Vercel deployment:</p>
+        
+        <div class="recovery-link">
+            <strong>Fixed Recovery URL:</strong><br>
+            <a href="https://rechnung-meister-invoice-flow.vercel.app/auth#access_token=eyJhbGciOiJIUzI1NiIsImtpZCI6IlJmQTFjVlpDMEZhdkNOQ3giLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2x6aGd5eWlobnNxd2Nic2RzZHhzLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiJkYTgwNzNiMC1iZDFmLTQ1MjEtYThlMy0wNzRmODdmMWJkMWMiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzU0MzQ1MTI1LCJpYXQiOjE3NTQzNDE1MjUsImVtYWlsIjoib2Zpci53aWVuZXJtYW5AZ21haWwuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbF92ZXJpZmllZCI6dHJ1ZX0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoib3RwIiwidGltZXN0YW1wIjoxNzU0MzQxNTI1fV0sInNlc3Npb25faWQiOiIyOTdmMmVhNi1mMWIxLTQ2NTctOTEyYS1hM2FlNTEwMTZjOTUiLCJpc19hbm9ueW1vdXMiOmZhbHNlfQ.a3lS3fsAeuHCKmOBigXqhHra9DLloilGj6kfFeEUndg&expires_at=1754345125&expires_in=3600&refresh_token=2v6udznucvji&token_type=bearer&type=recovery" 
+               target="_blank" class="btn">
+                🔗 Click Here to Reset Your Password
+            </a>
+        </div>
+
+        <div class="success">
+            <strong>✅ What will happen when you click:</strong>
+            <ul>
+                <li>Opens your Vercel app at the auth page</li>
+                <li>Automatically detects the recovery tokens</li>
+                <li>Shows the "Reset Password" form</li>
+                <li>You enter your new password twice</li>
+                <li>Password gets updated successfully</li>
+                <li>You get redirected to the main app</li>
+            </ul>
+        </div>
+
+        <h2>📋 Instructions:</h2>
+        <ol>
+            <li><strong>Click the blue button above</strong> - it opens the corrected recovery URL</li>
+            <li><strong>Wait for the page to load</strong> - you should see "Reset Password" form</li>
+            <li><strong>Enter your new password twice</strong> and click "עדכן סיסמה"</li>
+            <li><strong>You should see "הסיסמה שונתה בהצלחה!"</strong> message</li>
+            <li><strong>You'll be automatically redirected</strong> to the main app</li>
+        </ol>
+
+        <h2>🔧 To Fix Future Recovery Emails:</h2>
+        <p>Update your Supabase project settings:</p>
+        <ol>
+            <li>Go to <a href="https://supabase.com/dashboard" target="_blank">Supabase Dashboard</a></li>
+            <li>Your Project → Settings → Authentication → URL Configuration</li>
+            <li>Change <strong>Site URL</strong> to: <code>https://rechnung-meister-invoice-flow.vercel.app</code></li>
+            <li>Add to <strong>Redirect URLs</strong>: <code>https://rechnung-meister-invoice-flow.vercel.app/**</code></li>
+        </ol>
+    </div>
+</body>
+</html>

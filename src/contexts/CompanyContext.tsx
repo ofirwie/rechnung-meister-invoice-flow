@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { Company, CompanyUser, UserRole, UserPermissions } from '@/types/company';
 import { supabase } from '@/integrations/supabase/client';
 import { useCompanies } from '@/hooks/useCompanies';
@@ -92,7 +92,7 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
     }
   };
 
-  const switchCompany = async (companyId: string) => {
+  const switchCompany = useCallback(async (companyId: string) => {
     const company = companies.find(c => c.id === companyId);
     if (!company) {
       return;
@@ -102,20 +102,20 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
     localStorage.setItem('selectedCompanyId', companyId);
     
     await fetchUserPermissions(companyId);
-  };
+  }, [companies]);
 
-  const refreshCompanies = () => {
+  const refreshCompanies = useCallback(() => {
     fetchCompanies();
-  };
+  }, [fetchCompanies]);
 
-  const canAccess = (resource: string, action: string): boolean => {
+  const canAccess = useCallback((resource: string, action: string): boolean => {
     if (!permissions) return false;
     
     const resourcePermissions = permissions[resource as keyof UserPermissions];
     if (!resourcePermissions || typeof resourcePermissions !== 'object') return false;
     
     return resourcePermissions[action as keyof typeof resourcePermissions] === true;
-  };
+  }, [permissions]);
 
   // Get current user email
   useEffect(() => {
@@ -141,7 +141,7 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
       
       switchCompany(companyToSelect.id);
     }
-  }, [companies, companiesLoading]);
+  }, [companies, companiesLoading, selectedCompany, switchCompany]);
 
   // Reset selected company when companies list changes and current selection is no longer valid
   useEffect(() => {
