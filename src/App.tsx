@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import RenderDebug from "./pages/RenderDebug";
+import DebugConsole from "./pages/DebugConsole";
 import { DebugScreen } from "./components/DebugScreen";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -33,6 +34,11 @@ const App = () => (
           <Route path="/render-debug" element={
             <ProtectedRoute>
               <RenderDebug />
+            </ProtectedRoute>
+          } />
+          <Route path="/debug-console" element={
+            <ProtectedRoute>
+              <DebugConsole />
             </ProtectedRoute>
           } />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
