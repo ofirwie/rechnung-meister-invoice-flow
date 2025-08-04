@@ -37,7 +37,6 @@ const Index = () => {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [serviceSearchTerm, setServiceSearchTerm] = useState('');
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [showMigrationDialog, setShowMigrationDialog] = useState(false);
 
   const { updateInvoiceStatus, saveInvoice } = useSupabaseInvoices();
@@ -50,11 +49,10 @@ const Index = () => {
   } = useDataMigration();
 
   useEffect(() => {
-    // Check auth state
+    // Check auth state and setup listener
     supabase.auth.getSession().then(({ data: { session } }) => {
       const user = session?.user;
       setUser(user);
-      setLoading(false);
       
       // If user is logged in and has local data, show migration dialog
       if (user && hasLocalData()) {
@@ -64,7 +62,6 @@ const Index = () => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user || null);
-      setLoading(false);
       
       // Show migration dialog when user logs in and has local data
       if (session?.user && hasLocalData()) {
@@ -119,39 +116,6 @@ const Index = () => {
     setCurrentInvoice(null);
   };
 
-  // Show loading while checking authentication
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Redirect to auth page if not logged in
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="max-w-md w-full text-center">
-          <div className="bg-orange-50 border border-orange-300 rounded-lg p-6">
-            <h2 className="text-xl font-bold text-orange-800 mb-4">Login Required</h2>
-            <p className="text-orange-700 mb-4">
-              To use the system and save your data to the cloud, you need to login or register
-            </p>
-            <Button 
-              onClick={() => navigate('/auth')}
-              className="w-full"
-            >
-              Login / Register
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (currentInvoice) {
     return (
@@ -179,10 +143,14 @@ const Index = () => {
         </div>
         
         <Navigation
-        currentView={currentView}
-        onViewChange={setCurrentView}
-        onLogout={async () => {
-          await supabase.auth.signOut();
+          currentView={currentView}
+          onViewChange={setCurrentView}
+          onLogout={async () => {
+            await supabase.auth.signOut();
+            navigate('/auth');
+          }}
+        />
+        
         {/* Floating Debug Button */}
         <button
           onClick={() => navigate("/debug")}
@@ -191,9 +159,6 @@ const Index = () => {
         >
           🐛
         </button>
-          navigate('/auth');
-        }}
-      />
       
       <div className="max-w-6xl mx-auto p-6">
         {currentView === 'invoice' && (
