@@ -133,7 +133,7 @@ export default function InvoiceForm({
         setFormData(prev => ({ ...prev, dueDate: dueDateStr }));
       }
     }
-  }, [formData.invoiceDate, formData.dueDate]);
+  }, [formData.invoiceDate]); // Removed formData.dueDate to prevent loop
 
   // Stable invoice number generation function
   const generateInvoiceNumberForClient = useCallback(async (clientData: Client | null) => {
@@ -193,7 +193,7 @@ export default function InvoiceForm({
       // Generate invoice number for the new client
       generateInvoiceNumberForClient(currentClient);
     }
-  }, [selectedClient, generateInvoiceNumberForClient]);
+  }, [selectedClient]); // Removed generateInvoiceNumberForClient to prevent loop
 
   // Handle service selection
   useEffect(() => {
