@@ -49,26 +49,47 @@ export default function ClientTable({
           <TableRow key={client.id} className="cursor-pointer hover:bg-muted/50">
             <TableCell 
               className="font-medium"
-              onClick={() => onClientSelect(client)}
+              onClick={() => {
+                console.log('🔍 [ClientTable] Client clicked:', client.company_name, client);
+                onClientSelect(client);
+              }}
             >
               {client.company_name}
             </TableCell>
-            <TableCell onClick={() => onClientSelect(client)}>
+            <TableCell onClick={() => {
+              console.log('🔍 [ClientTable] Client clicked:', client.company_name, client);
+              onClientSelect(client);
+            }}>
               {client.contact_name}
             </TableCell>
-            <TableCell onClick={() => onClientSelect(client)}>
+            <TableCell onClick={() => {
+              console.log('🔍 [ClientTable] Client clicked:', client.company_name, client);
+              onClientSelect(client);
+            }}>
               {client.city}, {client.country}
             </TableCell>
-            <TableCell onClick={() => onClientSelect(client)}>
+            <TableCell onClick={() => {
+              console.log('🔍 [ClientTable] Client clicked:', client.company_name, client);
+              onClientSelect(client);
+            }}>
               {client.businessLicense}
             </TableCell>
-            <TableCell onClick={() => onClientSelect(client)}>
+            <TableCell onClick={() => {
+              console.log('🔍 [ClientTable] Client clicked:', client.company_name, client);
+              onClientSelect(client);
+            }}>
               {client.companyRegistration}
             </TableCell>
-            <TableCell onClick={() => onClientSelect(client)}>
+            <TableCell onClick={() => {
+              console.log('🔍 [ClientTable] Client clicked:', client.company_name, client);
+              onClientSelect(client);
+            }}>
               {client.email}
             </TableCell>
-            <TableCell onClick={() => onClientSelect(client)}>
+            <TableCell onClick={() => {
+              console.log('🔍 [ClientTable] Client clicked:', client.company_name, client);
+              onClientSelect(client);
+            }}>
               {client.phone}
             </TableCell>
             <TableCell className="text-right">

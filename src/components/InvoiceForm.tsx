@@ -245,9 +245,15 @@ export default function InvoiceForm({
     const currentClient = selectedClient;
     const prevClient = prevClientRef.current;
     
+    console.log('🔍 [InvoiceForm] useEffect triggered - selectedClient:', {
+      current: currentClient?.company_name || 'none',
+      previous: prevClient?.company_name || 'none',
+      changed: currentClient !== prevClient
+    });
+    
     // Only update if client actually changed
     if (currentClient && currentClient !== prevClient) {
-      console.log('🔄 CLIENT CHANGED:', {
+      console.log('🔄 [InvoiceForm] CLIENT CHANGED:', {
         from: prevClient?.company_name || 'none',
         to: currentClient?.company_name || 'none'
       });
@@ -256,7 +262,17 @@ export default function InvoiceForm({
       
       const client = currentClient;
       
-      console.log('🔄 UPDATING CLIENT DATA');
+      console.log('🔄 [InvoiceForm] UPDATING CLIENT DATA:', {
+        clientName: client.contact_name || client.contactPerson || '',
+        clientCompany: client.company_name || client.company || '',
+        clientAddress: client.address,
+        clientCity: client.city || '',
+        clientPostalCode: client.postal_code || '',
+        clientEmail: client.email,
+        clientCountry: client.country,
+        clientReference: client.customerReference || ''
+      });
+      
       setFormData(prev => ({
         ...prev,
         clientName: client.contact_name || client.contactPerson || '',

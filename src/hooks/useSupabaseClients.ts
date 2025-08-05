@@ -234,6 +234,8 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
   };
 
   const handleClientSelect = (client: Client) => {
+    console.log('🔍 [useSupabaseClients] handleClientSelect called with:', client.company_name, client);
+    console.log('🔍 [useSupabaseClients] onClientSelect callback exists:', !!onClientSelect);
     onClientSelect?.(client);
   };
 

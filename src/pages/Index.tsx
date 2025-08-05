@@ -193,7 +193,9 @@ const Index = () => {
         {currentView === 'clients' && (
           <ClientManagement 
             onClientSelect={(client) => {
+              console.log('🔍 [Index] ClientManagement onClientSelect called with:', client.company_name, client);
               setSelectedClient(client);
+              console.log('🔍 [Index] Set selectedClient, switching to invoice view');
               setCurrentView('invoice');
             }}
           />
