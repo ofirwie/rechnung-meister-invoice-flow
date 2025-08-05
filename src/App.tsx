@@ -44,7 +44,11 @@ const App = () => (
             </ProtectedRoute>
           } />
           <Route path="/supabase-test" element={<SupabaseTest />} />
-          <Route path="/client-diagnostic" element={<ClientDiagnostic />} />
+          <Route path="/client-diagnostic" element={
+            <ProtectedRoute>
+              <ClientDiagnostic />
+            </ProtectedRoute>
+          } />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={
             <ProtectedRoute>
