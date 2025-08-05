@@ -44,7 +44,11 @@ const App = () => (
           } />
           <Route path="/supabase-test" element={<SupabaseTest />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={
+            <ProtectedRoute>
+              <NotFound />
+            </ProtectedRoute>
+          } />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
