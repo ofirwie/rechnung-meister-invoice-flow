@@ -43,14 +43,8 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
         setClients([]);
         return;
       }
-
-      if (!selectedCompany) {
-        console.log('ℹ️ No company selected - clients will be empty');
-        setClients([]);
-        return;
-      }
       
-      console.log('🔑 Fetching clients for user:', session.user.email, 'company:', selectedCompany.id);
+      console.log('🔑 Fetching clients for user:', session.user.email);
       
       const { data, error } = await supabase
         .from('clients')
@@ -137,10 +131,6 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
       
       if (authError || !session?.user) {
         throw new Error('You must be logged in to save clients');
-      }
-
-      if (!selectedCompany) {
-        throw new Error('You must select a company before creating clients');
       }
       
       if (editingClient) {
