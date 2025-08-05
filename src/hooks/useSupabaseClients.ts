@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Client, ClientFormData } from '../types/client';
 import { toast } from 'sonner';
+import { useCompany } from '../contexts/CompanyContext';
 
 export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
+  const { selectedCompany } = useCompany();
   const [clients, setClients] = useState<Client[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -41,12 +43,19 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
         setClients([]);
         return;
       }
+
+      if (!selectedCompany) {
+        console.log('ℹ️ No company selected - clients will be empty');
+        setClients([]);
+        return;
+      }
       
-      console.log('🔑 Fetching clients for user:', session.user.email);
+      console.log('🔑 Fetching clients for user:', session.user.email, 'company:', selectedCompany.id);
       
       const { data, error } = await supabase
         .from('clients')
         .select('*')
+        .eq('company_id', selectedCompany.id)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -88,7 +97,7 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
 
   useEffect(() => {
     loadClients();
-  }, []);
+  }, [selectedCompany]); // Reload clients when company changes
 
   const filteredClients = clients.filter(client =>
     client.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -129,6 +138,10 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
       if (authError || !session?.user) {
         throw new Error('You must be logged in to save clients');
       }
+
+      if (!selectedCompany) {
+        throw new Error('You must select a company before creating clients');
+      }
       
       if (editingClient) {
         // Update existing client
@@ -151,7 +164,7 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
           
         if (error) throw error;
       } else {
-        // Create new client with user_id for RLS
+        // Create new client with user_id and company_id for RLS
         const { error } = await supabase
           .from('clients')
           .insert({
@@ -166,7 +179,8 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
             tax_id: formData.taxId,
             business_license: formData.businessLicense,
             company_registration: formData.companyRegistration,
-            user_id: session.user.id // IMPORTANT: Include user_id for RLS
+            user_id: session.user.id, // IMPORTANT: Include user_id for RLS
+            company_id: selectedCompany.id // IMPORTANT: Include company_id for company filtering
           });
           
         if (error) throw error;
