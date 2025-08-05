@@ -169,14 +169,6 @@ const Index = () => {
           }}
         />
         
-        {/* Floating Debug Button */}
-        <button
-          onClick={() => navigate("/debug")}
-          className="fixed bottom-4 left-4 bg-red-600 text-white p-3 rounded-full shadow-lg hover:bg-red-700 z-50"
-          title="Debug Screen"
-        >
-          🐛
-        </button>
       
       <div className="max-w-6xl mx-auto p-6">
         {currentView === 'invoice' && (
