@@ -55,6 +55,7 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
       const { data, error } = await supabase
         .from('clients')
         .select('*')
+        .eq('user_id', session.user.id)  // Filter by current user for RLS compliance
         .order('created_at', { ascending: false });
       
       if (error) throw error;
