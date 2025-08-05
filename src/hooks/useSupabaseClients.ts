@@ -55,7 +55,6 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
       const { data, error } = await supabase
         .from('clients')
         .select('*')
-        .eq('company_id', selectedCompany.id)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -179,8 +178,8 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
             tax_id: formData.taxId,
             business_license: formData.businessLicense,
             company_registration: formData.companyRegistration,
-            user_id: session.user.id, // IMPORTANT: Include user_id for RLS
-            company_id: selectedCompany.id // IMPORTANT: Include company_id for company filtering
+            user_id: session.user.id // IMPORTANT: Include user_id for RLS
+            // company_id: selectedCompany.id // TODO: Add once company_id column exists
           });
           
         if (error) throw error;
