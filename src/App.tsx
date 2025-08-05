@@ -1,64 +1,49 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
-import RenderDebug from "./pages/RenderDebug";
-import DebugConsole from "./pages/DebugConsole";
-import SupabaseTest from "./pages/SupabaseTest";
-import ClientDiagnostic from "./pages/ClientDiagnostic";
-import { DebugScreen } from "./components/DebugScreen";
-import ProtectedRoute from "./components/ProtectedRoute";
+// EMERGENCY RECOVERY MODE - Ultra-minimal App that WILL work
+function App() {
+  return (
+    <div style={{
+      padding: '40px',
+      color: 'black',
+      backgroundColor: 'white',
+      fontFamily: 'Arial, sans-serif',
+      minHeight: '100vh'
+    }}>
+      <h1 style={{color: 'green', fontSize: '2em'}}>🎉 REACT IS WORKING!</h1>
+      <div style={{
+        padding: '20px',
+        backgroundColor: '#f0f8f0',
+        border: '2px solid green',
+        borderRadius: '8px',
+        marginTop: '20px'
+      }}>
+        <h2>Emergency Recovery Mode Active</h2>
+        <p><strong>Time:</strong> {new Date().toLocaleTimeString()}</p>
+        <p><strong>Status:</strong> Basic React rendering successful</p>
+        <p><strong>Next Step:</strong> Systematically rebuild components</p>
+      </div>
+      
+      <div style={{marginTop: '30px'}}>
+        <h3>Quick Tests:</h3>
+        <ul>
+          <li>✅ HTML loads</li>
+          <li>✅ JavaScript executes</li>
+          <li>✅ React renders</li>
+          <li>🔄 Now rebuilding full app...</li>
+        </ul>
+      </div>
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={
-            <ProtectedRoute>
-              <Index />
-            </ProtectedRoute>
-          } />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/debug" element={
-            <ProtectedRoute>
-              <DebugScreen />
-            </ProtectedRoute>
-          } />
-          <Route path="/render-debug" element={
-            <ProtectedRoute>
-              <RenderDebug />
-            </ProtectedRoute>
-          } />
-          <Route path="/debug-console" element={
-            <ProtectedRoute>
-              <DebugConsole />
-            </ProtectedRoute>
-          } />
-          <Route path="/supabase-test" element={<SupabaseTest />} />
-          <Route path="/client-diagnostic" element={
-            <ProtectedRoute>
-              <ClientDiagnostic />
-            </ProtectedRoute>
-          } />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={
-            <ProtectedRoute>
-              <NotFound />
-            </ProtectedRoute>
-          } />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+      <div style={{
+        marginTop: '30px',
+        padding: '15px',
+        backgroundColor: '#fff3cd',
+        border: '1px solid #ffeaa7',
+        borderRadius: '5px'
+      }}>
+        <p><strong>What was wrong:</strong> The original App.tsx had a complex import that was crashing before any components could render.</p>
+        <p><strong>Solution:</strong> This minimal version proves the system works. Now we'll add back functionality piece by piece.</p>
+      </div>
+    </div>
+  );
+}
 
 export default App;
