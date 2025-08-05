@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import SupabaseTest from './pages/SupabaseTest';
 import BasicAuthCheck from './pages/BasicAuthCheck';
+import ClientLoadingTest from './pages/ClientLoadingTest';
 
 function HomePage() {
   const navigate = useNavigate();
@@ -87,6 +88,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/supabase-test" element={<SupabaseTest />} />
         <Route path="/client-diagnostic" element={<BasicAuthCheck />} />
+        <Route path="/client-loading-test" element={<ClientLoadingTest />} />
       </Routes>
     </BrowserRouter>
   );
