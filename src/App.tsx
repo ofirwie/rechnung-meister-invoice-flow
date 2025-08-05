@@ -1,6 +1,7 @@
 // DIAGNOSTIC MODE - Minimal routing to enable database testing
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import SupabaseTest from './pages/SupabaseTest';
+import ClientDiagnostic from './pages/ClientDiagnostic';
 
 function HomePage() {
   const navigate = useNavigate();
@@ -85,6 +86,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/supabase-test" element={<SupabaseTest />} />
+        <Route path="/client-diagnostic" element={<ClientDiagnostic />} />
       </Routes>
     </BrowserRouter>
   );
