@@ -107,7 +107,59 @@ const ClientLoadingTest = () => {
       addResult('Company Check', 'error', 'Company test failed', err);
     }
 
-    // Test 5: RLS Policy Test
+    // Test 5: Specific Client ID Test
+    const targetClientId = '53c37065-9f0c-4ac7-97cc-5ab0ec1d0e47';
+    try {
+      // Direct lookup without user filtering
+      const { data: directClient, error: directError } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('id', targetClientId)
+        .single();
+
+      if (directError) {
+        addResult('Direct Client Lookup', 'error', `Failed to find client ${targetClientId}: ${directError.message}`, directError);
+      } else {
+        addResult('Direct Client Lookup', 'success', `Found client: ${directClient.company_name}`, {
+          clientId: directClient.id,
+          companyName: directClient.company_name,
+          associatedUserId: directClient.user_id
+        });
+
+        // Check user ID match
+        const { data: { session } } = await supabase.auth.getSession();
+        const userMatches = directClient.user_id === session.user.id;
+        
+        addResult('User ID Match Check', userMatches ? 'success' : 'error', 
+          userMatches 
+            ? 'Client belongs to current user' 
+            : `Client belongs to different user (${directClient.user_id} vs ${session.user.id})`,
+          {
+            currentUserId: session.user.id,
+            clientUserId: directClient.user_id,
+            match: userMatches
+          }
+        );
+
+        // Test filtered query (how the app normally queries)
+        const { data: filteredClient, error: filteredError } = await supabase
+          .from('clients')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .eq('id', targetClientId)
+          .single();
+
+        if (filteredError) {
+          addResult('Filtered Client Query', 'error', `Filtered query failed: ${filteredError.message}`, filteredError);
+        } else {
+          addResult('Filtered Client Query', 'success', 'Client found with user filter', filteredClient);
+        }
+      }
+    } catch (err) {
+      addResult('Specific Client Test', 'error', 'Client test failed', err);
+    }
+
+    // Test 6: RLS Policy Test
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -139,6 +191,33 @@ const ClientLoadingTest = () => {
       addResult('RLS Insert Test', 'error', 'RLS test failed', err);
     }
 
+    // Test 7: Hook vs Direct Query Comparison
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // Direct query with user filter (mimics hook behavior)
+      const { data: directResults, error: directError } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('user_id', session.user.id);
+
+      if (directError) {
+        addResult('Hook Simulation', 'error', `Hook-style query failed: ${directError.message}`, directError);
+      } else {
+        const targetExists = directResults.some(client => client.id === targetClientId);
+        addResult('Hook Simulation', targetExists ? 'success' : 'warning', 
+          `Hook-style query returned ${directResults.length} clients. Target client ${targetExists ? 'FOUND' : 'NOT FOUND'}`,
+          {
+            totalClients: directResults.length,
+            targetClientExists: targetExists,
+            clientsList: directResults.map(c => ({ id: c.id, name: c.company_name }))
+          }
+        );
+      }
+    } catch (err) {
+      addResult('Hook Simulation', 'error', 'Hook simulation failed', err);
+    }
+
     setLoading(false);
   };
 
@@ -158,6 +237,43 @@ const ClientLoadingTest = () => {
       case 'warning': return '⚠️';
       default: return '❓';
     }
+  };
+
+  const copyResults = () => {
+    const summary = `🔍 CLIENT LOADING DIAGNOSTIC RESULTS
+Generated: ${new Date().toLocaleString()}
+URL: ${window.location.href}
+
+SUMMARY:
+- Total Tests: ${results.length}
+- Passed: ${results.filter(r => r.status === 'success').length}
+- Failed: ${results.filter(r => r.status === 'error').length}
+- Warnings: ${results.filter(r => r.status === 'warning').length}
+
+DETAILED RESULTS:
+${results.map((result, index) => `
+${index + 1}. ${getStatusIcon(result.status)} ${result.test}
+   Status: ${result.status.toUpperCase()}
+   Message: ${result.message}
+   Time: ${result.timestamp}
+   ${result.details ? `Details: ${JSON.stringify(result.details, null, 2)}` : ''}
+   ${result.error ? `Error: ${JSON.stringify(result.error, null, 2)}` : ''}
+`).join('\n')}
+
+END OF DIAGNOSTIC RESULTS`;
+
+    navigator.clipboard.writeText(summary).then(() => {
+      alert('✅ Diagnostic results copied to clipboard!');
+    }).catch(() => {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = summary;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('✅ Diagnostic results copied to clipboard!');
+    });
   };
 
   return (
@@ -249,22 +365,40 @@ const ClientLoadingTest = () => {
         </div>
       )}
 
-      <button 
-        onClick={runClientLoadingTests}
-        disabled={loading}
-        style={{
-          marginTop: '20px',
-          padding: '12px 24px',
-          backgroundColor: loading ? '#6c757d' : '#28a745',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: loading ? 'not-allowed' : 'pointer',
-          fontSize: '16px'
-        }}
-      >
-        {loading ? '🔄 Running Tests...' : '🚀 Run Tests Again'}
-      </button>
+      <div style={{ marginTop: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <button 
+          onClick={runClientLoadingTests}
+          disabled={loading}
+          style={{
+            padding: '12px 24px',
+            backgroundColor: loading ? '#6c757d' : '#28a745',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            fontSize: '16px'
+          }}
+        >
+          {loading ? '🔄 Running Tests...' : '🚀 Run Tests Again'}
+        </button>
+
+        {results.length > 0 && !loading && (
+          <button 
+            onClick={copyResults}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '16px'
+            }}
+          >
+            📋 Copy Results
+          </button>
+        )}
+      </div>
     </div>
   );
 };
