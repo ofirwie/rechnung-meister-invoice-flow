@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useDebugLogger } from '../hooks/useDebugLogger';
 import InvoiceForm from '../components/InvoiceForm';
 import InvoicePreview from '../components/InvoicePreview';
 import ClientManagement from '../components/ClientManagement';
@@ -26,8 +27,11 @@ import { CompanyManagement } from '../components/CompanyManagement';
 import UserManagement from '../components/UserManagement';
 import { DebugPanel } from '../components/DebugPanel';
 import { TestCompanies } from '../components/TestCompanies';
+import { StateDebugger } from '../components/StateDebugger';
 
 const Index = () => {
+  const { info, warn, error: logError, trace } = useDebugLogger({ component: 'Index' });
+  
   // DEBUGGING: Add render counter to detect infinite loops
   const renderCounter = useRef(0);
   const emergencyStop = useRef(0);
@@ -35,7 +39,10 @@ const Index = () => {
   renderCounter.current++;
   emergencyStop.current++;
   
-  console.log(`🔄 [Index] Render #${renderCounter.current}`);
+  trace('render', `Index render #${renderCounter.current}`, {
+    renderCount: renderCounter.current,
+    emergencyStop: emergencyStop.current
+  });
   
   if (renderCounter.current > 100) {
     console.error(`🚨 INFINITE LOOP DETECTED in Index - Render #${renderCounter.current}`);
@@ -48,13 +55,124 @@ const Index = () => {
 
   const navigate = useNavigate();
   const { language, t } = useLanguage();
-  const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'companies'>('invoice');
+  
+  // DEEP STATE DEBUGGING: Track every state change with stack traces
+  const [_currentView, _setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'companies'>('invoice');
+  const [_selectedClient, _setSelectedClient] = useState<Client | null>(null);
+  
+  // Previous state refs for comparison
+  const prevViewRef = useRef(_currentView);
+  const prevClientRef = useRef(_selectedClient);
+  const stateChangeIdRef = useRef(0);
+
+  // Wrapped setters with deep debugging
+  const setCurrentView = useCallback((newView: typeof _currentView) => {
+    const changeId = ++stateChangeIdRef.current;
+    const oldView = _currentView;
+    
+    info('view-change-attempt', `Attempting to change view from ${oldView} to ${newView}`, {
+      changeId,
+      oldView,
+      newView,
+      stackTrace: new Error().stack,
+      timestamp: Date.now(),
+      renderCount: renderCounter.current
+    });
+    
+    _setCurrentView((prev) => {
+      info('view-change-executed', `View change executed: ${prev} → ${newView}`, {
+        changeId,
+        previousView: prev,
+        newView,
+        stackTrace: new Error().stack,
+        renderCount: renderCounter.current
+      });
+      return newView;
+    });
+  }, [_currentView, info]);
+
+  const setSelectedClient = useCallback((newClient: Client | null) => {
+    const changeId = ++stateChangeIdRef.current;
+    const oldClient = _selectedClient;
+    const oldClientName = oldClient?.company_name || 'null';
+    const newClientName = newClient?.company_name || 'null';
+    
+    info('client-change-attempt', `Attempting to change client from ${oldClientName} to ${newClientName}`, {
+      changeId,
+      oldClientId: oldClient?.id,
+      oldClientName,
+      newClientId: newClient?.id,
+      newClientName,
+      stackTrace: new Error().stack,
+      timestamp: Date.now(),
+      renderCount: renderCounter.current
+    });
+    
+    _setSelectedClient((prev) => {
+      const prevName = prev?.company_name || 'null';
+      info('client-change-executed', `Client change executed: ${prevName} → ${newClientName}`, {
+        changeId,
+        previousClientId: prev?.id,
+        previousClientName: prevName,
+        newClientId: newClient?.id,
+        newClientName,
+        stackTrace: new Error().stack,
+        renderCount: renderCounter.current
+      });
+      return newClient;
+    });
+  }, [_selectedClient, info]);
+
+  // Expose current state values
+  const currentView = _currentView;
+  const selectedClient = _selectedClient;
+
+  // Monitor state changes with useEffect
+  useEffect(() => {
+    if (prevViewRef.current !== currentView) {
+      info('view-state-changed', `View state changed: ${prevViewRef.current} → ${currentView}`, {
+        oldView: prevViewRef.current,
+        newView: currentView,
+        renderCount: renderCounter.current,
+        stackTrace: new Error().stack
+      });
+      prevViewRef.current = currentView;
+    }
+  }, [currentView, info]);
+
+  useEffect(() => {
+    if (prevClientRef.current !== selectedClient) {
+      const oldName = prevClientRef.current?.company_name || 'null';
+      const newName = selectedClient?.company_name || 'null';
+      
+      if (selectedClient === null && prevClientRef.current !== null) {
+        warn('client-cleared', `Selected client was CLEARED! Previous: ${oldName}`, {
+          previousClientId: prevClientRef.current?.id,
+          previousClientName: oldName,
+          renderCount: renderCounter.current,
+          stackTrace: new Error().stack,
+          timestamp: Date.now()
+        });
+      }
+      
+      info('client-state-changed', `Client state changed: ${oldName} → ${newName}`, {
+        oldClientId: prevClientRef.current?.id,
+        oldClientName: oldName,
+        newClientId: selectedClient?.id,
+        newClientName: newName,
+        renderCount: renderCounter.current,
+        stackTrace: new Error().stack
+      });
+      prevClientRef.current = selectedClient;
+    }
+  }, [selectedClient, info, warn]);
+
   const [showUserManagement, setShowUserManagement] = useState(false);
   const [currentInvoice, setCurrentInvoice] = useState<InvoiceData | null>(null);
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [serviceSearchTerm, setServiceSearchTerm] = useState('');
   const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [showMigrationDialog, setShowMigrationDialog] = useState(false);
 
   const { updateInvoiceStatus, saveInvoice } = useSupabaseInvoices();
@@ -67,28 +185,78 @@ const Index = () => {
   } = useDataMigration();
 
   useEffect(() => {
-    // Check auth state and setup listener
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const user = session?.user;
+    // AUTHENTICATION GUARD: Check auth state first
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
+        
+        info('auth-check', 'Authentication check completed', {
+          hasUser: !!user,
+          userId: user?.id,
+          userEmail: user?.email,
+          sessionValid: !!session
+        });
+
+        if (!user) {
+          warn('auth-required', 'No authenticated user found, redirecting to auth', {
+            currentPath: window.location.pathname,
+            renderCount: renderCounter.current
+          });
+          
+          // Redirect to auth page immediately if no user
+          navigate('/auth');
+          return;
+        }
+
+        setUser(user);
+        
+        // If user is logged in and has local data, show migration dialog
+        if (user && hasLocalData()) {
+          setShowMigrationDialog(true);
+        }
+      } catch (error) {
+        logError('auth-check-error', 'Error checking authentication', {
+          error: error,
+          renderCount: renderCounter.current
+        }, error as Error);
+        
+        // On auth error, redirect to auth page
+        navigate('/auth');
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
+    checkAuth();
+
+    // Setup auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      info('auth-state-changed', 'Authentication state changed', {
+        event,
+        hasUser: !!session?.user,
+        userId: session?.user?.id,
+        userEmail: session?.user?.email
+      });
+
+      const user = session?.user || null;
       setUser(user);
       
-      // If user is logged in and has local data, show migration dialog
+      // If user logs out, redirect to auth
+      if (!user && event === 'SIGNED_OUT') {
+        info('user-signed-out', 'User signed out, redirecting to auth');
+        navigate('/auth');
+        return;
+      }
+      
+      // Show migration dialog when user logs in and has local data
       if (user && hasLocalData()) {
         setShowMigrationDialog(true);
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user || null);
-      
-      // Show migration dialog when user logs in and has local data
-      if (session?.user && hasLocalData()) {
-        setShowMigrationDialog(true);
-      }
-    });
-
     return () => subscription.unsubscribe();
-  }, []); // Fix: Remove hasLocalData dependency that was causing infinite loop
+  }, [navigate, info, warn, logError, hasLocalData]);
 
   const handleMigration = useCallback(async () => {
     const success = await migrateToSupabase();
@@ -134,6 +302,28 @@ const Index = () => {
     setCurrentInvoice(null);
   }, []);
 
+  // Show loading screen while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render anything if no user (will redirect)
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground">Redirecting to login...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (currentInvoice) {
     return (
@@ -149,6 +339,14 @@ const Index = () => {
     <CompanyProvider>
       {/* <DebugPanel /> */}
       {/* <TestCompanies /> */}
+      
+      {/* State Debugger - Real-time state monitoring */}
+      <StateDebugger 
+        currentView={currentView}
+        selectedClient={selectedClient}
+        renderCount={renderCounter.current}
+      />
+      
       <div className="min-h-screen bg-background">
         {/* Company Selector */}
         <div className="bg-white border-b border-gray-200 p-3">
@@ -185,10 +383,48 @@ const Index = () => {
         {currentView === 'clients' && (
           <ClientManagement 
             onClientSelect={(client) => {
-              console.log('🔍 [Index] ClientManagement onClientSelect called with:', client.company_name, client);
-              setSelectedClient(client);
-              console.log('🔍 [Index] Set selectedClient, switching to invoice view');
-              setCurrentView('invoice');
+              info('client-management-callback', 'ClientManagement onClientSelect called', {
+                clientId: client.id,
+                company_name: client.company_name,
+                contact_name: client.contact_name,
+                currentView: currentView,
+                previousClient: selectedClient?.company_name || 'none',
+                renderCount: renderCounter.current,
+                stackTrace: new Error().stack
+              });
+              
+              try {
+                info('before-state-changes', 'About to set selectedClient and change view', {
+                  clientId: client.id,
+                  company_name: client.company_name,
+                  currentView,
+                  currentSelectedClient: selectedClient?.company_name || 'none',
+                  renderCount: renderCounter.current
+                });
+                
+                setSelectedClient(client);
+                
+                info('between-state-changes', 'Set selectedClient, now changing view', {
+                  clientId: client.id,
+                  company_name: client.company_name,
+                  renderCount: renderCounter.current
+                });
+                
+                setCurrentView('invoice');
+                
+                info('after-state-changes', 'Completed both state changes', {
+                  clientId: client.id,
+                  company_name: client.company_name,
+                  renderCount: renderCounter.current
+                });
+              } catch (err) {
+                logError('client-selection-error', 'Error in client selection process', {
+                  clientId: client.id,
+                  company_name: client.company_name,
+                  error: err,
+                  renderCount: renderCounter.current
+                }, err as Error);
+              }
             }}
           />
         )}

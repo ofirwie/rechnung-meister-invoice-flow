@@ -24,6 +24,7 @@ import { useLanguage } from '../hooks/useLanguage';
 import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
 import { toast } from 'sonner';
 import { DebugModal } from './DebugModal';
+import { useDebugLogger } from '../hooks/useDebugLogger';
 
 
 interface InvoiceFormProps {
@@ -69,6 +70,7 @@ export default function InvoiceForm({
   // ALWAYS call hooks in the same order FIRST
   const { language, t, changeLanguage } = useLanguage();
   const { saveInvoice, invoiceHistory } = useSupabaseInvoices();
+  const { info, warn, error: logError } = useDebugLogger({ component: 'InvoiceForm' });
   
   const [clients] = useLocalStorage<Client[]>('invoice-clients', []);
   const [isGeneratingNumber, setIsGeneratingNumber] = useState(false);
