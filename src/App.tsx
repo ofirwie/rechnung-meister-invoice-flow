@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import RenderDebug from "./pages/RenderDebug";
 import DebugConsole from "./pages/DebugConsole";
 import SupabaseTest from "./pages/SupabaseTest";
+import ClientDiagnostic from "./pages/ClientDiagnostic";
 import { DebugScreen } from "./components/DebugScreen";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -43,6 +44,7 @@ const App = () => (
             </ProtectedRoute>
           } />
           <Route path="/supabase-test" element={<SupabaseTest />} />
+          <Route path="/client-diagnostic" element={<ClientDiagnostic />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={
             <ProtectedRoute>
