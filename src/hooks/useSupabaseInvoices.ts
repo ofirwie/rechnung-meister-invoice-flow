@@ -11,9 +11,27 @@ export function useSupabaseInvoices() {
   // Load invoices from Supabase
   const loadInvoices = async () => {
     try {
+      // 🔧 CRITICAL FIX: Add user authentication and filtering
+      const { data: { session }, error: authError } = await supabase.auth.getSession();
+      
+      if (authError) {
+        console.error('❌ Auth error in loadInvoices:', authError);
+        throw authError;
+      }
+      
+      if (!session?.user) {
+        console.log('⚠️ No authenticated user - invoices will be empty');
+        setInvoices([]);
+        setLoading(false);
+        return;
+      }
+      
+      console.log('🔍 Loading invoices for user:', session.user.email);
+      
       const { data, error } = await supabase
         .from('invoices')
         .select('*')
+        .eq('user_id', session.user.id) // 🔧 FIX: Add user filtering for RLS compliance
         .is('deleted_at', null) // Only load non-deleted invoices
         .order('created_at', { ascending: false });
 
@@ -57,9 +75,26 @@ export function useSupabaseInvoices() {
   // Load invoice history from Supabase
   const loadInvoiceHistory = async () => {
     try {
+      // 🔧 CRITICAL FIX: Add user authentication and filtering for invoice history too
+      const { data: { session }, error: authError } = await supabase.auth.getSession();
+      
+      if (authError) {
+        console.error('❌ Auth error in loadInvoiceHistory:', authError);
+        throw authError;
+      }
+      
+      if (!session?.user) {
+        console.log('⚠️ No authenticated user - invoice history will be empty');
+        setInvoiceHistory([]);
+        return;
+      }
+      
+      console.log('🔍 Loading invoice history for user:', session.user.email);
+      
       const { data, error } = await supabase
         .from('invoice_history')
         .select('*')
+        .eq('user_id', session.user.id) // 🔧 FIX: Add user filtering for RLS compliance
         .order('created_at', { ascending: false });
 
       if (error) throw error;

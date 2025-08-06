@@ -7,7 +7,8 @@ import { useCompany } from '../contexts/SimpleCompanyContext';
 export function useSupabaseServices() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
-  const { selectedCompany } = useCompany();
+  const companyContext = useCompany();
+  const selectedCompany = companyContext?.selectedCompany;
 
   // Load services from Supabase
   const loadServices = async () => {

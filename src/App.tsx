@@ -13,6 +13,8 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import RenderLoopDiagnostic from "./pages/RenderLoopDiagnostic";
 import ComponentIsolationDiagnostic from "./pages/ComponentIsolationDiagnostic";
+import ClientSelectionDiagnostic from "./pages/ClientSelectionDiagnostic";
+import DatabaseDiagnostic from "./pages/DatabaseDiagnostic";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +31,8 @@ const App = () => {
               <Route path="/auth" element={<Auth />} />
               <Route path="/debug-render-loop" element={<RenderLoopDiagnostic />} />
               <Route path="/debug-components" element={<ComponentIsolationDiagnostic />} />
+              <Route path="/debug-clients" element={<ClientSelectionDiagnostic />} />
+              <Route path="/debug-database" element={<DatabaseDiagnostic />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
