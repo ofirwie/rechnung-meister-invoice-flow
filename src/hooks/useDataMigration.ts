@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLocalStorage } from './useLocalStorage';
 import { Client } from '../types/client';
@@ -127,12 +127,12 @@ export function useDataMigration() {
     }
   };
 
-  const hasLocalData = () => {
+  const hasLocalData = useCallback(() => {
     return localClients.length > 0 || 
            localServices.length > 0 || 
            localInvoices.length > 0 || 
            localHistory.length > 0;
-  };
+  }, [localClients.length, localServices.length, localInvoices.length, localHistory.length]);
 
   return {
     isMigrating,

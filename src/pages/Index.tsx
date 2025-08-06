@@ -182,8 +182,8 @@ const Index = () => {
 
   return (
     <div>
-      {/* IMMEDIATE DEBUG TRACKER - Shows render loop in real-time */}
-      <SimpleRenderTracker />
+      {/* EMERGENCY FIX: SimpleRenderTracker removed - was causing infinite render loop */}
+      {/* <SimpleRenderTracker /> */}
       
       <div className="min-h-screen bg-background">
         {/* Company Selector */}

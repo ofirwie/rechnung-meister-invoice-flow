@@ -122,7 +122,7 @@ Browser: ${userAgent.substring(0, 100)}...
       console.error(`🚨 RENDER LOOP DETECTED: ${renderCount.current} renders!`);
       console.error('Current context values:', currentValues);
     }
-  });
+  }, [currentValues]); // FIX: Added dependency array to prevent running every render
 
   const renderStatus = renderCount.current > 15 ? 'CRITICAL' : renderCount.current > 10 ? 'WARNING' : 'NORMAL';
   const statusColor = renderStatus === 'CRITICAL' ? '#d32f2f' : renderStatus === 'WARNING' ? '#f57c00' : '#2e7d32';
