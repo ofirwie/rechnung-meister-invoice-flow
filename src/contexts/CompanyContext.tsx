@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { Company, CompanyUser, UserRole, UserPermissions } from '@/types/company';
 import { supabase } from '@/integrations/supabase/client';
 import { NoCompanyScreen } from '@/components/NoCompanyScreen';
-import { RenderTracker } from '@/components/RenderTracker';
 
 interface CompanyContextType {
   selectedCompany: Company | null;
@@ -29,33 +28,33 @@ interface CompanyProviderProps {
   children: ReactNode;
 }
 
+// COMPLETELY STATIC COMPANY OBJECT - NEVER CHANGES
+const HARDCODED_COMPANY_ID = '019e9514-c181-4577-b173-a201184c990c';
+const STATIC_COMPANY: Company = {
+  id: HARDCODED_COMPANY_ID,
+  name: 'Default Company',
+  active: true,
+  created_at: '2025-01-01T00:00:00.000Z', // STATIC DATE
+  updated_at: '2025-01-01T00:00:00.000Z', // STATIC DATE  
+  owner_id: '',
+  can_be_deleted: false,
+  is_main_company: true,
+  default_currency: 'EUR',
+  fiscal_year_start: 1,
+  settings: {}
+};
+
+// COMPLETELY STATIC ARRAY - NEVER CHANGES
+const STATIC_COMPANIES: Company[] = [STATIC_COMPANY];
+
 export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) => {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [permissions, setPermissions] = useState<UserPermissions | null>(null);
   const [userEmail, setUserEmail] = useState<string>('');
   
-  // HARDCODED COMPANY - Emergency fix to stop render loop
-  const HARDCODED_COMPANY_ID = '019e9514-c181-4577-b173-a201184c990c';
-  
-  // Static company object with all required fields to prevent re-renders
-  const selectedCompany: Company = useMemo(() => ({
-    id: HARDCODED_COMPANY_ID,
-    name: 'Default Company',
-    active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    owner_id: '',
-    can_be_deleted: false,
-    is_main_company: true,
-    default_currency: 'EUR',
-    fiscal_year_start: 1,
-    settings: {}
-  }), [HARDCODED_COMPANY_ID]);
-  
-  // Static companies array
-  const companies: Company[] = useMemo(() => [selectedCompany], [selectedCompany]);
-  
-  // No loading state needed - always ready
+  // STATIC VALUES - NO MEMO NEEDED
+  const selectedCompany = STATIC_COMPANY;
+  const companies = STATIC_COMPANIES;
   const loading = false;
 
   const fetchUserPermissions = useCallback(async (companyId: string) => {
@@ -105,17 +104,15 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
       setUserRole(null);
       setPermissions(null);
     }
-  }, []); // Stable callback - no dependencies needed
+  }, []); // NO DEPENDENCIES
 
-  // Simplified callbacks - no dependencies to prevent recreation
+  // STATIC CALLBACKS - NO DEPENDENCIES TO PREVENT RECREATION
   const switchCompany = useCallback(async (companyId: string) => {
-    // No-op since we only have one hardcoded company
     console.log('switchCompany called but using hardcoded company:', HARDCODED_COMPANY_ID);
     await fetchUserPermissions(HARDCODED_COMPANY_ID);
   }, [fetchUserPermissions]);
 
   const refreshCompanies = useCallback(() => {
-    // No-op since we're using hardcoded company
     console.log('refreshCompanies called but using hardcoded company');
   }, []);
 
@@ -128,8 +125,8 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
     return resourcePermissions[action as keyof typeof resourcePermissions] === true;
   }, [permissions]);
 
-  // Static context value with minimal dependencies
-  const contextValue = useMemo(() => ({
+  // STATIC CONTEXT VALUE - NO MEMO TO AVOID DEPENDENCY ISSUES
+  const contextValue: CompanyContextType = {
     selectedCompany,
     companies,
     userRole,
@@ -138,7 +135,7 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
     switchCompany,
     refreshCompanies,
     canAccess,
-  }), [selectedCompany, companies, userRole, permissions, switchCompany, refreshCompanies, canAccess]);
+  };
 
   // Get current user email
   useEffect(() => {
@@ -161,7 +158,7 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
     
     // Fetch permissions for the hardcoded company
     fetchUserPermissions(HARDCODED_COMPANY_ID);
-  }, [fetchUserPermissions, HARDCODED_COMPANY_ID]);
+  }, [fetchUserPermissions]);
 
   // If not loading and user has no companies, show the NoCompanyScreen
   if (!loading && companies.length === 0 && userEmail) {
@@ -169,33 +166,8 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
   }
 
   return (
-    <>
-      <RenderTracker
-        componentName="CompanyProvider"
-        stateChanges={{
-          selectedCompany: HARDCODED_COMPANY_ID,
-          companiesLength: 1,
-          companiesLoading: false,
-          userRole,
-          permissions: permissions ? 'set' : 'null',
-          userEmail
-        }}
-        callbacks={{
-          switchCompany,
-          refreshCompanies,
-          canAccess,
-          fetchUserPermissions
-        }}
-        dependencies={{
-          companies: ['HARDCODED_COMPANY'],
-          companiesLoading: false,
-          selectedCompany: HARDCODED_COMPANY_ID,
-          switchCompanyDeps: 'HARDCODED - no dependencies'
-        }}
-      />
-      <CompanyContext.Provider value={contextValue}>
-        {children}
-      </CompanyContext.Provider>
-    </>
+    <CompanyContext.Provider value={contextValue}>
+      {children}
+    </CompanyContext.Provider>
   );
 };
