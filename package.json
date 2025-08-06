@@ -1,4 +1,6 @@
 {
+  "//": "🚫 CRITICAL: NO LOCALHOST TESTING - USE DEPLOYED ENVIRONMENT ONLY",
+  "//2": "🐛 ALWAYS CREATE DEBUG SCREENS - NEVER GUESS PROBLEMS",
   "name": "vite_react_shadcn_ts",
   "private": true,
   "version": "0.0.0",

@@ -23,6 +23,7 @@ import { CompanyProvider } from '../contexts/CompanyContext';
 import CompanySelector from '../components/CompanySelector';
 import CompanyUserManagement from '../components/CompanyUserManagement';
 import { CompanyManagement } from '../components/CompanyManagement';
+import SimpleRenderTracker from '../components/SimpleRenderTracker';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -182,7 +183,8 @@ const Index = () => {
 
   return (
     <CompanyProvider>
-      {/* Debug components temporarily disabled */}
+      {/* IMMEDIATE DEBUG TRACKER - Shows render loop in real-time */}
+      <SimpleRenderTracker />
       
       <div className="min-h-screen bg-background">
         {/* Company Selector */}

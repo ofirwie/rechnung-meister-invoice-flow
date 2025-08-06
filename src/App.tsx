@@ -1,3 +1,6 @@
+// 🚫 CRITICAL: NO LOCALHOST TESTING - USE DEPLOYED ENVIRONMENT ONLY
+// 🐛 ALWAYS CREATE DEBUG SCREENS - NEVER GUESS PROBLEMS
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import { GlobalDebugPanel, useGlobalDebugPanel } from './components/GlobalDebugPanel';
+import SimpleRenderTracker from './components/SimpleRenderTracker';
 
 const queryClient = new QueryClient();
 

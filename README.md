@@ -1,3 +1,7 @@
+<!-- 🚫 CRITICAL: NO LOCALHOST TESTING - USE DEPLOYED ENVIRONMENT ONLY -->
+<!-- 🐛 ALWAYS CREATE DEBUG SCREENS - NEVER GUESS PROBLEMS -->
+<!-- 📋 DEBUGGING WORKFLOW: Create debug components → Deploy → Test on live site → Fix -->
+
 # Welcome to your Lovable project
 
 ## Project info
