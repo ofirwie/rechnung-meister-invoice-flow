@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Building2, Settings, Users, Plus } from 'lucide-react';
-import { useCompany } from '@/contexts/CompanyContext';
+import { useCompany } from '@/contexts/SimpleCompanyContext';
 import { useLanguage } from '@/hooks/useLanguage';
 
 interface CompanySelectorProps {
@@ -13,8 +13,17 @@ interface CompanySelectorProps {
 }
 
 export default function CompanySelector({ onManageCompanies, onCreateCompany, onManageUsers }: CompanySelectorProps) {
-  const { selectedCompany, companies, userRole, switchCompany } = useCompany();
+  const { selectedCompany, userRole, loading } = useCompany();
   const { t, isRTL } = useLanguage();
+
+  if (loading) {
+    return (
+      <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+        <Building2 className="w-5 h-5 text-muted-foreground animate-pulse" />
+        <span className="text-muted-foreground">{t.loading || 'Loading...'}</span>
+      </div>
+    );
+  }
 
   if (!selectedCompany) {
     return (
@@ -58,42 +67,24 @@ export default function CompanySelector({ onManageCompanies, onCreateCompany, on
 
   return (
     <div className={`flex items-center gap-3 ${isRTL ? 'flex-row-reverse' : ''}`}>
-      {/* Company Selector */}
+      {/* Company Info Display (Single Company) */}
       <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
         <Building2 className="w-5 h-5 text-primary" />
-        <Select value={selectedCompany.id} onValueChange={switchCompany}>
-          <SelectTrigger className="w-[280px]">
-            <SelectValue>
-              <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
-                <div className="flex-1">
-                  <div className="font-medium text-sm">{selectedCompany.name}</div>
-                  {selectedCompany.business_name && (
-                    <div className="text-xs text-muted-foreground">{selectedCompany.business_name}</div>
-                  )}
-                </div>
-                {userRole && (
-                  <Badge variant="secondary" className={`text-xs ${getRoleBadgeColor(userRole)}`}>
-                    {getRoleText(userRole)}
-                  </Badge>
-                )}
-              </div>
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {companies.map((company) => (
-              <SelectItem key={company.id} value={company.id}>
-                <div className={`flex items-center gap-2 w-full ${isRTL ? 'flex-row-reverse' : ''}`}>
-                  <div className="flex-1">
-                    <div className="font-medium">{company.name}</div>
-                    {company.business_name && (
-                      <div className="text-xs text-muted-foreground">{company.business_name}</div>
-                    )}
-                  </div>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="bg-background border rounded-md px-3 py-2 min-w-[280px]">
+          <div className={`flex items-center gap-2 ${isRTL ? 'flex-row-reverse' : ''}`}>
+            <div className="flex-1">
+              <div className="font-medium text-sm">{selectedCompany.name}</div>
+              {selectedCompany.business_name && (
+                <div className="text-xs text-muted-foreground">{selectedCompany.business_name}</div>
+              )}
+            </div>
+            {userRole && (
+              <Badge variant="secondary" className={`text-xs ${getRoleBadgeColor(userRole)}`}>
+                {getRoleText(userRole)}
+              </Badge>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Action buttons */}

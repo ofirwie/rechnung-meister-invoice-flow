@@ -8,7 +8,7 @@ import { businessInfo } from '../utils/businessInfo';
 import { formatGermanDate, formatCurrency } from '../utils/formatters';
 import InvoiceWorkflow from './InvoiceWorkflow';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { useCompany } from '../contexts/CompanyContext';
+import { useCompany } from '../contexts/SimpleCompanyContext';
 
 interface InvoicePreviewProps {
   invoice: InvoiceData;

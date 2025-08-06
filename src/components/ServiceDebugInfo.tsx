@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useCompany } from '../contexts/CompanyContext';
+import { useCompany } from '../contexts/SimpleCompanyContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export const ServiceDebugInfo: React.FC = () => {
-  const { selectedCompany, companies, userRole, permissions } = useCompany();
+  const { selectedCompany, userRole, permissions } = useCompany();
   const [user, setUser] = useState<any>(null);
   const [servicesCount, setServicesCount] = useState<number>(0);
   const [debugInfo, setDebugInfo] = useState<any>({});

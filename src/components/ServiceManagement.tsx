@@ -11,7 +11,7 @@ import { useLanguage } from '../hooks/useLanguage';
 import ServiceForm from './ServiceForm';
 import ServiceTable from './ServiceTable';
 import { ServiceDebugInfo } from './ServiceDebugInfo';
-import { useCompany } from '../contexts/CompanyContext';
+import { useCompany } from '../contexts/SimpleCompanyContext';
 
 interface ServiceManagementProps {
   onServiceSelect?: (service: Service) => void;

@@ -1,11 +1,11 @@
 /**
  * USER-FRIENDLY RENDER DEBUGGER
  * Professional debug interface with copy functionality
- * NO console references - everything visible in UI
+ * Updated for SimpleCompanyContext - NO console references
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useCompany } from '@/contexts/CompanyContext';
+import { useCompany } from '@/contexts/SimpleCompanyContext';
 
 const SimpleRenderTracker: React.FC = () => {
   const renderCount = useRef(0);
@@ -13,16 +13,13 @@ const SimpleRenderTracker: React.FC = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [copyStatus, setCopyStatus] = useState('');
   
-  // Get all context values
+  // Get all context values from SimpleCompanyContext
   const context = useCompany();
   const {
     selectedCompany,
-    companies,
     userRole,
     permissions,
     loading,
-    switchCompany,
-    refreshCompanies,
     canAccess,
   } = context;
 
@@ -32,19 +29,14 @@ const SimpleRenderTracker: React.FC = () => {
   // Current values for comparison
   const currentValues = {
     selectedCompany: selectedCompany ? JSON.stringify(selectedCompany) : 'null',
-    companies: companies ? JSON.stringify(companies) : 'null',
     userRole,
     permissions: permissions ? JSON.stringify(permissions) : 'null',
     loading,
-    switchCompany: switchCompany.toString(),
-    refreshCompanies: refreshCompanies.toString(),
     canAccess: canAccess.toString(),
   };
 
   // Analyze function stability
   const functionAnalysis = {
-    switchCompany: lastValues.current.switchCompany !== currentValues.switchCompany,
-    refreshCompanies: lastValues.current.refreshCompanies !== currentValues.refreshCompanies,
     canAccess: lastValues.current.canAccess !== currentValues.canAccess,
   };
 
@@ -67,7 +59,6 @@ Company: ${selectedCompany?.name || 'null'}
 User Role: ${userRole || 'null'}
 Permissions: ${permissions ? 'set' : 'null'}
 Loading: ${loading}
-Companies: ${companies?.length || 0}
 
 🔧 FUNCTION STABILITY ANALYSIS:
 ${Object.entries(functionAnalysis).map(([name, isUnstable]) => 
@@ -75,8 +66,8 @@ ${Object.entries(functionAnalysis).map(([name, isUnstable]) =>
 ).join('\n')}
 
 📈 STABILITY SCORE:
-Stable Functions: ${stableCount}/3
-Unstable Functions: ${unstableCount}/3
+Stable Functions: ${stableCount}/1
+Unstable Functions: ${unstableCount}/1
 
 💡 ANALYSIS:
 ${unstableCount > 0 ? `Functions being recreated: ${Object.entries(functionAnalysis)
@@ -90,7 +81,7 @@ This is likely causing the render loop. Check dependency arrays in useCallback/u
 URL: ${url}
 Browser: ${userAgent.substring(0, 100)}...
 `;
-  }, [selectedCompany, userRole, permissions, loading, companies, functionAnalysis]);
+  }, [selectedCompany, userRole, permissions, loading, functionAnalysis]);
 
   // Copy debug report to clipboard
   const copyDebugReport = useCallback(async () => {
@@ -107,7 +98,7 @@ Browser: ${userAgent.substring(0, 100)}...
 
   useEffect(() => {
     // Still log to console for developers, but don't reference it in UI
-    console.log(`🔄 [RENDER #${renderCount.current}] CompanyContext Consumer re-rendered`);
+    console.log(`🔄 [RENDER #${renderCount.current}] SimpleCompanyContext Consumer re-rendered`);
     
     // Check what changed (for developer console only)
     Object.keys(currentValues).forEach(key => {
@@ -174,7 +165,6 @@ Browser: ${userAgent.substring(0, 100)}...
         <div><strong>Company:</strong> {selectedCompany?.name || 'null'}</div>
         <div><strong>User:</strong> {userRole || 'null'} {permissions ? '(permissions set)' : '(no permissions)'}</div>
         <div><strong>Loading:</strong> {loading.toString()}</div>
-        <div><strong>Companies:</strong> {companies?.length || 0}</div>
       </div>
 
       <div style={{ marginBottom: '10px' }}>
@@ -282,7 +272,7 @@ Browser: ${userAgent.substring(0, 100)}...
       )}
       
       <div style={{ marginTop: '8px', fontSize: '10px', color: '#666', textAlign: 'center' }}>
-        Professional Debug Interface • No Console Required
+        Professional Debug Interface • SimpleCompanyContext
       </div>
     </div>
   );
