@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import { Company, CompanyUser, UserRole, UserPermissions } from '@/types/company';
 import { supabase } from '@/integrations/supabase/client';
 import { NoCompanyScreen } from '@/components/NoCompanyScreen';
-import { useRenderDebugger, useStateDebugger } from '@/hooks/useRenderDebugger';
 
 interface CompanyContextType {
   selectedCompany: Company | null;
@@ -49,41 +48,15 @@ const STATIC_COMPANY: Company = {
 const STATIC_COMPANIES: Company[] = [STATIC_COMPANY];
 
 export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) => {
-  // IMMEDIATE DEBUGGING - Track every render
-  const renderCount = useRenderDebugger('CompanyProvider', { children });
-  
-  // DEVELOPER CONSOLE LOGGING (not referenced in UI)
-  if (typeof window !== 'undefined') {
-    console.log(`%c🔄 COMPANY PROVIDER RENDER #${renderCount}`, 'color: red; font-size: 16px; font-weight: bold;');
-  }
-  
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [permissions, setPermissions] = useState<UserPermissions | null>(null);
   const [userEmail, setUserEmail] = useState<string>('');
-  
-  // Debug state changes
-  useStateDebugger(userRole, 'userRole', 'CompanyProvider');
-  useStateDebugger(permissions, 'permissions', 'CompanyProvider');
-  useStateDebugger(userEmail, 'userEmail', 'CompanyProvider');
   
   // STATIC VALUES - NO MEMO NEEDED
   const selectedCompany = STATIC_COMPANY;
   const companies = STATIC_COMPANIES;
   const loading = false;
   
-  // DEVELOPER CONSOLE LOGGING (for debugging only - not referenced in UI)
-  console.log(`🔄 [CompanyProvider] Render #${renderCount}:`, {
-    userRole,
-    permissions: permissions ? 'set' : 'null',
-    userEmail,
-    selectedCompany: selectedCompany.name,
-    companies: companies.length,
-    loading
-  });
-  
-  if (renderCount > 15) {
-    console.error(`🚨 [CompanyProvider] RENDER LOOP: ${renderCount} renders - check function dependencies`);
-  }
 
   const fetchUserPermissions = useCallback(async (companyId: string) => {
     try {
