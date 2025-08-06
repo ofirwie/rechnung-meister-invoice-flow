@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Company, CompanyUser, CompanyFormData } from '@/types/company';
 import { toast } from 'sonner';
@@ -7,6 +7,9 @@ export const useCompanies = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Memoize companies array to prevent unnecessary recreations
+  const memoizedCompanies = useMemo(() => companies, [companies]);
 
   const fetchCompanies = useCallback(async () => {
     try {
@@ -288,7 +291,7 @@ export const useCompanies = () => {
   }, [fetchCompanies]);
 
   return {
-    companies,
+    companies: memoizedCompanies,
     loading,
     error,
     fetchCompanies,

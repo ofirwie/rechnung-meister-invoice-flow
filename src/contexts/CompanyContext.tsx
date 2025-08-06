@@ -41,7 +41,6 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
 
   const fetchUserPermissions = useCallback(async (companyId: string) => {
     try {
-      
       const { data: { session }, error: authError } = await supabase.auth.getSession();
       const user = session?.user;
       
@@ -87,7 +86,7 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
       setUserRole(null);
       setPermissions(null);
     }
-  }, []);
+  }, []); // Stable callback - no dependencies needed
 
   const switchCompany = useCallback(async (companyId: string) => {
     const company = companies.find(c => c.id === companyId);
@@ -145,8 +144,7 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
     console.log('🎯 [CompanyProvider] useEffect #1 fired with deps:', {
       companiesCount: companies.length,
       companiesLoading,
-      selectedCompanyId: selectedCompany?.id,
-      switchCompanyRef: switchCompany.toString().slice(0, 50)
+      selectedCompanyId: selectedCompany?.id
     });
     
     // Only auto-select if we have companies and no company is selected
@@ -158,9 +156,17 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
         ? companies.find(c => c.id === savedCompanyId) || companies[0]
         : companies[0];
       
-      switchCompany(companyToSelect.id);
+      // Inline the switchCompany logic to avoid circular dependency
+      (async () => {
+        const company = companies.find(c => c.id === companyToSelect.id);
+        if (company) {
+          setSelectedCompany(company);
+          localStorage.setItem('selectedCompanyId', companyToSelect.id);
+          await fetchUserPermissions(companyToSelect.id);
+        }
+      })();
     }
-  }, [companies, companiesLoading, selectedCompany, switchCompany]);
+  }, [companies, companiesLoading, selectedCompany, fetchUserPermissions]);
 
   // Reset selected company when companies list changes and current selection is no longer valid
   useEffect(() => {
