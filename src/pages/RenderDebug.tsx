@@ -9,7 +9,7 @@ import { Client } from '../types/client';
 import { Service } from '../types/service';
 import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
 import { useLanguage } from '../hooks/useLanguage';
-import { CompanyProvider } from '../contexts/CompanyContext';
+import { CompanyProvider } from '../contexts/SimpleCompanyContext';
 import CompanySelector from '../components/CompanySelector';
 import { AlertTriangle, Bug, RefreshCw, Home } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';

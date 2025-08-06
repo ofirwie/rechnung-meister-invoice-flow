@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Copy, Trash2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { CompanyProvider } from '@/contexts/CompanyContext';
+import { CompanyProvider } from '@/contexts/SimpleCompanyContext';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 

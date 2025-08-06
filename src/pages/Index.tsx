@@ -19,7 +19,7 @@ import { Service } from '../types/service';
 import { useDataMigration } from '../hooks/useDataMigration';
 import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
 import { useLanguage } from '../hooks/useLanguage';
-import { CompanyProvider } from '../contexts/CompanyContext';
+import { CompanyProvider } from '../contexts/SimpleCompanyContext';
 import CompanySelector from '../components/CompanySelector';
 import CompanyUserManagement from '../components/CompanyUserManagement';
 import { CompanyManagement } from '../components/CompanyManagement';

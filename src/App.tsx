@@ -1,5 +1,6 @@
 // 🚫 CRITICAL: NO LOCALHOST TESTING - USE DEPLOYED ENVIRONMENT ONLY
 // 🐛 ALWAYS CREATE DEBUG SCREENS - NEVER GUESS PROBLEMS
+// 🔧 CRITICAL FIX: Removed GlobalDebugPanel causing infinite render loop
 
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -11,13 +12,10 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import RenderLoopDiagnostic from "./pages/RenderLoopDiagnostic";
 import ComponentIsolationDiagnostic from "./pages/ComponentIsolationDiagnostic";
-import { GlobalDebugPanel, useGlobalDebugPanel } from './components/GlobalDebugPanel';
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  const debugPanel = useGlobalDebugPanel();
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -33,23 +31,6 @@ const App = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
-        
-        {/* Global Debug Panel - Toggle with Ctrl+Shift+D */}
-        <GlobalDebugPanel 
-          isVisible={debugPanel.isVisible} 
-          onToggle={debugPanel.toggle} 
-        />
-        
-        {/* Debug Panel Toggle Button (floating) */}
-        {!debugPanel.isVisible && (
-          <button
-            onClick={debugPanel.show}
-            className="fixed bottom-4 right-4 bg-red-600 text-white p-3 rounded-full shadow-lg hover:bg-red-700 z-50 transition-colors"
-            title="Open Debug Panel (Ctrl+Shift+D)"
-          >
-            🐛
-          </button>
-        )}
       </TooltipProvider>
     </QueryClientProvider>
   );
