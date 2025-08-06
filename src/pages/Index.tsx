@@ -19,7 +19,6 @@ import { Service } from '../types/service';
 import { useDataMigration } from '../hooks/useDataMigration';
 import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
 import { useLanguage } from '../hooks/useLanguage';
-import { CompanyProvider } from '../contexts/SimpleCompanyContext';
 import CompanySelector from '../components/CompanySelector';
 import CompanyUserManagement from '../components/CompanyUserManagement';
 import { CompanyManagement } from '../components/CompanyManagement';
@@ -182,7 +181,7 @@ const Index = () => {
   }
 
   return (
-    <CompanyProvider>
+    <div>
       {/* IMMEDIATE DEBUG TRACKER - Shows render loop in real-time */}
       <SimpleRenderTracker />
       
@@ -206,8 +205,7 @@ const Index = () => {
           }}
         />
         
-      
-      <div className="max-w-6xl mx-auto p-6">
+        <div className="max-w-6xl mx-auto p-6">
         {currentView === 'invoice' && (
           <InvoiceForm 
             onInvoiceGenerated={handleInvoiceGenerated}
@@ -357,8 +355,8 @@ const Index = () => {
           </Button>
         </div>
       )}
+      </div>
     </div>
-    </CompanyProvider>
   );
 };
 
