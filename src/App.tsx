@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import RenderLoopDiagnostic from "./pages/RenderLoopDiagnostic";
+import ComponentIsolationDiagnostic from "./pages/ComponentIsolationDiagnostic";
 import { GlobalDebugPanel, useGlobalDebugPanel } from './components/GlobalDebugPanel';
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => {
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/debug-render-loop" element={<RenderLoopDiagnostic />} />
+            <Route path="/debug-components" element={<ComponentIsolationDiagnostic />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
