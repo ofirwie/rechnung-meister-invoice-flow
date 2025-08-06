@@ -16,6 +16,7 @@ import ComponentIsolationDiagnostic from "./pages/ComponentIsolationDiagnostic";
 import ClientSelectionDiagnostic from "./pages/ClientSelectionDiagnostic";
 import DatabaseDiagnostic from "./pages/DatabaseDiagnostic";
 import WhiteScreenDiagnostic from "./pages/WhiteScreenDiagnostic";
+import SimpleWhiteScreenDebug from "./pages/SimpleWhiteScreenDebug";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => {
               <Route path="/debug-clients" element={<ClientSelectionDiagnostic />} />
               <Route path="/debug-database" element={<DatabaseDiagnostic />} />
               <Route path="/debug-white-screen" element={<WhiteScreenDiagnostic />} />
+              <Route path="/debug-simple" element={<SimpleWhiteScreenDebug />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
