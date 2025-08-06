@@ -100,13 +100,18 @@ const IntelligentDebugTracker: React.FC = () => {
     lastValues.current = { ...currentValues };
   });
 
-  // INTELLIGENT LOOP DETECTION AND ANALYSIS
+  // INTELLIGENT LOOP DETECTION AND ANALYSIS (FIXED - No infinite loop)
   useEffect(() => {
-    if (renderCount.current > 20) {
-      const analysis = analyzeRenderLoop();
-      setLoopAnalysis(analysis);
-    }
-  }, [renderCount.current]);
+    // Use a timeout to prevent infinite loops
+    const timeoutId = setTimeout(() => {
+      if (renderCount.current > 20 && !loopAnalysis) {
+        const analysis = analyzeRenderLoop();
+        setLoopAnalysis(analysis);
+      }
+    }, 100); // Delay to prevent immediate re-renders
+    
+    return () => clearTimeout(timeoutId);
+  }, [loopAnalysis]); // Only run when loopAnalysis changes, not on every render
 
   const analyzeRenderLoop = useCallback((): LoopDetection => {
     const recentChanges = stateChanges.current.slice(-20);
