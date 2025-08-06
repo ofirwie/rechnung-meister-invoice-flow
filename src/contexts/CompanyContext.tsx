@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import { Company, CompanyUser, UserRole, UserPermissions } from '@/types/company';
 import { supabase } from '@/integrations/supabase/client';
 import { NoCompanyScreen } from '@/components/NoCompanyScreen';
-import { RenderLoopDebugger } from '@/components/RenderLoopDebugger';
+import { RenderTracker } from '@/components/RenderTracker';
 
 interface CompanyContextType {
   selectedCompany: Company | null;
@@ -170,7 +170,7 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
 
   return (
     <>
-      <RenderLoopDebugger
+      <RenderTracker
         componentName="CompanyProvider"
         stateChanges={{
           selectedCompany: HARDCODED_COMPANY_ID,
