@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { Company, UserRole, UserPermissions } from '@/types/company';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -44,24 +44,24 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
   const [permissions, setPermissions] = useState<UserPermissions | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // STATIC canAccess function - no dependencies that change
-  const canAccess = (resource: string, action: string): boolean => {
+  // MEMOIZED canAccess function to prevent recreation on every render
+  const canAccess = useCallback((resource: string, action: string): boolean => {
     if (!permissions) return false;
     
     const resourcePermissions = permissions[resource as keyof UserPermissions];
     if (!resourcePermissions || typeof resourcePermissions !== 'object') return false;
     
     return resourcePermissions[action as keyof typeof resourcePermissions] === true;
-  };
+  }, [permissions]); // Only recreate when permissions actually change
 
-  // STATIC context value - only updates when state actually changes
-  const contextValue: CompanyContextType = {
+  // MEMOIZED context value to prevent recreation on every render
+  const contextValue: CompanyContextType = useMemo(() => ({
     selectedCompany: STATIC_COMPANY,
     userRole,
     permissions,
     loading,
     canAccess,
-  };
+  }), [userRole, permissions, loading, canAccess]);
 
   // ONE-TIME effect to fetch user permissions
   useEffect(() => {
