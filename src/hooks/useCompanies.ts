@@ -8,24 +8,6 @@ export const useCompanies = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // DEBUGGING: Add render counter to detect infinite loops
-  const renderCounter = useRef(0);
-  const emergencyStop = useRef(0);
-  
-  renderCounter.current++;
-  emergencyStop.current++;
-  
-  console.log(`🔄 [useCompanies] Hook execution #${renderCounter.current}`);
-  
-  if (renderCounter.current > 50) {
-    console.error(`🚨 INFINITE LOOP DETECTED in useCompanies - Execution #${renderCounter.current}`);
-    console.trace('useCompanies infinite loop stack trace');
-  }
-  
-  if (emergencyStop.current > 1000) {
-    throw new Error('EMERGENCY STOP - useCompanies infinite loop detected');
-  }
-
   const fetchCompanies = useCallback(async () => {
     try {
       setLoading(true);

@@ -35,30 +35,8 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
   const [permissions, setPermissions] = useState<UserPermissions | null>(null);
   const [userEmail, setUserEmail] = useState<string>('');
   
-  // DEBUGGING: Add render counter to detect infinite loops
-  const renderCounter = useRef(0);
-  const emergencyStop = useRef(0);
-  
-  renderCounter.current++;
-  emergencyStop.current++;
-  
-  console.log(`🔄 [CompanyProvider] Render #${renderCounter.current}`);
-  
-  if (renderCounter.current > 100) {
-    console.error(`🚨 INFINITE LOOP DETECTED in CompanyProvider - Render #${renderCounter.current}`);
-    console.trace('CompanyProvider infinite loop stack trace');
-  }
-  
-  if (emergencyStop.current > 5000) {
-    throw new Error('EMERGENCY STOP - CompanyProvider infinite loop detected');
-  }
-  
   // Use the useCompanies hook that has the proper JOIN logic
   const { companies, loading: companiesLoading, fetchCompanies } = useCompanies();
-  
-  console.log('🏢 CompanyContext: companies =', companies);
-  console.log('🏢 CompanyContext: companiesLoading =', companiesLoading);
-  console.log('🏢 CompanyContext: selectedCompany =', selectedCompany);
 
   const fetchUserPermissions = async (companyId: string) => {
     try {
