@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Service } from '../types/service';
 import { toast } from 'sonner';
-import { useCompany } from '../contexts/CompanyContext';
+import { useCompany } from '../contexts/SimpleCompanyContext';
 
 export function useSupabaseServices() {
   const [services, setServices] = useState<Service[]>([]);

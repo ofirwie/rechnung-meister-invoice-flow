@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Client, ClientFormData } from '../types/client';
 import { toast } from 'sonner';
-import { useCompany } from '../contexts/CompanyContext';
+import { useCompany } from '../contexts/SimpleCompanyContext';
 
 export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
   const { selectedCompany } = useCompany();

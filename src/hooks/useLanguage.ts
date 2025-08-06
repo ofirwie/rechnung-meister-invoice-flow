@@ -6,7 +6,7 @@ export type Language = 'he' | 'de' | 'en';
 export const useLanguage = () => {
   const [language, setLanguage] = useState<Language>(() => {
     const saved = localStorage.getItem('preferred-language');
-    return (saved as Language) || 'he'; // Default to Hebrew
+    return (saved as Language) || 'en'; // DEFAULT TO ENGLISH ONLY
   });
 
   const [isRTL, setIsRTL] = useState(false);
@@ -36,7 +36,6 @@ export const useLanguage = () => {
     t,
     changeLanguage,
     availableLanguages: [
-      { code: 'he', name: 'עברית', flag: '🇮🇱' },
       { code: 'en', name: 'English', flag: '🇺🇸' },
       { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
     ] as const
