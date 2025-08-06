@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Settings, UserMinus, Mail, User, AlertCircle } from 'lucide-react';
-import { useCompany } from '@/contexts/CompanyContext';
+import { useCompany } from '@/contexts/SimpleCompanyContext';
 import { useCompanyUsers } from '@/hooks/useCompanyUsers';
 import { useLanguage } from '@/hooks/useLanguage';
 import { toast } from 'sonner';

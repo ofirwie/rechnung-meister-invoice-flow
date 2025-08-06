@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/hooks/useLanguage';
-import { useCompany } from '@/contexts/CompanyContext';
+import { useCompany } from '@/contexts/SimpleCompanyContext';
+import { useCompanies } from '@/hooks/useCompanies';
 import { useUserManagement } from '@/hooks/useUserManagement';
 import CompanyUserManagement from './CompanyUserManagement';
 import { CompanyForm } from './CompanyForm';
@@ -13,7 +14,13 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const CompanyManagement: React.FC = () => {
   const { t, isRTL } = useLanguage();
-  const { selectedCompany, companies, switchCompany } = useCompany();
+  const { selectedCompany } = useCompany();
+  const { companies } = useCompanies();
+  
+  // Placeholder for switchCompany - currently not implemented in SimpleCompanyContext architecture
+  const switchCompany = (companyId: string) => {
+    console.log('Company switching not implemented in current architecture');
+  };
   const { canCreateCompanies } = useUserManagement();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showUserManagement, setShowUserManagement] = useState(false);

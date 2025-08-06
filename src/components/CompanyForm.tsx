@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useCompanies } from '@/hooks/useCompanies';
-import { useCompany } from '@/contexts/CompanyContext';
+import { useCompany } from '@/contexts/SimpleCompanyContext';
 import { Company } from '@/types/company';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,7 +25,6 @@ interface CompanyFormProps {
 export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) => {
   const { t, isRTL } = useLanguage();
   const { createCompany, updateCompany } = useCompanies();
-  const { refreshCompanies } = useCompany();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isRootAdmin, setIsRootAdmin] = useState(false);
@@ -118,8 +117,7 @@ export const CompanyForm: React.FC<CompanyFormProps> = ({ company, onSuccess }) 
           return; // Error already handled in useCompanies
         }
         
-        // Refresh the context to update the companies list
-        await refreshCompanies();
+        // Companies list will be refreshed automatically by the hook
       }
       
       onSuccess();

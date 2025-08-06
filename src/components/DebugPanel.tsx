@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useCompany } from '@/contexts/CompanyContext';
+import { useCompany } from '@/contexts/SimpleCompanyContext';
 import { useCompanies } from '@/hooks/useCompanies';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -37,8 +37,8 @@ export const DebugPanel: React.FC = () => {
         },
         context: {
           selectedCompany: companyContext.selectedCompany?.name || 'None',
-          companiesCount: companyContext.companies.length,
-          companies: companyContext.companies.map(c => ({ id: c.id, name: c.name })),
+          companiesCount: 'N/A (use useCompanies hook)',
+          companies: 'N/A (use useCompanies hook)',
           loading: companyContext.loading
         },
         hook: {
