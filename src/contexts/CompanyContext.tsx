@@ -3,6 +3,7 @@ import { Company, CompanyUser, UserRole, UserPermissions } from '@/types/company
 import { supabase } from '@/integrations/supabase/client';
 import { useCompanies } from '@/hooks/useCompanies';
 import { NoCompanyScreen } from '@/components/NoCompanyScreen';
+import { RenderLoopDebugger } from '@/components/RenderLoopDebugger';
 
 interface CompanyContextType {
   selectedCompany: Company | null;
@@ -186,8 +187,33 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
   }
 
   return (
-    <CompanyContext.Provider value={contextValue}>
-      {children}
-    </CompanyContext.Provider>
+    <>
+      <RenderLoopDebugger
+        componentName="CompanyProvider"
+        stateChanges={{
+          selectedCompany: selectedCompany?.id || 'null',
+          companiesLength: companies.length,
+          companiesLoading,
+          userRole,
+          permissions: permissions ? 'set' : 'null',
+          userEmail
+        }}
+        callbacks={{
+          switchCompany,
+          refreshCompanies,
+          canAccess,
+          fetchUserPermissions
+        }}
+        dependencies={{
+          companies: companies.map(c => c.id),
+          companiesLoading,
+          selectedCompany: selectedCompany?.id || 'null',
+          switchCompanyDeps: 'companies'
+        }}
+      />
+      <CompanyContext.Provider value={contextValue}>
+        {children}
+      </CompanyContext.Provider>
+    </>
   );
 };
