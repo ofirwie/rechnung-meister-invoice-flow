@@ -52,9 +52,8 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
   // IMMEDIATE DEBUGGING - Track every render
   const renderCount = useRenderDebugger('CompanyProvider', { children });
   
-  // IMMEDIATE ALERT FOR DEBUGGING
+  // DEVELOPER CONSOLE LOGGING (not referenced in UI)
   if (typeof window !== 'undefined') {
-    console.clear(); // Clear console for better visibility
     console.log(`%c🔄 COMPANY PROVIDER RENDER #${renderCount}`, 'color: red; font-size: 16px; font-weight: bold;');
   }
   
@@ -72,25 +71,18 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
   const companies = STATIC_COMPANIES;
   const loading = false;
   
-  // AGGRESSIVE DEBUG LOGGING - ALWAYS VISIBLE
-  console.log(`🔄 [CompanyProvider] RENDER #${renderCount} 🔄`);
-  console.log(`🏭 Company: ${selectedCompany.name} | Role: ${userRole} | Email: ${userEmail}`);
-  console.log(`📊 Permissions: ${permissions ? 'SET' : 'NULL'} | Loading: ${loading}`);
-  
-  // Log function recreations - this is often the cause of render loops
-  console.log(`🔧 Functions recreated this render:`, {
-    switchCompany: `switchCompany_${renderCount}`,
-    refreshCompanies: `refreshCompanies_${renderCount}`,
-    canAccess: `canAccess_${renderCount}`,
+  // DEVELOPER CONSOLE LOGGING (for debugging only - not referenced in UI)
+  console.log(`🔄 [CompanyProvider] Render #${renderCount}:`, {
+    userRole,
+    permissions: permissions ? 'set' : 'null',
+    userEmail,
+    selectedCompany: selectedCompany.name,
+    companies: companies.length,
+    loading
   });
   
-  if (renderCount > 5) {
-    console.warn(`⚠️ [CompanyProvider] HIGH RENDER COUNT: ${renderCount}`);
-  }
-  
   if (renderCount > 15) {
-    console.error(`🚨 [CompanyProvider] RENDER LOOP DETECTED: ${renderCount} renders!`);
-    console.error('🔍 Probable cause: Function recreation in dependencies');
+    console.error(`🚨 [CompanyProvider] RENDER LOOP: ${renderCount} renders - check function dependencies`);
   }
 
   const fetchUserPermissions = useCallback(async (companyId: string) => {

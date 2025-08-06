@@ -2,6 +2,28 @@
 <!-- 🐛 ALWAYS CREATE DEBUG SCREENS - NEVER GUESS PROBLEMS -->
 <!-- 📋 DEBUGGING WORKFLOW: Create debug components → Deploy → Test on live site → Fix -->
 
+## 🚫 DEBUG UX RULES - CRITICAL
+
+### **NEVER ASK USERS TO LOOK AT CONSOLE LOGS**
+- All debug info must be visible in the UI
+- Users should never need technical knowledge  
+- Everything must be copyable with one click
+- Debug systems must be completely self-contained
+
+### **DEBUG COMPONENTS MUST BE USER-FRIENDLY**
+- Clear, non-technical language
+- Copy buttons for sharing debug info
+- Visual indicators instead of console references
+- Professional presentation suitable for end users
+
+### **CONSOLE LOGS ARE FOR DEVELOPERS ONLY**
+- Never reference console in user-facing UI
+- No "Press F12" or "Check console" messages
+- Console.clear() is forbidden - it's destructive
+- Keep console logging but make it invisible to users
+
+---
+
 # Welcome to your Lovable project
 
 ## Project info

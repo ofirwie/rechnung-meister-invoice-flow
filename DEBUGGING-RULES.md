@@ -18,6 +18,13 @@
 Problem Found → Create Debug Screen → Deploy → Analyze → Fix
 ```
 
+### 4. **NEVER ASK USERS TO CHECK CONSOLE** 🚫
+- Debug info must be visible in UI, not console
+- Add copy buttons for easy sharing
+- Use clear, non-technical language  
+- Make debug self-contained for end users
+- NO "Press F12" or console references in UI
+
 ## **EXAMPLE DEBUG TOOLS ALREADY IN PROJECT:**
 - `SimpleRenderTracker` - Shows render counts visually
 - `useRenderDebugger` - Console logging for re-renders  
