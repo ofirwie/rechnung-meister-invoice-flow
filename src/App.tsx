@@ -10,7 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import { GlobalDebugPanel, useGlobalDebugPanel } from './components/GlobalDebugPanel';
-import SimpleRenderTracker from './components/SimpleRenderTracker';
+import IntelligentDebugTracker from './components/IntelligentDebugTracker';
 
 const queryClient = new QueryClient();
 
@@ -36,6 +36,9 @@ const App = () => {
           isVisible={debugPanel.isVisible} 
           onToggle={debugPanel.toggle} 
         />
+        
+        {/* Intelligent Render Loop Debug Tracker */}
+        <IntelligentDebugTracker />
         
         {/* Debug Panel Toggle Button (floating) */}
         {!debugPanel.isVisible && (
