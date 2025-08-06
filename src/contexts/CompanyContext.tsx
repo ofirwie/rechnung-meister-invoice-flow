@@ -52,6 +52,12 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
   // IMMEDIATE DEBUGGING - Track every render
   const renderCount = useRenderDebugger('CompanyProvider', { children });
   
+  // IMMEDIATE ALERT FOR DEBUGGING
+  if (typeof window !== 'undefined') {
+    console.clear(); // Clear console for better visibility
+    console.log(`%c🔄 COMPANY PROVIDER RENDER #${renderCount}`, 'color: red; font-size: 16px; font-weight: bold;');
+  }
+  
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [permissions, setPermissions] = useState<UserPermissions | null>(null);
   const [userEmail, setUserEmail] = useState<string>('');
@@ -66,14 +72,26 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
   const companies = STATIC_COMPANIES;
   const loading = false;
   
-  console.log(`🏭 [CompanyProvider] Render #${renderCount}:`, {
-    userRole,
-    permissions: permissions ? 'set' : 'null',
-    userEmail,
-    selectedCompany: selectedCompany.name,
-    companies: companies.length,
-    loading
+  // AGGRESSIVE DEBUG LOGGING - ALWAYS VISIBLE
+  console.log(`🔄 [CompanyProvider] RENDER #${renderCount} 🔄`);
+  console.log(`🏭 Company: ${selectedCompany.name} | Role: ${userRole} | Email: ${userEmail}`);
+  console.log(`📊 Permissions: ${permissions ? 'SET' : 'NULL'} | Loading: ${loading}`);
+  
+  // Log function recreations - this is often the cause of render loops
+  console.log(`🔧 Functions recreated this render:`, {
+    switchCompany: `switchCompany_${renderCount}`,
+    refreshCompanies: `refreshCompanies_${renderCount}`,
+    canAccess: `canAccess_${renderCount}`,
   });
+  
+  if (renderCount > 5) {
+    console.warn(`⚠️ [CompanyProvider] HIGH RENDER COUNT: ${renderCount}`);
+  }
+  
+  if (renderCount > 15) {
+    console.error(`🚨 [CompanyProvider] RENDER LOOP DETECTED: ${renderCount} renders!`);
+    console.error('🔍 Probable cause: Function recreation in dependencies');
+  }
 
   const fetchUserPermissions = useCallback(async (companyId: string) => {
     try {

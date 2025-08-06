@@ -74,22 +74,46 @@ const SimpleRenderTracker: React.FC = () => {
       border: '2px solid red',
       padding: '10px',
       zIndex: 9999,
-      fontSize: '12px',
-      maxWidth: '300px',
+      fontSize: '11px',
+      maxWidth: '350px',
+      maxHeight: '400px',
+      overflow: 'auto',
       boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
     }}>
-      <h3>🐛 Render Tracker</h3>
-      <div><strong>Renders:</strong> {renderCount.current}</div>
+      <h3 style={{ margin: '0 0 8px 0' }}>🐛 RENDER LOOP DEBUGGER</h3>
+      <div><strong>Renders:</strong> <span style={{color: renderCount.current > 20 ? 'red' : 'green'}}>{renderCount.current}</span></div>
       <div><strong>Loading:</strong> {loading.toString()}</div>
       <div><strong>Selected Company:</strong> {selectedCompany?.name || 'null'}</div>
-      <div><strong>Companies:</strong> {companies?.length || 0}</div>
-      <div><strong>User Role:</strong> {userRole || 'null'}</div>
+      <div><strong>Companies Count:</strong> {companies?.length || 0}</div>
+      <div><strong>User Role:</strong> <span style={{color: userRole ? 'green' : 'orange'}}>{userRole || 'null'}</span></div>
+      <div><strong>Permissions:</strong> <span style={{color: permissions ? 'green' : 'orange'}}>{permissions ? 'set' : 'null'}</span></div>
       
-      {renderCount.current > 20 && (
-        <div style={{ color: 'red', fontWeight: 'bold', marginTop: '5px' }}>
-          ⚠️ HIGH RENDER COUNT!
+      <hr style={{ margin: '8px 0' }} />
+      <div style={{ fontSize: '10px', color: '#666' }}>
+        <div><strong>Functions recreated each render:</strong></div>
+        <div>• switchCompany: {switchCompany.toString().substring(0, 30)}...</div>
+        <div>• refreshCompanies: {refreshCompanies.toString().substring(0, 30)}...</div>
+        <div>• canAccess: {canAccess.toString().substring(0, 30)}...</div>
+      </div>
+      
+      {renderCount.current > 10 && (
+        <div style={{ 
+          color: 'red', 
+          fontWeight: 'bold', 
+          marginTop: '5px', 
+          padding: '4px',
+          backgroundColor: '#ffebee',
+          border: '1px solid red',
+          borderRadius: '4px'
+        }}>
+          🚨 RENDER LOOP DETECTED! 
+          <br/>Check console for details!
         </div>
       )}
+      
+      <div style={{ marginTop: '8px', fontSize: '10px' }}>
+        <strong>💡 Press F12 to see console logs</strong>
+      </div>
     </div>
   );
 };
