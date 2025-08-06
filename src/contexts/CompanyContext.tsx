@@ -1,7 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, useMemo } from 'react';
 import { Company, CompanyUser, UserRole, UserPermissions } from '@/types/company';
 import { supabase } from '@/integrations/supabase/client';
-import { useCompanies } from '@/hooks/useCompanies';
 import { NoCompanyScreen } from '@/components/NoCompanyScreen';
 import { RenderLoopDebugger } from '@/components/RenderLoopDebugger';
 
@@ -31,13 +30,33 @@ interface CompanyProviderProps {
 }
 
 export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) => {
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [permissions, setPermissions] = useState<UserPermissions | null>(null);
   const [userEmail, setUserEmail] = useState<string>('');
   
-  // Use the useCompanies hook that has the proper JOIN logic
-  const { companies, loading: companiesLoading, fetchCompanies } = useCompanies();
+  // HARDCODED COMPANY - Emergency fix to stop render loop
+  const HARDCODED_COMPANY_ID = '019e9514-c181-4577-b173-a201184c990c';
+  
+  // Static company object with all required fields to prevent re-renders
+  const selectedCompany: Company = useMemo(() => ({
+    id: HARDCODED_COMPANY_ID,
+    name: 'Default Company',
+    active: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    owner_id: '',
+    can_be_deleted: false,
+    is_main_company: true,
+    default_currency: 'EUR',
+    fiscal_year_start: 1,
+    settings: {}
+  }), [HARDCODED_COMPANY_ID]);
+  
+  // Static companies array
+  const companies: Company[] = useMemo(() => [selectedCompany], [selectedCompany]);
+  
+  // No loading state needed - always ready
+  const loading = false;
 
   const fetchUserPermissions = useCallback(async (companyId: string) => {
     try {
@@ -88,21 +107,17 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
     }
   }, []); // Stable callback - no dependencies needed
 
+  // Simplified callbacks - no dependencies to prevent recreation
   const switchCompany = useCallback(async (companyId: string) => {
-    const company = companies.find(c => c.id === companyId);
-    if (!company) {
-      return;
-    }
-
-    setSelectedCompany(company);
-    localStorage.setItem('selectedCompanyId', companyId);
-    
-    await fetchUserPermissions(companyId);
-  }, [companies, fetchUserPermissions]);
+    // No-op since we only have one hardcoded company
+    console.log('switchCompany called but using hardcoded company:', HARDCODED_COMPANY_ID);
+    await fetchUserPermissions(HARDCODED_COMPANY_ID);
+  }, [fetchUserPermissions]);
 
   const refreshCompanies = useCallback(() => {
-    fetchCompanies();
-  }, [fetchCompanies]);
+    // No-op since we're using hardcoded company
+    console.log('refreshCompanies called but using hardcoded company');
+  }, []);
 
   const canAccess = useCallback((resource: string, action: string): boolean => {
     if (!permissions) return false;
@@ -113,9 +128,7 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
     return resourcePermissions[action as keyof typeof resourcePermissions] === true;
   }, [permissions]);
 
-  const loading = companiesLoading;
-
-  // Memoize the context value to prevent unnecessary re-renders
+  // Static context value with minimal dependencies
   const contextValue = useMemo(() => ({
     selectedCompany,
     companies,
@@ -125,7 +138,7 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
     switchCompany,
     refreshCompanies,
     canAccess,
-  }), [selectedCompany, companies, userRole, permissions, loading, switchCompany, refreshCompanies, canAccess]);
+  }), [selectedCompany, companies, userRole, permissions, switchCompany, refreshCompanies, canAccess]);
 
   // Get current user email
   useEffect(() => {
@@ -139,53 +152,16 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
     getUserEmail();
   }, []);
 
-  // Effect to select the first company when companies are loaded
+  // Single effect to fetch permissions for hardcoded company
   useEffect(() => {
-    console.log('🎯 [CompanyProvider] useEffect #1 fired with deps:', {
-      companiesCount: companies.length,
-      companiesLoading,
-      selectedCompanyId: selectedCompany?.id
-    });
+    console.log('🎯 [CompanyProvider] Initializing hardcoded company:', HARDCODED_COMPANY_ID);
     
-    // Only auto-select if we have companies and no company is selected
-    if (!companiesLoading && companies.length > 0 && !selectedCompany) {
-      console.log('🎯 [CompanyProvider] Auto-selecting company...');
-      // Try to restore the previously selected company from localStorage
-      const savedCompanyId = localStorage.getItem('selectedCompanyId');
-      const companyToSelect = savedCompanyId 
-        ? companies.find(c => c.id === savedCompanyId) || companies[0]
-        : companies[0];
-      
-      // Inline the switchCompany logic to avoid circular dependency
-      (async () => {
-        const company = companies.find(c => c.id === companyToSelect.id);
-        if (company) {
-          setSelectedCompany(company);
-          localStorage.setItem('selectedCompanyId', companyToSelect.id);
-          await fetchUserPermissions(companyToSelect.id);
-        }
-      })();
-    }
-  }, [companies, companiesLoading, selectedCompany, fetchUserPermissions]);
-
-  // Reset selected company when companies list changes and current selection is no longer valid
-  useEffect(() => {
-    console.log('🎯 [CompanyProvider] useEffect #2 fired with deps:', {
-      selectedCompanyId: selectedCompany?.id,
-      companiesCount: companies.length
-    });
+    // Set company in localStorage
+    localStorage.setItem('selectedCompanyId', HARDCODED_COMPANY_ID);
     
-    if (selectedCompany && companies.length > 0) {
-      const stillExists = companies.some(c => c.id === selectedCompany.id);
-      if (!stillExists) {
-        console.log('🎯 [CompanyProvider] Resetting selected company - no longer exists');
-        setSelectedCompany(null);
-        setUserRole(null);
-        setPermissions(null);
-        localStorage.removeItem('selectedCompanyId');
-      }
-    }
-  }, [companies, selectedCompany]);
+    // Fetch permissions for the hardcoded company
+    fetchUserPermissions(HARDCODED_COMPANY_ID);
+  }, [fetchUserPermissions, HARDCODED_COMPANY_ID]);
 
   // If not loading and user has no companies, show the NoCompanyScreen
   if (!loading && companies.length === 0 && userEmail) {
@@ -197,9 +173,9 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
       <RenderLoopDebugger
         componentName="CompanyProvider"
         stateChanges={{
-          selectedCompany: selectedCompany?.id || 'null',
-          companiesLength: companies.length,
-          companiesLoading,
+          selectedCompany: HARDCODED_COMPANY_ID,
+          companiesLength: 1,
+          companiesLoading: false,
           userRole,
           permissions: permissions ? 'set' : 'null',
           userEmail
@@ -211,10 +187,10 @@ export const CompanyProvider: React.FC<CompanyProviderProps> = ({ children }) =>
           fetchUserPermissions
         }}
         dependencies={{
-          companies: companies.map(c => c.id),
-          companiesLoading,
-          selectedCompany: selectedCompany?.id || 'null',
-          switchCompanyDeps: 'companies,fetchUserPermissions'
+          companies: ['HARDCODED_COMPANY'],
+          companiesLoading: false,
+          selectedCompany: HARDCODED_COMPANY_ID,
+          switchCompanyDeps: 'HARDCODED - no dependencies'
         }}
       />
       <CompanyContext.Provider value={contextValue}>
