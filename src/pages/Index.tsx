@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import InvoiceForm from '../components/InvoiceForm';
+import PendingInvoiceForm from '../components/PendingInvoiceForm';
 import InvoicePreview from '../components/InvoicePreview';
 import ClientManagement from '../components/ClientManagement';
 import ServiceManagement from '../components/ServiceManagement';
@@ -29,7 +30,7 @@ const Index = () => {
   const { language, t } = useLanguage();
   
   // Simplified state management
-  const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'companies'>('invoice');
+  const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'pending-form' | 'expenses' | 'companies'>('invoice');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
   const [showUserManagement, setShowUserManagement] = useState(false);
@@ -213,6 +214,14 @@ const Index = () => {
             selectedService={selectedService}
             onClientClear={() => setSelectedClient(null)}
             onServiceClear={() => setSelectedService(null)}
+            onSelectClient={() => setCurrentView('clients')}
+            setCurrentView={setCurrentView}
+          />
+        )}
+        {currentView === 'pending-form' && (
+          <PendingInvoiceForm 
+            selectedClient={selectedClient}
+            onClientClear={() => setSelectedClient(null)}
             onSelectClient={() => setCurrentView('clients')}
             setCurrentView={setCurrentView}
           />

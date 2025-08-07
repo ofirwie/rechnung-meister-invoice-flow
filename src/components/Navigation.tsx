@@ -6,8 +6,8 @@ import { useLanguage, Language } from '@/hooks/useLanguage';
 import { useUserManagement } from '@/hooks/useUserManagement';
 
 interface NavigationProps {
-  currentView: 'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'companies';
-  onViewChange: (view: 'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'expenses' | 'companies') => void;
+  currentView: 'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'pending-form' | 'expenses' | 'companies';
+  onViewChange: (view: 'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'pending-form' | 'expenses' | 'companies') => void;
   onLogout: () => void;
 }
 
@@ -17,6 +17,7 @@ export default function Navigation({ currentView, onViewChange, onLogout }: Navi
 
   const navItems = [
     { key: 'invoice', icon: FileText, label: t.createInvoice },
+    { key: 'pending-form', icon: FileText, label: 'Quick Invoice' },
     { key: 'clients', icon: Users, label: t.clientManagement },
     { key: 'services', icon: Briefcase, label: t.serviceManagement },
     { key: 'history', icon: History, label: t.invoiceHistory },
