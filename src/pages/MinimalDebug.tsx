@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function MinimalDebug() {
   const [results, setResults] = useState<string[]>([]);
@@ -15,10 +16,14 @@ export default function MinimalDebug() {
     try {
       addResult('🚀 Starting basic tests...');
       
-      // Test 1: Import Supabase
-      addResult('📦 Testing Supabase import...');
-      const { supabase } = await import('@/integrations/supabase/client');
-      addResult('✅ Supabase imported successfully');
+      // Test 1: Supabase client check
+      addResult('📦 Testing Supabase client...');
+      if (supabase) {
+        addResult('✅ Supabase client loaded successfully');
+      } else {
+        addResult('❌ Supabase client failed to load');
+        return;
+      }
       
       // Test 2: Auth check
       addResult('🔐 Testing authentication...');
