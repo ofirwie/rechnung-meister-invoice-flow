@@ -305,12 +305,12 @@ export default function InvoiceForm({
     const currentClient = selectedClient;
     const prevClient = prevClientRef.current;
     
-    // Only generate invoice number when client changes and we don't have one yet
-    if (currentClient && currentClient !== prevClient && !formData.invoiceNumber) {
-      console.log('🔄 GENERATING INVOICE NUMBER FOR CLIENT');
+    // Generate invoice number when client changes and we don't have one, OR if the current number is empty
+    if (currentClient && currentClient !== prevClient && (!formData.invoiceNumber || formData.invoiceNumber.trim() === '')) {
+      console.log('🔄 GENERATING INVOICE NUMBER FOR CLIENT:', currentClient.company_name);
       generateInvoiceNumberForClient(currentClient);
     }
-  }, [selectedClient, formData.invoiceNumber, generateInvoiceNumberForClient]);
+  }, [selectedClient, generateInvoiceNumberForClient]);
 
   // Handle service selection - memoize the service object to prevent unnecessary updates
   const serviceData = useMemo(() => {
@@ -876,6 +876,65 @@ export default function InvoiceForm({
           )}
         </CardContent>
       </Card>
+
+      {/* Available Services from Database */}
+      {dbServices && dbServices.length > 0 && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Available Services from Database</CardTitle>
+            <div className="text-sm text-muted-foreground">
+              {servicesLoading ? 'Loading...' : `${dbServices.length} service${dbServices.length !== 1 ? 's' : ''} available`}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {servicesLoading ? (
+              <div className="p-4 text-center text-muted-foreground">
+                Loading services...
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {dbServices.map((dbService) => (
+                  <div key={dbService.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
+                    <div className="flex-1">
+                      <h4 className="font-medium">{dbService.name}</h4>
+                      {dbService.description && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {dbService.description}
+                        </p>
+                      )}
+                      <p className="text-sm font-medium mt-1">
+                        {dbService.currency === 'EUR' ? '€' : '₪'}{dbService.hourlyRate?.toFixed(2) || '0.00'} / hour
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => {
+                        // Add this database service to the invoice services list
+                        const newId = (Math.max(...services.map(s => parseInt(s.id))) + 1).toString();
+                        const newService: InvoiceService = {
+                          id: newId,
+                          description: `${dbService.name}${dbService.description ? ` - ${dbService.description}` : ''}`,
+                          hours: 1,
+                          rate: dbService.hourlyRate || 0,
+                          currency: dbService.currency as 'EUR' | 'USD' | 'ILS',
+                          amount: dbService.hourlyRate || 0,
+                          addedToInvoice: true
+                        };
+                        setServices(prev => [...prev, newService]);
+                        toast.success(`Added "${dbService.name}" to invoice`);
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add to Invoice
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
