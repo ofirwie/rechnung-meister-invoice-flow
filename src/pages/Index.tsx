@@ -233,7 +233,11 @@ const Index = () => {
             onClientSelect={(client) => {
               console.log('Client selected:', client.company_name);
               setSelectedClient(client);
-              setCurrentView('invoice');
+              
+              // Return to where we came from (stored in sessionStorage)
+              const returnView = sessionStorage.getItem('clientSelectionReturnView') || 'invoice';
+              sessionStorage.removeItem('clientSelectionReturnView');
+              setCurrentView(returnView as any);
             }}
           />
         )}
@@ -241,7 +245,11 @@ const Index = () => {
           <ServiceManagement 
             onServiceSelect={(service) => {
               setSelectedService(service);
-              setCurrentView('invoice');
+              
+              // Return to where we came from (stored in sessionStorage)
+              const returnView = sessionStorage.getItem('serviceSelectionReturnView') || 'invoice';
+              sessionStorage.removeItem('serviceSelectionReturnView');
+              setCurrentView(returnView as any);
             }}
             searchTerm={serviceSearchTerm}
             onSearchChange={setServiceSearchTerm}

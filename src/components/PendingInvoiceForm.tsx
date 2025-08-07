@@ -11,6 +11,7 @@ import { Client } from '../types/client';
 import { Service } from '../types/service';
 import { generateAutoInvoiceNumber } from '../utils/autoInvoiceNumber';
 import { useLanguage } from '../hooks/useLanguage';
+import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
 import { toast } from 'sonner';
 
 interface PendingInvoiceFormProps {
@@ -31,6 +32,7 @@ export default function PendingInvoiceForm({
   setCurrentView 
 }: PendingInvoiceFormProps) {
   const { t } = useLanguage();
+  const { saveInvoice } = useSupabaseInvoices();
   
   // Simple form state - just the essentials
   const [formData, setFormData] = useState({
@@ -142,44 +144,77 @@ export default function PendingInvoiceForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
-    const requiredFields = ['clientName', 'clientCompany', 'clientAddress', 'clientCity', 'clientEmail'];
-    const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
-    
-    if (missingFields.length > 0) {
-      toast.error(`Please fill required fields: ${missingFields.join(', ')}`);
-      return;
+    try {
+      // Basic validation
+      const requiredFields = ['clientName', 'clientCompany', 'clientAddress', 'clientCity', 'clientEmail'];
+      const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
+      
+      if (missingFields.length > 0) {
+        toast.error(`Please fill required fields: ${missingFields.join(', ')}`);
+        return;
+      }
+
+      if (!formData.invoiceNumber) {
+        toast.error('Invoice number is required');
+        return;
+      }
+
+      // Calculate totals
+      const addedServices = services.filter(s => s.addedToInvoice);
+      
+      if (addedServices.length === 0) {
+        toast.error('Please add at least one service');
+        return;
+      }
+
+      const subtotal = addedServices.reduce((sum, service) => sum + service.amount, 0);
+      const vatAmount = 0; // No VAT for now
+      const total = subtotal;
+
+      // Create the invoice data in the correct format for the database
+      const invoiceData: InvoiceData = {
+        invoiceNumber: formData.invoiceNumber,
+        invoiceDate: formData.invoiceDate,
+        dueDate: formData.dueDate,
+        servicePeriodStart: formData.invoiceDate, // Default to invoice date
+        servicePeriodEnd: formData.dueDate,      // Default to due date
+        language: 'en' as const,
+        currency: 'EUR',
+        clientCompany: formData.clientCompany,
+        clientName: formData.clientName,
+        clientEmail: formData.clientEmail,
+        clientAddress: formData.clientAddress,
+        clientCity: formData.clientCity,
+        clientPostalCode: formData.clientPostalCode,
+        clientCountry: formData.clientCountry,
+        clientBusinessLicense: '', // Optional field
+        clientCompanyRegistration: '', // Optional field
+        services: addedServices,
+        exchangeRate: exchangeRate,
+        subtotal,
+        vatAmount,
+        total,
+        status: 'pending_approval' as const, // Start as pending approval
+        createdAt: new Date().toISOString()
+      };
+
+      console.log('💾 Saving invoice to database:', invoiceData);
+      
+      // Actually save the invoice to the database
+      await saveInvoice(invoiceData);
+      
+      toast.success('✅ Pending invoice created successfully!');
+      console.log('✅ Invoice saved successfully');
+      
+      // Navigate to pending invoices table to show the created invoice
+      if (setCurrentView) {
+        setCurrentView('pending');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error creating pending invoice:', error);
+      toast.error(`Failed to create invoice: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-
-    if (!formData.invoiceNumber) {
-      toast.error('Invoice number is required');
-      return;
-    }
-
-    toast.success('Pending invoice created successfully!');
-    // Calculate totals
-    const addedServices = services.filter(s => s.addedToInvoice);
-    
-    if (addedServices.length === 0) {
-      toast.error('Please add at least one service');
-      return;
-    }
-
-    const subtotal = addedServices.reduce((sum, service) => sum + service.amount, 0);
-    const total = subtotal; // No VAT for now
-
-    const pendingInvoiceData = {
-      ...formData,
-      services: addedServices,
-      subtotal,
-      total,
-      exchangeRate,
-      status: 'pending' as const,
-      createdAt: new Date().toISOString()
-    };
-
-    toast.success('Pending invoice created successfully!');
-    console.log('📋 Pending Invoice Data:', pendingInvoiceData);
   };
 
   // Service management functions
@@ -318,6 +353,8 @@ export default function PendingInvoiceForm({
                 if (onSelectClient) {
                   onSelectClient();
                 } else if (setCurrentView) {
+                  // Remember where we came from so we can return here
+                  sessionStorage.setItem('clientSelectionReturnView', 'pending-form');
                   setCurrentView('clients');
                 }
               }}
@@ -448,7 +485,13 @@ export default function PendingInvoiceForm({
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setCurrentView && setCurrentView('services')}
+              onClick={() => {
+                if (setCurrentView) {
+                  // Remember where we came from so we can return here
+                  sessionStorage.setItem('serviceSelectionReturnView', 'pending-form');
+                  setCurrentView('services');
+                }
+              }}
             >
               {selectedService ? 'Change Service' : 'Select Service'}
             </Button>
