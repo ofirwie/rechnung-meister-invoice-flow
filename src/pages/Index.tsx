@@ -221,7 +221,9 @@ const Index = () => {
         {currentView === 'pending-form' && (
           <PendingInvoiceForm 
             selectedClient={selectedClient}
+            selectedService={selectedService}
             onClientClear={() => setSelectedClient(null)}
+            onServiceClear={() => setSelectedService(null)}
             onSelectClient={() => setCurrentView('clients')}
             setCurrentView={setCurrentView}
           />
