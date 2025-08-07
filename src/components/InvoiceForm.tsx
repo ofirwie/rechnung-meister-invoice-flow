@@ -22,7 +22,6 @@ import { generateAutoInvoiceNumber, checkInvoiceNumberExists } from '../utils/au
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useLanguage } from '../hooks/useLanguage';
 import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
-import { useSupabaseServices } from '../hooks/useSupabaseServices';
 import { toast } from 'sonner';
 import { DebugModal } from './DebugModal';
 import { useDebugLogger } from '../hooks/useDebugLogger';
@@ -71,7 +70,6 @@ export default function InvoiceForm({
   // ALWAYS call hooks in the same order FIRST
   const { language, t, changeLanguage } = useLanguage();
   const { saveInvoice, invoiceHistory } = useSupabaseInvoices();
-  const { services: dbServices, loading: servicesLoading, loadServices } = useSupabaseServices();
   const { info, warn, error: logError } = useDebugLogger({ component: 'InvoiceForm' });
   
   const [clients] = useLocalStorage<Client[]>('invoice-clients', []);
@@ -106,15 +104,6 @@ export default function InvoiceForm({
     { id: '1', description: '', hours: 0, rate: 0, currency: 'EUR', amount: 0, addedToInvoice: true }
   ]);
   
-  // Debug logging for services loading
-  useEffect(() => {
-    console.log('🔍 [InvoiceForm] Services state:', {
-      dbServicesCount: dbServices?.length || 0,
-      localServicesCount: services.length,
-      servicesLoading,
-      dbServices: dbServices?.map(s => ({ id: s.id, name: s.name, rate: s.hourlyRate }))
-    });
-  }, [dbServices, services, servicesLoading]);
 
   const [exchangeRate, setExchangeRate] = useState<number>(3.91);
 
@@ -254,40 +243,26 @@ export default function InvoiceForm({
     }
   }, []);
 
-  // Handle client selection - split into two separate effects to prevent loops
+  // Handle client selection - FIXED VERSION
   useEffect(() => {
-    const currentClient = selectedClient;
-    const prevClient = prevClientRef.current;
-    
-    console.log('🔍 [InvoiceForm] useEffect triggered - selectedClient:', {
-      current: currentClient?.company_name || 'none',
-      previous: prevClient?.company_name || 'none',
-      changed: currentClient !== prevClient
+    console.log('🔍 [InvoiceForm] Client selection useEffect triggered:', {
+      hasClient: !!selectedClient,
+      clientId: selectedClient?.id,
+      clientName: selectedClient?.company_name,
+      prevClientId: prevClientRef.current?.id,
+      hasChanged: selectedClient?.id !== prevClientRef.current?.id
     });
     
-    // Only update if client actually changed
-    if (currentClient && currentClient !== prevClient) {
-      console.log('🔄 [InvoiceForm] CLIENT CHANGED:', {
-        from: prevClient?.company_name || 'none',
-        to: currentClient?.company_name || 'none'
-      });
+    // Only update if client actually changed (compare by ID)
+    if (selectedClient && selectedClient.id !== prevClientRef.current?.id) {
+      console.log('🔄 [InvoiceForm] CLIENT CHANGED - UPDATING ALL DATA');
       
-      prevClientRef.current = currentClient;
+      // Update client reference FIRST
+      prevClientRef.current = selectedClient;
       
-      const client = currentClient;
-      
-      console.log('🔄 [InvoiceForm] UPDATING CLIENT DATA:', {
-        clientName: client.contact_name || '',
-        clientCompany: client.company_name || '',
-        clientAddress: client.address || '',
-        clientCity: client.city || '',
-        clientPostalCode: client.postal_code || client.postalCode || '',
-        clientEmail: client.email || '',
-        clientCountry: client.country || 'Israel'
-      });
-      
-      setFormData(prev => ({
-        ...prev,
+      // Update client form data
+      const client = selectedClient;
+      const clientData = {
         clientName: client.contact_name || '',
         clientCompany: client.company_name || '',
         clientAddress: client.address || '',
@@ -296,21 +271,34 @@ export default function InvoiceForm({
         clientEmail: client.email || '',
         clientCountry: client.country || 'Israel',
         clientReference: '' // Reset reference when new client selected
+      };
+      
+      console.log('🔄 [InvoiceForm] Setting client data:', clientData);
+      
+      // Set client data
+      setFormData(prev => ({
+        ...prev,
+        ...clientData
       }));
+      
+      // Generate invoice number if empty
+      if (!formData.invoiceNumber || formData.invoiceNumber.trim() === '') {
+        console.log('🔄 [InvoiceForm] Generating invoice number for:', client.company_name);
+        generateInvoiceNumberForClient(selectedClient);
+      }
+      
+      // Auto-calculate due date if not set
+      if (!formData.dueDate && formData.invoiceDate) {
+        const invoiceDate = new Date(formData.invoiceDate);
+        const dueDate = new Date(invoiceDate);
+        dueDate.setDate(dueDate.getDate() + 10);
+        const dueDateStr = dueDate.toISOString().split('T')[0];
+        
+        console.log('🔄 [InvoiceForm] Auto-calculating due date:', dueDateStr);
+        setFormData(prev => ({ ...prev, dueDate: dueDateStr }));
+      }
     }
-  }, [selectedClient]);
-
-  // Separate effect for invoice number generation to prevent loops
-  useEffect(() => {
-    const currentClient = selectedClient;
-    const prevClient = prevClientRef.current;
-    
-    // Generate invoice number when client changes and we don't have one, OR if the current number is empty
-    if (currentClient && currentClient !== prevClient && (!formData.invoiceNumber || formData.invoiceNumber.trim() === '')) {
-      console.log('🔄 GENERATING INVOICE NUMBER FOR CLIENT:', currentClient.company_name);
-      generateInvoiceNumberForClient(currentClient);
-    }
-  }, [selectedClient, generateInvoiceNumberForClient]);
+  }, [selectedClient, formData.invoiceNumber, formData.dueDate, formData.invoiceDate, generateInvoiceNumberForClient]);
 
   // Handle service selection - memoize the service object to prevent unnecessary updates
   const serviceData = useMemo(() => {
@@ -877,64 +865,6 @@ export default function InvoiceForm({
         </CardContent>
       </Card>
 
-      {/* Available Services from Database */}
-      {dbServices && dbServices.length > 0 && (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Available Services from Database</CardTitle>
-            <div className="text-sm text-muted-foreground">
-              {servicesLoading ? 'Loading...' : `${dbServices.length} service${dbServices.length !== 1 ? 's' : ''} available`}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {servicesLoading ? (
-              <div className="p-4 text-center text-muted-foreground">
-                Loading services...
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {dbServices.map((dbService) => (
-                  <div key={dbService.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
-                    <div className="flex-1">
-                      <h4 className="font-medium">{dbService.name}</h4>
-                      {dbService.description && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {dbService.description}
-                        </p>
-                      )}
-                      <p className="text-sm font-medium mt-1">
-                        {dbService.currency === 'EUR' ? '€' : '₪'}{dbService.hourlyRate?.toFixed(2) || '0.00'} / hour
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => {
-                        // Add this database service to the invoice services list
-                        const newId = (Math.max(...services.map(s => parseInt(s.id))) + 1).toString();
-                        const newService: InvoiceService = {
-                          id: newId,
-                          description: `${dbService.name}${dbService.description ? ` - ${dbService.description}` : ''}`,
-                          hours: 1,
-                          rate: dbService.hourlyRate || 0,
-                          currency: dbService.currency as 'EUR' | 'USD' | 'ILS',
-                          amount: dbService.hourlyRate || 0,
-                          addedToInvoice: true
-                        };
-                        setServices(prev => [...prev, newService]);
-                        toast.success(`Added "${dbService.name}" to invoice`);
-                      }}
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add to Invoice
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
