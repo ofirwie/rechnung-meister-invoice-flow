@@ -265,26 +265,25 @@ export default function InvoiceForm({
       const client = currentClient;
       
       console.log('🔄 [InvoiceForm] UPDATING CLIENT DATA:', {
-        clientName: client.contact_name || client.contactPerson || '',
-        clientCompany: client.company_name || client.company || '',
-        clientAddress: client.address,
+        clientName: client.contact_name || '',
+        clientCompany: client.company_name || '',
+        clientAddress: client.address || '',
         clientCity: client.city || '',
-        clientPostalCode: client.postal_code || '',
-        clientEmail: client.email,
-        clientCountry: client.country,
-        clientReference: client.customerReference || ''
+        clientPostalCode: client.postal_code || client.postalCode || '',
+        clientEmail: client.email || '',
+        clientCountry: client.country || 'Israel'
       });
       
       setFormData(prev => ({
         ...prev,
-        clientName: client.contact_name || client.contactPerson || '',
-        clientCompany: client.company_name || client.company || '',
-        clientAddress: client.address,
+        clientName: client.contact_name || '',
+        clientCompany: client.company_name || '',
+        clientAddress: client.address || '',
         clientCity: client.city || '',
-        clientPostalCode: client.postal_code || '',
-        clientEmail: client.email,
-        clientCountry: client.country,
-        clientReference: client.customerReference || ''
+        clientPostalCode: client.postal_code || client.postalCode || '',
+        clientEmail: client.email || '',
+        clientCountry: client.country || 'Israel',
+        clientReference: '' // Reset reference when new client selected
       }));
     }
   }, [selectedClient]);
