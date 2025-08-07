@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Debug - Direct HTML</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .debug-box {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #333;
+            border-radius: 8px;
+        }
+        .error { color: #d32f2f; }
+        .success { color: #2e7d32; }
+        .warning { color: #f57c00; }
+        button {
+            background: #1976d2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #1565c0; }
+        #results {
+            background: #f8f8f8;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-box">
+        <h1 class="error">🚨 EMERGENCY DEBUG - DIRECT HTML</h1>
+        <p><strong>Route:</strong> <code>/debug.html</code></p>
+        <p><strong>Time:</strong> <span id="time"></span></p>
+        <p>This page bypasses React Router entirely!</p>
+        
+        <button onclick="testBasics()">Test Basic Functions</button>
+        <button onclick="testRouting()">Test React App Routes</button>
+        <button onclick="window.location.href='/'">Back to Main App</button>
+    </div>
+
+    <div class="debug-box">
+        <h2>📊 Test Results</h2>
+        <div id="results">Click "Test Basic Functions" to start...</div>
+    </div>
+
+    <div class="debug-box">
+        <h3>🎯 What This Tests:</h3>
+        <ul>
+            <li><strong>Direct HTML Access:</strong> Can you reach this page?</li>
+            <li><strong>JavaScript Execution:</strong> Are scripts running?</li>
+            <li><strong>Network Access:</strong> Can we make requests?</li>
+            <li><strong>React App Status:</strong> Is the main app accessible?</li>
+        </ul>
+    </div>
+
+    <script>
+        document.getElementById('time').textContent = new Date().toLocaleString();
+        
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : '';
+            results.innerHTML += `<div class="${className}">${new Date().toLocaleTimeString()}: ${message}</div>`;
+            results.scrollTop = results.scrollHeight;
+        }
+        
+        function testBasics() {
+            document.getElementById('results').innerHTML = '';
+            log('🚀 Starting basic tests...');
+            
+            // Test 1: JavaScript working
+            log('✅ JavaScript is executing');
+            
+            // Test 2: DOM manipulation
+            log('✅ DOM manipulation working');
+            
+            // Test 3: Current URL
+            log(`📍 Current URL: ${window.location.href}`);
+            
+            // Test 4: User Agent
+            log(`💻 User Agent: ${navigator.userAgent.substring(0, 50)}...`);
+            
+            // Test 5: Network test (simple)
+            fetch('/')
+                .then(response => {
+                    if (response.ok) {
+                        log('✅ Network access working - can reach main app');
+                    } else {
+                        log(`❌ Network issue - status: ${response.status}`, 'error');
+                    }
+                })
+                .catch(error => {
+                    log(`❌ Network error: ${error.message}`, 'error');
+                });
+            
+            log('🎉 Basic tests completed!');
+        }
+        
+        function testRouting() {
+            log('🔍 Testing React app routes...');
+            
+            const routes = [
+                '/simple-debug',
+                '/debug-minimal', 
+                '/debug-simple',
+                '/debug-white-screen'
+            ];
+            
+            routes.forEach(route => {
+                fetch(route)
+                    .then(response => {
+                        if (response.ok) {
+                            log(`✅ Route ${route} - accessible`, 'success');
+                        } else {
+                            log(`❌ Route ${route} - returns ${response.status}`, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        log(`❌ Route ${route} - error: ${error.message}`, 'error');
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
