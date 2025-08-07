@@ -22,6 +22,7 @@ import { generateAutoInvoiceNumber, checkInvoiceNumberExists } from '../utils/au
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useLanguage } from '../hooks/useLanguage';
 import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
+import { useSupabaseServices } from '../hooks/useSupabaseServices';
 import { toast } from 'sonner';
 import { DebugModal } from './DebugModal';
 import { useDebugLogger } from '../hooks/useDebugLogger';
@@ -70,6 +71,7 @@ export default function InvoiceForm({
   // ALWAYS call hooks in the same order FIRST
   const { language, t, changeLanguage } = useLanguage();
   const { saveInvoice, invoiceHistory } = useSupabaseInvoices();
+  const { services: dbServices, loading: servicesLoading, loadServices } = useSupabaseServices();
   const { info, warn, error: logError } = useDebugLogger({ component: 'InvoiceForm' });
   
   const [clients] = useLocalStorage<Client[]>('invoice-clients', []);
@@ -103,6 +105,16 @@ export default function InvoiceForm({
   const [services, setServices] = useState<InvoiceService[]>([
     { id: '1', description: '', hours: 0, rate: 0, currency: 'EUR', amount: 0, addedToInvoice: true }
   ]);
+  
+  // Debug logging for services loading
+  useEffect(() => {
+    console.log('🔍 [InvoiceForm] Services state:', {
+      dbServicesCount: dbServices?.length || 0,
+      localServicesCount: services.length,
+      servicesLoading,
+      dbServices: dbServices?.map(s => ({ id: s.id, name: s.name, rate: s.hourlyRate }))
+    });
+  }, [dbServices, services, servicesLoading]);
 
   const [exchangeRate, setExchangeRate] = useState<number>(3.91);
 
