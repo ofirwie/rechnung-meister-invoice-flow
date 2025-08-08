@@ -54,30 +54,47 @@ export function useSupabaseClients(onClientSelect?: (client: Client) => void) {
       
       if (error) throw error;
 
-      const formattedClients: Client[] = data.map(client => ({
-        id: client.id,
-        company_name: client.company_name,
-        companyName: client.company_name,
-        contact_name: client.contact_name,
-        contactName: client.contact_name,
-        address: client.address,
-        city: client.city,
-        postal_code: client.postal_code,
-        postalCode: client.postal_code,
-        country: client.country,
-        email: client.email,
-        phone: client.phone,
-        tax_id: client.tax_id,
-        taxId: client.tax_id,
-        business_license: client.business_license,
-        businessLicense: client.business_license,
-        company_registration: client.company_registration,
-        companyRegistration: client.company_registration,
-        created_at: client.created_at,
-        createdAt: client.created_at,
-        updated_at: client.updated_at,
-        updatedAt: client.updated_at
-      }));
+      const formattedClients: Client[] = data.map(client => {
+        const formatted = {
+          id: client.id,
+          company_name: client.company_name,
+          companyName: client.company_name,
+          contact_name: client.contact_name,
+          contactName: client.contact_name,
+          address: client.address,
+          city: client.city,
+          postal_code: client.postal_code,
+          postalCode: client.postal_code,
+          country: client.country,
+          email: client.email,
+          phone: client.phone,
+          tax_id: client.tax_id,
+          taxId: client.tax_id,
+          business_license: client.business_license,
+          businessLicense: client.business_license,
+          company_registration: client.company_registration,
+          companyRegistration: client.company_registration,
+          created_at: client.created_at,
+          createdAt: client.created_at,
+          updated_at: client.updated_at,
+          updatedAt: client.updated_at
+        };
+        
+        // Debug log for SHALAM client to check data completeness
+        if (client.company_name?.includes('SHALAM')) {
+          console.log('🔍 [DEBUG] SHALAM client raw data from DB:', JSON.stringify(client, null, 2));
+          console.log('🔍 [DEBUG] SHALAM client formatted:', JSON.stringify(formatted, null, 2));
+          console.log('🔍 [DEBUG] SHALAM client fields check:', {
+            hasAddress: !!client.address,
+            hasEmail: !!client.email,
+            hasCity: !!client.city,
+            hasPhone: !!client.phone,
+            hasPostalCode: !!client.postal_code
+          });
+        }
+        
+        return formatted;
+      });
 
       setClients(formattedClients);
       console.log('✅ Clients loaded successfully:', formattedClients.length);

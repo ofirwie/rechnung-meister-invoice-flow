@@ -78,8 +78,9 @@ export default function PendingInvoiceForm({
   useEffect(() => {
     if (selectedClient) {
       console.log('🔄 [PendingInvoice] Client selected:', selectedClient.company_name);
+      console.log('🔍 [DEBUG] Full selectedClient object:', JSON.stringify(selectedClient, null, 2));
       
-      // Auto-fill client data immediately
+      // Auto-fill client data immediately - handle missing fields gracefully
       const clientData = {
         clientName: selectedClient.contact_name || '',
         clientCompany: selectedClient.company_name || '',
@@ -91,22 +92,30 @@ export default function PendingInvoiceForm({
       };
 
       console.log('🔄 [PendingInvoice] Setting client data:', clientData);
+      console.log('🔍 [DEBUG] Missing fields check:', {
+        hasAddress: !!selectedClient.address,
+        hasEmail: !!selectedClient.email,
+        hasCity: !!selectedClient.city,
+        hasPostalCode: !!(selectedClient.postal_code || selectedClient.postalCode)
+      });
       
-      // Update form data
-      setFormData(prev => ({
-        ...prev,
-        ...clientData
-      }));
+      // Only update form data if we're not overriding user input
+      setFormData(prev => {
+        const updatedData = { ...prev, ...clientData };
+        
+        // Only auto-calculate due date if it's empty or if invoice date changed
+        if (!prev.dueDate || prev.invoiceDate !== formData.invoiceDate) {
+          const invoiceDate = new Date(formData.invoiceDate);
+          const dueDate = new Date(invoiceDate);
+          dueDate.setDate(dueDate.getDate() + 10);
+          const dueDateStr = dueDate.toISOString().split('T')[0];
+          updatedData.dueDate = dueDateStr;
+        }
+        
+        return updatedData;
+      });
 
-      // Auto-calculate due date (invoice date + 10 days)
-      const invoiceDate = new Date(formData.invoiceDate);
-      const dueDate = new Date(invoiceDate);
-      dueDate.setDate(dueDate.getDate() + 10);
-      const dueDateStr = dueDate.toISOString().split('T')[0];
-      
-      setFormData(prev => ({ ...prev, dueDate: dueDateStr }));
-
-      // Generate invoice number automatically (no regenerate button)
+      // Generate invoice number automatically (no regenerate button) - only if empty
       if (!formData.invoiceNumber) {
         generateInvoiceNumber(selectedClient);
       }

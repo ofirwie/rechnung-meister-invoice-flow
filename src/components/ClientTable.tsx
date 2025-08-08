@@ -50,7 +50,15 @@ export default function ClientTable({
             <TableCell 
               className="font-medium"
               onClick={() => {
-                console.log('🔍 [ClientTable] Client clicked:', client.company_name, client);
+                console.log('🔍 [ClientTable] Client clicked:', client.company_name);
+                console.log('🔍 [ClientTable] Full client object being passed:', JSON.stringify(client, null, 2));
+                console.log('🔍 [ClientTable] Client fields check:', {
+                  hasAddress: !!client.address,
+                  hasEmail: !!client.email,
+                  hasCity: !!client.city,
+                  hasPhone: !!client.phone,
+                  postalCode: client.postal_code || client.postalCode,
+                });
                 onClientSelect(client);
               }}
             >

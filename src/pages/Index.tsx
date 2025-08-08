@@ -29,8 +29,8 @@ const Index = () => {
   const navigate = useNavigate();
   const { language, t } = useLanguage();
   
-  // Simplified state management
-  const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'pending-form' | 'expenses' | 'companies'>('invoice');
+  // Simplified state management - Start with Quick Invoice (pending-form) by default
+  const [currentView, setCurrentView] = useState<'invoice' | 'clients' | 'services' | 'history' | 'pending' | 'pending-form' | 'expenses' | 'companies'>('pending-form');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
   const [showUserManagement, setShowUserManagement] = useState(false);
