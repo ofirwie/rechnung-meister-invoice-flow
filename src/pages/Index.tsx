@@ -41,6 +41,28 @@ const Index = () => {
   const [authLoading, setAuthLoading] = useState(true);
   const [showMigrationDialog, setShowMigrationDialog] = useState(false);
 
+  // Persistent form state for PendingInvoiceForm to survive navigation
+  const [pendingFormData, setPendingFormData] = useState(() => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    
+    return {
+      invoiceDate: new Date().toISOString().split('T')[0],
+      dueDate: '',
+      invoiceNumber: '',
+      servicePeriodStart: startOfMonth.toISOString().split('T')[0],
+      servicePeriodEnd: endOfMonth.toISOString().split('T')[0],
+      clientName: '',
+      clientCompany: '',
+      clientAddress: '',
+      clientCity: '',
+      clientPostalCode: '',
+      clientEmail: '',
+      clientCountry: 'Israel',
+    };
+  });
+
   const { updateInvoiceStatus, saveInvoice } = useSupabaseInvoices();
   const { 
     isMigrating, 
@@ -226,6 +248,8 @@ const Index = () => {
             onServiceClear={() => setSelectedService(null)}
             onSelectClient={() => setCurrentView('clients')}
             setCurrentView={setCurrentView}
+            formData={pendingFormData}
+            onFormDataChange={setPendingFormData}
           />
         )}
         {currentView === 'clients' && (
@@ -244,8 +268,14 @@ const Index = () => {
               } else {
                 // Fallback: if no return view specified, check current context
                 console.log('⚠️ [Index] No return view found, using fallback logic');
-                // Default to invoice unless we have other context clues
-                setCurrentView('invoice');
+                // Smart fallback - check if we have pending form data indicating user was in pending form
+                if (pendingFormData.invoiceDate !== new Date().toISOString().split('T')[0] || 
+                    pendingFormData.clientName || pendingFormData.invoiceNumber) {
+                  console.log('🔄 [Index] Detected pending form usage, returning to pending-form');
+                  setCurrentView('pending-form');
+                } else {
+                  setCurrentView('invoice');
+                }
               }
             }}
           />
@@ -263,9 +293,15 @@ const Index = () => {
                 sessionStorage.removeItem('serviceSelectionReturnView');
                 setCurrentView(returnView as any);
               } else {
-                // Fallback to invoice view
-                console.log('⚠️ [Index] No service return view found, defaulting to invoice');
-                setCurrentView('invoice');
+                // Smart fallback for service selection
+                console.log('⚠️ [Index] No service return view found, using smart fallback');
+                if (pendingFormData.invoiceDate !== new Date().toISOString().split('T')[0] || 
+                    pendingFormData.clientName || pendingFormData.invoiceNumber) {
+                  console.log('🔄 [Index] Detected pending form usage, returning to pending-form');
+                  setCurrentView('pending-form');
+                } else {
+                  setCurrentView('invoice');
+                }
               }
             }}
             searchTerm={serviceSearchTerm}

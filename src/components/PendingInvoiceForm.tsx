@@ -21,6 +21,8 @@ interface PendingInvoiceFormProps {
   onServiceClear?: () => void;
   onSelectClient?: () => void;
   setCurrentView?: (view: 'invoice' | 'clients' | 'services' | 'history' | 'pending') => void;
+  formData?: any; // Persistent form data from parent
+  onFormDataChange?: (data: any) => void; // Callback to update persistent form data
 }
 
 export default function PendingInvoiceForm({ 
@@ -29,13 +31,15 @@ export default function PendingInvoiceForm({
   onClientClear,
   onServiceClear,
   onSelectClient,
-  setCurrentView 
+  setCurrentView,
+  formData: persistentFormData,
+  onFormDataChange 
 }: PendingInvoiceFormProps) {
   const { t } = useLanguage();
   const { saveInvoice } = useSupabaseInvoices();
   
-  // Simple form state - just the essentials
-  const [formData, setFormData] = useState(() => {
+  // Use persistent form data from parent, with fallback to default values
+  const formData = persistentFormData || (() => {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -54,11 +58,19 @@ export default function PendingInvoiceForm({
       clientEmail: '',
       clientCountry: 'Israel',
     };
-  });
+  })();
+
+  // Helper function to update form data and notify parent
+  const setFormData = (updater: any) => {
+    if (onFormDataChange) {
+      const newData = typeof updater === 'function' ? updater(formData) : updater;
+      onFormDataChange(newData);
+    }
+  };
 
   const [isGeneratingNumber, setIsGeneratingNumber] = useState(false);
   const [services, setServices] = useState<InvoiceService[]>([
-    { id: '1', description: '', hours: 0, rate: 0, currency: 'EUR', amount: 0, addedToInvoice: true }
+    { id: '1', description: '', hours: 1, rate: 80, currency: 'EUR', amount: 80, addedToInvoice: true }
   ]);
   const [exchangeRate, setExchangeRate] = useState<number>(3.91);
 
@@ -106,23 +118,31 @@ export default function PendingInvoiceForm({
     if (selectedService) {
       console.log('🔄 [PendingInvoice] Service selected:', selectedService.name);
       
-      const serviceRate = selectedService.hourlyRate || selectedService.default_rate || 0;
+      const originalRate = selectedService.hourlyRate || selectedService.default_rate || 80;
       const serviceCurrency = selectedService.currency || 'EUR';
+      const defaultHours = 1;
+      
+      // Convert to EUR if the service is in ILS
+      let rateInEur = originalRate;
+      if (serviceCurrency === 'ILS') {
+        rateInEur = originalRate / exchangeRate; // Convert ILS to EUR
+        console.log(`💱 Converting ${originalRate} ILS to ${rateInEur.toFixed(2)} EUR (rate: ${exchangeRate})`);
+      }
       
       const serviceData: InvoiceService = {
         id: '1',
-        description: selectedService.name || '',
-        hours: 1,
-        rate: serviceRate,
-        currency: serviceCurrency,
-        amount: serviceRate,
+        description: selectedService.name || selectedService.description || '',
+        hours: defaultHours,
+        rate: rateInEur, // Always in EUR
+        currency: 'EUR', // Always save as EUR
+        amount: defaultHours * rateInEur,
         addedToInvoice: true
       };
       
-      console.log('🔄 [PendingInvoice] Setting service data:', serviceData);
+      console.log('🔄 [PendingInvoice] Setting service data (converted to EUR):', serviceData);
       setServices([serviceData]);
     }
-  }, [selectedService]);
+  }, [selectedService, exchangeRate]);
 
   // Simple invoice number generation
   const generateInvoiceNumber = async (client: Client) => {
@@ -207,6 +227,7 @@ export default function PendingInvoiceForm({
       };
 
       console.log('💾 Saving invoice to database:', invoiceData);
+      console.log('🔍 DEBUG - Services being saved:', JSON.stringify(addedServices, null, 2));
       
       // Actually save the invoice to the database
       await saveInvoice(invoiceData);
@@ -242,9 +263,20 @@ export default function PendingInvoiceForm({
     const newServices = [...services];
     newServices[index] = { ...newServices[index], [field]: value };
     
-    if (field === 'hours' || field === 'rate') {
+    if (field === 'hours' || field === 'rate' || field === 'currency') {
       const hours = Number(newServices[index].hours) || 0;
-      const rate = Number(newServices[index].rate) || 0;
+      let rate = Number(newServices[index].rate) || 0;
+      const currency = newServices[index].currency;
+      
+      // If user manually changes currency to ILS, convert rate to EUR
+      if (field === 'currency' && value === 'ILS') {
+        // Convert current EUR rate to ILS for display, then back to EUR for storage
+        rate = rate / exchangeRate; // Convert to EUR
+        newServices[index].rate = rate;
+        newServices[index].currency = 'EUR'; // Always store as EUR
+        console.log(`💱 Currency changed to ILS: converting rate to EUR: ${rate.toFixed(2)}`);
+      }
+      
       newServices[index].amount = hours * rate;
     }
     
@@ -542,8 +574,10 @@ export default function PendingInvoiceForm({
                     {selectedService.description}
                   </p>
                   <p className="text-sm font-medium mt-2">
-                    {selectedService.currency === 'EUR' ? '€' : '₪'}
-                    {selectedService.hourlyRate?.toFixed(2) || selectedService.default_rate?.toFixed(2)} / hour
+                    {selectedService.currency === 'EUR' 
+                      ? `€${(selectedService.hourlyRate || selectedService.default_rate || 0).toFixed(2)} / hour`
+                      : `€${((selectedService.hourlyRate || selectedService.default_rate || 0) / exchangeRate).toFixed(2)} / hour (converted from ₪${(selectedService.hourlyRate || selectedService.default_rate || 0).toFixed(2)})`
+                    }
                   </p>
                 </div>
               </div>
@@ -696,12 +730,6 @@ export default function PendingInvoiceForm({
               <span>Total:</span>
               <span>€{calculateTotals.total.toFixed(2)}</span>
             </div>
-            {exchangeRate && exchangeRate !== 1 && (
-              <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Total in ILS (≈{exchangeRate} rate):</span>
-                <span>₪{(calculateTotals.total * exchangeRate).toFixed(2)}</span>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>

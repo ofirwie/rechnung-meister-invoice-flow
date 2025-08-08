@@ -186,6 +186,12 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, fromPe
 
         {/* Services Table */}
         <div className="mb-8">
+          {/* DEBUG: Let's see what services we receive */}
+          <div className="print:hidden bg-yellow-100 p-2 mb-4 text-xs">
+            <strong>🔍 DEBUG - Services received in preview:</strong><br/>
+            {JSON.stringify(invoice.services, null, 2)}
+          </div>
+          
           <table className="w-full border-collapse border border-invoice-border">
             <thead>
               <tr className="bg-corporate-blue-light">
@@ -198,12 +204,12 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, fromPe
             <tbody>
               {invoice.services.map((service, index) => (
                 <tr key={service.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                  <td className="border border-invoice-border p-3">{service.description}</td>
-                  <td className="border border-invoice-border p-3 text-center">{service.hours ? service.hours.toFixed(1) : '0.0'}</td>
+                  <td className="border border-invoice-border p-3">{service.description || 'Service'}</td>
+                  <td className="border border-invoice-border p-3 text-center">{(service.hours || 0).toFixed(1)}</td>
                    <td className="border border-invoice-border p-3 text-right">
                      {formatCurrency(service.rate || 0, invoice.language)}
                    </td>
-                   <td className="border border-invoice-border p-3 text-right font-semibold">{formatCurrency(service.amount, invoice.language)}</td>
+                   <td className="border border-invoice-border p-3 text-right font-semibold">{formatCurrency(service.amount || 0, invoice.language)}</td>
                 </tr>
               ))}
             </tbody>
