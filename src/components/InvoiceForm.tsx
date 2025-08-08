@@ -396,8 +396,8 @@ export default function InvoiceForm({
       return;
     }
     
-    // Validate required fields
-    const requiredFields = ['clientName', 'clientCompany', 'clientAddress', 'clientCity', 'clientEmail'];
+    // Validate required fields - email is optional for PDF-only workflow
+    const requiredFields = ['clientName', 'clientCompany', 'clientAddress', 'clientCity'];
     const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
     
     if (missingFields.length > 0) {
@@ -763,13 +763,13 @@ export default function InvoiceForm({
           </div>
 
           <div>
-            <Label htmlFor="clientEmail">{t.email}</Label>
+            <Label htmlFor="clientEmail">{t.email} (Optional)</Label>
             <Input
               id="clientEmail"
               type="email"
               value={formData.clientEmail || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, clientEmail: e.target.value }))}
-              required
+              placeholder="Optional - only needed for reference"
             />
           </div>
 

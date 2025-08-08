@@ -145,8 +145,8 @@ export default function PendingInvoiceForm({
     e.preventDefault();
     
     try {
-      // Basic validation
-      const requiredFields = ['clientName', 'clientCompany', 'clientAddress', 'clientCity', 'clientEmail'];
+      // Basic validation - email is no longer required since we're only generating PDFs
+      const requiredFields = ['clientName', 'clientCompany', 'clientAddress', 'clientCity'];
       const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
       
       if (missingFields.length > 0) {
@@ -449,14 +449,13 @@ export default function PendingInvoiceForm({
           </div>
 
           <div>
-            <Label htmlFor="clientEmail">Email *</Label>
+            <Label htmlFor="clientEmail">Email (Optional for PDF generation)</Label>
             <Input
               id="clientEmail"
               type="email"
               value={formData.clientEmail}
               onChange={(e) => setFormData(prev => ({ ...prev, clientEmail: e.target.value }))}
               placeholder={selectedClient ? "Auto-filled from customer" : "Select customer first"}
-              required
             />
           </div>
         </CardContent>

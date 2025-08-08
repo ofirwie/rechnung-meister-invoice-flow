@@ -113,24 +113,25 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, fromPe
 
       {/* Invoice Document */}
       <div className="max-w-4xl mx-auto bg-white p-8 print:p-6 print:max-w-none print:mx-0">
-        {/* Header */}
-        <div className="flex justify-between items-start mb-8">
-          <div className={`${isRTL ? 'text-right' : 'text-left'} relative`}>
-            <div className="flex items-center gap-4">
-              <h1 className="text-4xl font-bold text-invoice-header mb-2">{t.invoice}</h1>
-              {(invoice.status === 'draft' || !invoice.status) && (
-                <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-2 rounded-lg text-xl font-bold print:bg-red-200 print:border-2 print:border-red-600 print:text-red-900">
-                  DRAFT
-                </div>
-              )}
-            </div>
-            <div className="text-sm text-muted-foreground">
-              <p><strong>{t.invoiceNumber}:</strong> {invoice.invoiceNumber}</p>
-              <p><strong>{t.invoiceDate}:</strong> {formatGermanDate(invoice.invoiceDate)}</p>
-            </div>
+        {/* Header - Centered */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <h1 className="text-4xl font-bold text-invoice-header">{t.invoice}</h1>
+            {(invoice.status === 'draft' || !invoice.status) && (
+              <div className="bg-red-100 border border-red-400 text-red-800 px-4 py-2 rounded-lg text-xl font-bold print:bg-red-200 print:border-2 print:border-red-600 print:text-red-900">
+                DRAFT
+              </div>
+            )}
           </div>
-          
-          <div className={`text-sm ${isRTL ? 'text-left' : 'text-right'}`}>
+          <div className="text-sm text-muted-foreground">
+            <p><strong>{t.invoiceNumber}:</strong> {invoice.invoiceNumber}</p>
+            <p><strong>{t.invoiceDate}:</strong> {formatGermanDate(invoice.invoiceDate)}</p>
+          </div>
+        </div>
+
+        {/* Business Info - Left Aligned */}
+        <div className="mb-8">
+          <div className="text-sm text-left">
             <div className="font-bold text-lg mb-2">{businessInfo.name}</div>
             <div className="text-muted-foreground">
               <p>{businessInfo.address}</p>
@@ -198,9 +199,9 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, fromPe
               {invoice.services.map((service, index) => (
                 <tr key={service.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                   <td className="border border-invoice-border p-3">{service.description}</td>
-                  <td className="border border-invoice-border p-3 text-center">{service.hours.toFixed(2)}</td>
+                  <td className="border border-invoice-border p-3 text-center">{service.hours ? service.hours.toFixed(1) : '0.0'}</td>
                    <td className="border border-invoice-border p-3 text-right">
-                     {formatCurrency(service.amount / service.hours, invoice.language)}
+                     {formatCurrency(service.rate || 0, invoice.language)}
                    </td>
                    <td className="border border-invoice-border p-3 text-right font-semibold">{formatCurrency(service.amount, invoice.language)}</td>
                 </tr>
