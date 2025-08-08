@@ -234,10 +234,19 @@ const Index = () => {
               console.log('Client selected:', client.company_name);
               setSelectedClient(client);
               
-              // Return to where we came from (stored in sessionStorage)
-              const returnView = sessionStorage.getItem('clientSelectionReturnView') || 'invoice';
-              sessionStorage.removeItem('clientSelectionReturnView');
-              setCurrentView(returnView as any);
+              // Improved return logic with better fallback
+              const returnView = sessionStorage.getItem('clientSelectionReturnView');
+              console.log('🔄 [Index] Client selected, returning to view:', returnView);
+              
+              if (returnView) {
+                sessionStorage.removeItem('clientSelectionReturnView');
+                setCurrentView(returnView as any);
+              } else {
+                // Fallback: if no return view specified, check current context
+                console.log('⚠️ [Index] No return view found, using fallback logic');
+                // Default to invoice unless we have other context clues
+                setCurrentView('invoice');
+              }
             }}
           />
         )}
@@ -246,10 +255,18 @@ const Index = () => {
             onServiceSelect={(service) => {
               setSelectedService(service);
               
-              // Return to where we came from (stored in sessionStorage)
-              const returnView = sessionStorage.getItem('serviceSelectionReturnView') || 'invoice';
-              sessionStorage.removeItem('serviceSelectionReturnView');
-              setCurrentView(returnView as any);
+              // Improved return logic for service selection
+              const returnView = sessionStorage.getItem('serviceSelectionReturnView');
+              console.log('🔄 [Index] Service selected, returning to view:', returnView);
+              
+              if (returnView) {
+                sessionStorage.removeItem('serviceSelectionReturnView');
+                setCurrentView(returnView as any);
+              } else {
+                // Fallback to invoice view
+                console.log('⚠️ [Index] No service return view found, defaulting to invoice');
+                setCurrentView('invoice');
+              }
             }}
             searchTerm={serviceSearchTerm}
             onSearchChange={setServiceSearchTerm}

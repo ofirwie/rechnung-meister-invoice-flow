@@ -8,7 +8,7 @@ export const businessInfo: BusinessInfo = {
   phone: '+49 162 2807155',
   email: 'ofir.wienerman@gmail.com',
   taxId: '102/288/13457',
-  vatId: 'ntracommunitarian (EC) sales and purchases DE455188890',
+  vatId: 'Intracommunitarian (EC) sales and purchases DE455188890',
   bankName: 'Deutsche Bank',
   iban: 'DE82 7207 0024 0061 8488 00',
   bic: 'DEUTDEDB720',

@@ -35,17 +35,25 @@ export default function PendingInvoiceForm({
   const { saveInvoice } = useSupabaseInvoices();
   
   // Simple form state - just the essentials
-  const [formData, setFormData] = useState({
-    invoiceDate: new Date().toISOString().split('T')[0],
-    dueDate: '',
-    invoiceNumber: '',
-    clientName: '',
-    clientCompany: '',
-    clientAddress: '',
-    clientCity: '',
-    clientPostalCode: '',
-    clientEmail: '',
-    clientCountry: 'Israel',
+  const [formData, setFormData] = useState(() => {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    
+    return {
+      invoiceDate: new Date().toISOString().split('T')[0],
+      dueDate: '',
+      invoiceNumber: '',
+      servicePeriodStart: startOfMonth.toISOString().split('T')[0],
+      servicePeriodEnd: endOfMonth.toISOString().split('T')[0],
+      clientName: '',
+      clientCompany: '',
+      clientAddress: '',
+      clientCity: '',
+      clientPostalCode: '',
+      clientEmail: '',
+      clientCountry: 'Israel',
+    };
   });
 
   const [isGeneratingNumber, setIsGeneratingNumber] = useState(false);
@@ -176,8 +184,8 @@ export default function PendingInvoiceForm({
         invoiceNumber: formData.invoiceNumber,
         invoiceDate: formData.invoiceDate,
         dueDate: formData.dueDate,
-        servicePeriodStart: formData.invoiceDate, // Default to invoice date
-        servicePeriodEnd: formData.dueDate,      // Default to due date
+        servicePeriodStart: formData.servicePeriodStart || formData.invoiceDate,
+        servicePeriodEnd: formData.servicePeriodEnd || formData.dueDate,
         language: 'en' as const,
         currency: 'EUR',
         clientCompany: formData.clientCompany,
@@ -323,6 +331,32 @@ export default function PendingInvoiceForm({
               />
             </div>
           </div>
+
+          <div>
+            <Label>Service Period</Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="servicePeriodStart" className="text-sm text-muted-foreground">From</Label>
+                <Input
+                  id="servicePeriodStart"
+                  type="date"
+                  value={formData.servicePeriodStart || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, servicePeriodStart: e.target.value }))}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="servicePeriodEnd" className="text-sm text-muted-foreground">To</Label>
+                <Input
+                  id="servicePeriodEnd"
+                  type="date"
+                  value={formData.servicePeriodEnd || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, servicePeriodEnd: e.target.value }))}
+                  required
+                />
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -354,6 +388,7 @@ export default function PendingInvoiceForm({
                   onSelectClient();
                 } else if (setCurrentView) {
                   // Remember where we came from so we can return here
+                  console.log('🔄 [PendingInvoice] Setting return view to pending-form');
                   sessionStorage.setItem('clientSelectionReturnView', 'pending-form');
                   setCurrentView('clients');
                 }
@@ -487,6 +522,7 @@ export default function PendingInvoiceForm({
               onClick={() => {
                 if (setCurrentView) {
                   // Remember where we came from so we can return here
+                  console.log('🔄 [PendingInvoice] Setting service return view to pending-form');
                   sessionStorage.setItem('serviceSelectionReturnView', 'pending-form');
                   setCurrentView('services');
                 }
