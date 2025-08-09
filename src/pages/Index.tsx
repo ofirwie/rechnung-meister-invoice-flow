@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import InvoiceForm from '../components/InvoiceForm';
-import PendingInvoiceForm from '../components/PendingInvoiceForm';
+import QuickInvoice from '../components/QuickInvoice';
 import InvoicePreview from '../components/InvoicePreview';
 import ClientManagement from '../components/ClientManagement';
 import ServiceManagement from '../components/ServiceManagement';
@@ -229,27 +228,9 @@ const Index = () => {
         />
         
         <div className="max-w-6xl mx-auto p-6">
-        {currentView === 'invoice' && (
-          <InvoiceForm 
+        {(currentView === 'invoice' || currentView === 'pending-form') && (
+          <QuickInvoice 
             onInvoiceGenerated={handleInvoiceGenerated}
-            selectedClient={selectedClient}
-            selectedService={selectedService}
-            onClientClear={() => setSelectedClient(null)}
-            onServiceClear={() => setSelectedService(null)}
-            onSelectClient={() => setCurrentView('clients')}
-            setCurrentView={setCurrentView}
-          />
-        )}
-        {currentView === 'pending-form' && (
-          <PendingInvoiceForm 
-            selectedClient={selectedClient}
-            selectedService={selectedService}
-            onClientClear={() => setSelectedClient(null)}
-            onServiceClear={() => setSelectedService(null)}
-            onSelectClient={() => setCurrentView('clients')}
-            setCurrentView={setCurrentView}
-            formData={pendingFormData}
-            onFormDataChange={setPendingFormData}
           />
         )}
         {currentView === 'clients' && (

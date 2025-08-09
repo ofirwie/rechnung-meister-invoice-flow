@@ -1,7 +1,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText, Users, History, Briefcase, DollarSign, Settings, LogOut, Building } from 'lucide-react';
+import { FileText, Users, History, Briefcase, DollarSign, Settings, LogOut, Building, Edit } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage, Language } from '@/hooks/useLanguage';
 import { useUserManagement } from '@/hooks/useUserManagement';
 
@@ -12,18 +13,22 @@ interface NavigationProps {
 }
 
 export default function Navigation({ currentView, onViewChange, onLogout }: NavigationProps) {
+  const navigate = useNavigate();
   const { t, language, changeLanguage, availableLanguages, isRTL } = useLanguage();
   const { isAdmin } = useUserManagement();
 
   const navItems = [
-    { key: 'invoice', icon: FileText, label: t.createInvoice },
     { key: 'pending-form', icon: FileText, label: 'Quick Invoice' },
     { key: 'clients', icon: Users, label: t.clientManagement },
     { key: 'services', icon: Briefcase, label: t.serviceManagement },
-    { key: 'history', icon: History, label: t.invoiceHistory },
     { key: 'pending', icon: History, label: t.pendingInvoices },
+    { key: 'history', icon: History, label: t.invoiceHistory },
     { key: 'expenses', icon: DollarSign, label: t.expenseManagement },
   ];
+
+  const handleManualInvoiceClick = () => {
+    navigate('/manual-invoice');
+  };
 
   // Users are now managed per company, not globally
   
@@ -50,6 +55,16 @@ export default function Navigation({ currentView, onViewChange, onLogout }: Navi
               </Button>
             );
           })}
+          
+          {/* Manual Invoice - separate route */}
+          <Button
+            variant="outline"
+            onClick={handleManualInvoiceClick}
+            className="flex items-center bg-green-50 border-green-200 text-green-800 hover:bg-green-100"
+          >
+            <Edit className={`w-4 h-4 ${isRTL ? 'ml-2' : 'mr-2'}`} />
+            📝 Manual Invoice
+          </Button>
         </div>
         
         <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-2`}>
