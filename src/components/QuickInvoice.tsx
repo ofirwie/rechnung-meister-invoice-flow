@@ -44,12 +44,19 @@ const QuickInvoice: React.FC<QuickInvoiceProps> = ({ onInvoiceGenerated }) => {
       return { subtotal: 0, total: 0 };
     }
 
-    // Calculate in the service's native currency
-    const amount = selectedService.default_rate * hours;
+    let amountInEUR = 0;
+
+    if (selectedService.currency === 'EUR') {
+      // Direct EUR calculation
+      amountInEUR = selectedService.default_rate * hours;
+    } else if (selectedService.currency === 'ILS') {
+      // ILS to EUR conversion: (ILS_price * hours) / exchange_rate
+      amountInEUR = (selectedService.default_rate * hours) / exchangeRate;
+    }
 
     return {
-      subtotal: amount,
-      total: amount // No VAT for now
+      subtotal: amountInEUR,
+      total: amountInEUR // No VAT for now, always in EUR
     };
   };
 
@@ -87,9 +94,11 @@ const QuickInvoice: React.FC<QuickInvoiceProps> = ({ onInvoiceGenerated }) => {
         id: selectedService.id,
         description: selectedService.description,
         hours: hours,
-        rate: selectedService.default_rate,
-        currency: selectedService.currency,
-        amount: totals.total, // In service currency
+        rate: selectedService.currency === 'ILS' 
+          ? selectedService.default_rate / exchangeRate  // Convert ILS rate to EUR
+          : selectedService.default_rate,  // Already EUR
+        currency: 'EUR', // Always EUR
+        amount: totals.total, // Already in EUR
         originalAmount: selectedService.currency === 'ILS' ? selectedService.default_rate * hours : undefined,
         exchangeRateUsed: selectedService.currency === 'ILS' ? exchangeRate : undefined
       };
@@ -102,7 +111,7 @@ const QuickInvoice: React.FC<QuickInvoiceProps> = ({ onInvoiceGenerated }) => {
         servicePeriodEnd: servicePeriodEnd,
         dueDate: dueDate,
         language: 'en',
-        currency: selectedService.currency, // Use the service currency
+        currency: 'EUR', // Always EUR
         
         // Client information
         clientCompany: selectedClient.company_name,
@@ -348,11 +357,8 @@ const QuickInvoice: React.FC<QuickInvoiceProps> = ({ onInvoiceGenerated }) => {
                     
                     <hr className="my-2" />
                     <div className="flex justify-between font-bold text-lg">
-                      <span>Total ({selectedService.currency}):</span>
-                      <span>
-                        {selectedService.currency === 'ILS' ? '₪' : selectedService.currency === 'EUR' ? '€' : '$'}
-                        {totals.total.toFixed(2)}
-                      </span>
+                      <span>Total (EUR):</span>
+                      <span>€{totals.total.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
