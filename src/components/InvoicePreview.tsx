@@ -154,10 +154,7 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, fromPe
             <p>{invoice.clientCity} {invoice.clientPostalCode}</p>
             <p>{invoice.clientCountry}</p>
             {invoice.clientBusinessLicense && (
-              <p className="mt-2"><strong>מספר עוסק מורשה:</strong> {invoice.clientBusinessLicense}</p>
-            )}
-            {invoice.clientCompanyRegistration && (
-              <p><strong>ח.פ:</strong> {invoice.clientCompanyRegistration}</p>
+              <p className="mt-2"><strong>Licensed Business Number:</strong> {invoice.clientBusinessLicense}</p>
             )}
           </div>
         </div>
@@ -207,9 +204,9 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, fromPe
                   <td className="border border-invoice-border p-3">{service.description || 'Service'}</td>
                   <td className="border border-invoice-border p-3 text-center">{(service.hours || 0).toFixed(1)}</td>
                    <td className="border border-invoice-border p-3 text-right">
-                     {formatCurrency(service.rate || 0, invoice.language)}
+                     {formatCurrency(service.rate || 0, invoice.language, service.currency)}
                    </td>
-                   <td className="border border-invoice-border p-3 text-right font-semibold">{formatCurrency(service.amount || 0, invoice.language)}</td>
+                   <td className="border border-invoice-border p-3 text-right font-semibold">{formatCurrency(service.amount || 0, invoice.language, invoice.currency)}</td>
                 </tr>
               ))}
             </tbody>
@@ -221,15 +218,15 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, fromPe
           <div className="w-64">
             <div className="flex justify-between py-2 border-b border-invoice-border">
               <span className="font-semibold">{t.subtotal}:</span>
-              <span>{formatCurrency(invoice.subtotal, invoice.language)}</span>
+              <span>{formatCurrency(invoice.subtotal, invoice.language, invoice.currency)}</span>
             </div>
             <div className="flex justify-between py-2 border-b border-invoice-border text-sm text-muted-foreground">
               <span>VAT (0%):</span>
-              <span>{formatCurrency(invoice.vatAmount, invoice.language)}</span>
+              <span>{formatCurrency(invoice.vatAmount, invoice.language, invoice.currency)}</span>
             </div>
             <div className="flex justify-between py-3 text-lg font-bold border-b-2 border-corporate-blue">
               <span>{t.total}:</span>
-              <span>{formatCurrency(invoice.total, invoice.language)}</span>
+              <span>{formatCurrency(invoice.total, invoice.language, invoice.currency)}</span>
             </div>
           </div>
         </div>
@@ -260,8 +257,8 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, fromPe
           <p className="text-xs text-muted-foreground">{t.archivalNote}</p>
         </div>
 
-        {/* Reverse Charge Notice - Always on second page */}
-        <div className="page-break-before bg-yellow-50 border-l-4 border-yellow-400 p-6 print:bg-white print:border print:border-yellow-400">
+        {/* Reverse Charge Notice - Optimized for 2-page layout */}
+        <div className="reverse-charge-notice bg-yellow-50 border-l-4 border-yellow-400 p-6 print:bg-white print:border print:border-yellow-400">
           <p className="text-lg font-bold text-yellow-800 mb-3">
             <strong>Reverse Charge</strong>
           </p>
@@ -291,20 +288,20 @@ export default function InvoicePreview({ invoice, onBack, onStatusChange, fromPe
           .print\\:border-red-600 { border-color: #dc2626 !important; }
           .print\\:text-red-900 { color: #7f1d1d !important; }
           
-          /* Page break control */
-          .page-break-before { 
-            page-break-before: always !important; 
-            break-before: page !important;
-          }
-          
-          /* Optimize spacing for short invoices */
+          /* Optimize spacing for 2-page layout */
           .services-table-container { 
             min-height: auto !important; 
           }
           
-          /* Ensure proper page distribution */
+          /* Ensure proper page distribution - avoid unnecessary page breaks */
           .invoice-main-content {
             page-break-after: auto;
+          }
+          
+          /* Allow natural page breaks only when content exceeds one page */
+          .reverse-charge-notice {
+            page-break-inside: avoid;
+            margin-top: 1rem;
           }
           
           @page { 

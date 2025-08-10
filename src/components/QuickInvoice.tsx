@@ -28,6 +28,12 @@ const QuickInvoice: React.FC<QuickInvoiceProps> = ({ onInvoiceGenerated }) => {
   const [exchangeRate, setExchangeRate] = useState<number>(3.8); // Default EUR/ILS rate
   const [invoiceNumber, setInvoiceNumber] = useState<string>('');
   const [isCreating, setIsCreating] = useState(false);
+  
+  // Date controls
+  const today = new Date().toISOString().split('T')[0];
+  const [invoiceDate, setInvoiceDate] = useState<string>(today);
+  const [servicePeriodStart, setServicePeriodStart] = useState<string>(today);
+  const [servicePeriodEnd, setServicePeriodEnd] = useState<string>(today);
 
   const selectedClient = clients.find(c => c.id === selectedClientId);
   const selectedService = services.find(s => s.id === selectedServiceId);
@@ -38,19 +44,12 @@ const QuickInvoice: React.FC<QuickInvoiceProps> = ({ onInvoiceGenerated }) => {
       return { subtotal: 0, total: 0 };
     }
 
-    let amountInEUR = 0;
-
-    if (selectedService.currency === 'EUR') {
-      // Direct EUR calculation
-      amountInEUR = selectedService.default_rate * hours;
-    } else if (selectedService.currency === 'ILS') {
-      // ILS to EUR conversion: (ILS_price * hours) / exchange_rate
-      amountInEUR = (selectedService.default_rate * hours) / exchangeRate;
-    }
+    // Calculate in the service's native currency
+    const amount = selectedService.default_rate * hours;
 
     return {
-      subtotal: amountInEUR,
-      total: amountInEUR // No VAT for now, always in EUR
+      subtotal: amount,
+      total: amount // No VAT for now
     };
   };
 
@@ -81,8 +80,7 @@ const QuickInvoice: React.FC<QuickInvoiceProps> = ({ onInvoiceGenerated }) => {
 
     try {
       const now = new Date();
-      const invoiceDate = now.toISOString().split('T')[0];
-      const dueDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // 30 days later
+      const dueDate = new Date(new Date(invoiceDate).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // 30 days from invoice date
 
       // Create invoice service
       const invoiceService: InvoiceService = {
@@ -91,7 +89,7 @@ const QuickInvoice: React.FC<QuickInvoiceProps> = ({ onInvoiceGenerated }) => {
         hours: hours,
         rate: selectedService.default_rate,
         currency: selectedService.currency,
-        amount: totals.total, // Always in EUR
+        amount: totals.total, // In service currency
         originalAmount: selectedService.currency === 'ILS' ? selectedService.default_rate * hours : undefined,
         exchangeRateUsed: selectedService.currency === 'ILS' ? exchangeRate : undefined
       };
@@ -100,11 +98,11 @@ const QuickInvoice: React.FC<QuickInvoiceProps> = ({ onInvoiceGenerated }) => {
       const invoiceData: InvoiceData = {
         invoiceNumber: invoiceNumber,
         invoiceDate: invoiceDate,
-        servicePeriodStart: invoiceDate,
-        servicePeriodEnd: invoiceDate,
+        servicePeriodStart: servicePeriodStart,
+        servicePeriodEnd: servicePeriodEnd,
         dueDate: dueDate,
         language: 'en',
-        currency: 'EUR', // Always EUR
+        currency: selectedService.currency, // Use the service currency
         
         // Client information
         clientCompany: selectedClient.company_name,
@@ -190,6 +188,38 @@ const QuickInvoice: React.FC<QuickInvoiceProps> = ({ onInvoiceGenerated }) => {
                 <Input value={invoiceNumber} disabled className="bg-gray-50" />
               </div>
             )}
+
+            {/* Date Controls */}
+            <div>
+              <Label htmlFor="invoice-date">Invoice Date *</Label>
+              <Input
+                id="invoice-date"
+                type="date"
+                value={invoiceDate}
+                onChange={(e) => setInvoiceDate(e.target.value)}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="service-period-start">Service Period Start *</Label>
+                <Input
+                  id="service-period-start"
+                  type="date"
+                  value={servicePeriodStart}
+                  onChange={(e) => setServicePeriodStart(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="service-period-end">Service Period End *</Label>
+                <Input
+                  id="service-period-end"
+                  type="date"
+                  value={servicePeriodEnd}
+                  onChange={(e) => setServicePeriodEnd(e.target.value)}
+                />
+              </div>
+            </div>
 
             {/* Service Selection */}
             <div>
@@ -318,8 +348,11 @@ const QuickInvoice: React.FC<QuickInvoiceProps> = ({ onInvoiceGenerated }) => {
                     
                     <hr className="my-2" />
                     <div className="flex justify-between font-bold text-lg">
-                      <span>Total (EUR):</span>
-                      <span>€{totals.total.toFixed(2)}</span>
+                      <span>Total ({selectedService.currency}):</span>
+                      <span>
+                        {selectedService.currency === 'ILS' ? '₪' : selectedService.currency === 'EUR' ? '€' : '$'}
+                        {totals.total.toFixed(2)}
+                      </span>
                     </div>
                   </div>
                 </div>

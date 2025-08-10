@@ -10,10 +10,13 @@ export const formatGermanDate = (dateString: string): string => {
 };
 
 // Format currency for German business standards
-export const formatCurrency = (amount: number, language: string = 'en'): string => {
+export const formatCurrency = (amount: number, language: string = 'en', currency: string = 'EUR'): string => {
+  // Map currency codes to their proper values
+  const currencyCode = currency === 'ILS' ? 'ILS' : currency === 'USD' ? 'USD' : 'EUR';
+  
   return new Intl.NumberFormat(language === 'de' ? 'de-DE' : 'en-US', {
     style: 'currency',
-    currency: 'EUR',
+    currency: currencyCode,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }).format(amount);
