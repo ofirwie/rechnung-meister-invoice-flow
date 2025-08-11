@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { InvoiceData } from '../types/invoice';
-import { InvoiceHistory } from '../types/invoiceHistory';
 
 export function useSupabaseInvoices() {
   const [invoices, setInvoices] = useState<InvoiceData[]>([]);
-  const [invoiceHistory, setInvoiceHistory] = useState<InvoiceHistory[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Load invoices from Supabase
@@ -72,57 +70,8 @@ export function useSupabaseInvoices() {
     }
   };
 
-  // Load invoice history from Supabase
-  const loadInvoiceHistory = async () => {
-    try {
-      // 🔧 CRITICAL FIX: Add user authentication and filtering for invoice history too
-      const { data: { session }, error: authError } = await supabase.auth.getSession();
-      
-      if (authError) {
-        console.error('❌ Auth error in loadInvoiceHistory:', authError);
-        throw authError;
-      }
-      
-      if (!session?.user) {
-        console.log('⚠️ No authenticated user - invoice history will be empty');
-        setInvoiceHistory([]);
-        return;
-      }
-      
-      console.log('🔍 Loading invoice history for user:', session.user.email);
-      
-      const { data, error } = await supabase
-        .from('invoice_history')
-        .select('*')
-        .eq('user_id', session.user.id) // 🔧 FIX: Add user filtering for RLS compliance
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const formattedHistory: InvoiceHistory[] = data.map(item => ({
-        id: item.id,
-        invoiceNumber: item.invoice_number,
-        clientId: item.client_id || '',
-        clientName: item.client_name,
-        amount: item.amount,
-        currency: item.currency,
-        status: item.status as InvoiceHistory['status'],
-        createdAt: item.created_at,
-        dueDate: item.due_date,
-        servicePeriodFrom: item.service_period_from,
-        servicePeriodTo: item.service_period_to,
-        language: item.language as 'de' | 'en'
-      }));
-
-      setInvoiceHistory(formattedHistory);
-    } catch (error) {
-      console.error('Error loading invoice history:', error);
-    }
-  };
-
   useEffect(() => {
     loadInvoices();
-    loadInvoiceHistory();
   }, []);
 
   const saveInvoice = async (invoice: InvoiceData) => {
@@ -212,37 +161,7 @@ export function useSupabaseInvoices() {
       
       console.log('✅ Invoice saved successfully:', data);
       
-      // Also save to invoice_history table for the history view
-      const historyData = {
-        invoice_number: invoice.invoiceNumber,
-        client_id: '', // Not used but might be required
-        client_name: invoice.clientCompany,
-        amount: invoice.total,
-        currency: invoice.currency,
-        status: invoice.status,
-        created_at: new Date().toISOString(),
-        due_date: invoice.dueDate,
-        service_period_from: invoice.servicePeriodStart,
-        service_period_to: invoice.servicePeriodEnd,
-        language: invoice.language,
-        user_id: user.id
-      };
-      
-      console.log('💾 Syncing to invoice_history table...');
-      
-      const { error: historyError } = await supabase
-        .from('invoice_history')
-        .upsert(historyData, { onConflict: 'invoice_number,user_id' });
-        
-      if (historyError) {
-        console.error('⚠️ Warning: Failed to sync to invoice_history:', historyError);
-        // Don't throw error here - invoice is saved, just history sync failed
-      } else {
-        console.log('✅ Invoice synced to history table');
-      }
-      
       await loadInvoices();
-      await loadInvoiceHistory();
       
       console.log('✅ Invoice save process completed successfully');
     } catch (error) {
@@ -309,7 +228,6 @@ export function useSupabaseInvoices() {
       if (error) throw error;
       
       await loadInvoices();
-      await loadInvoiceHistory();
     } catch (error) {
       console.error('Error updating invoice status:', error);
       throw error;
@@ -354,7 +272,6 @@ export function useSupabaseInvoices() {
       if (error) throw error;
       
       await loadInvoices();
-      await loadInvoiceHistory();
     } catch (error) {
       console.error('Error deleting invoice:', error);
       throw error;
@@ -367,15 +284,20 @@ export function useSupabaseInvoices() {
     );
   };
 
+  const getApprovedInvoices = () => {
+    return invoices.filter(invoice => 
+      invoice.status === 'approved' || invoice.status === 'issued'
+    );
+  };
+
   return {
     invoices,
-    invoiceHistory,
     loading,
     saveInvoice,
     updateInvoiceStatus,
     deleteInvoice,
     loadInvoices,
-    loadInvoiceHistory,
-    getPendingInvoices
+    getPendingInvoices,
+    getApprovedInvoices
   };
 }

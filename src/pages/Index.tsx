@@ -305,31 +305,11 @@ const Index = () => {
                 alert('Unable to load invoice details. Please try again.');
               }
             }}
-            onInvoiceView={(invoice: InvoiceHistory) => {
-              // Fallback: Convert InvoiceHistory back to InvoiceData for viewing
-              const invoiceData: InvoiceData = {
-                invoiceNumber: invoice.invoiceNumber,
-                invoiceDate: invoice.createdAt.split('T')[0],
-                servicePeriodStart: invoice.servicePeriodFrom,
-                servicePeriodEnd: invoice.servicePeriodTo,
-                dueDate: invoice.dueDate,
-                language: invoice.language,
-                currency: 'EUR',
-                clientCompany: invoice.clientName,
-                clientAddress: '',
-                clientCity: '',
-                clientPostalCode: '',
-                clientCountry: '',
-                services: [],
-                subtotal: invoice.amount,
-                vatAmount: 0,
-                total: invoice.amount,
-                status: invoice.status,
-                createdAt: invoice.createdAt,
-              };
-              setCurrentInvoice(invoiceData);
+            onInvoiceView={(invoice: InvoiceData) => {
+              // Simply set the current invoice for viewing
+              setCurrentInvoice(invoice);
             }}
-            onInvoiceEdit={(invoice: InvoiceHistory) => {
+            onInvoiceEdit={(invoice: InvoiceData) => {
               // For editing, we need to go back to the invoice form
               // TODO: This would need to pre-populate the form with the invoice data
               setCurrentView('invoice');

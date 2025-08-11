@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Search, Eye, Download } from 'lucide-react';
-import { InvoiceHistory } from '../types/invoiceHistory';
+import { InvoiceData } from '../types/invoice';
 import { translations } from '../utils/translations';
 import { formatGermanDate, formatCurrency } from '../utils/formatters';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -13,7 +13,7 @@ import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
 import { useLanguage } from '../hooks/useLanguage';
 
 interface InvoiceHistoryTableProps {
-  onInvoiceView?: (invoice: InvoiceHistory) => void;
+  onInvoiceView?: (invoice: InvoiceData) => void;
 }
 
 export default function InvoiceHistoryTable({ onInvoiceView }: InvoiceHistoryTableProps) {
@@ -28,23 +28,28 @@ export default function InvoiceHistoryTable({ onInvoiceView }: InvoiceHistoryTab
     );
   }
   
-  const { invoiceHistory, loading } = useSupabaseInvoices();
+  const { getApprovedInvoices, loading } = useSupabaseInvoices();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredInvoices = invoiceHistory.filter(invoice =>
+  const approvedInvoices = getApprovedInvoices();
+  const filteredInvoices = approvedInvoices.filter(invoice =>
     invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    invoice.clientName.toLowerCase().includes(searchTerm.toLowerCase())
+    invoice.clientCompany.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-muted-foreground">טוען חשבוניות...</div>
+        <div className="text-muted-foreground">
+          {language === 'de' ? 'Rechnungen werden geladen...' : 
+           language === 'he' ? 'טוען חשבוניות...' : 
+           'Loading invoices...'}
+        </div>
       </div>
     );
   }
 
-  const getStatusColor = (status: InvoiceHistory['status']) => {
+  const getStatusColor = (status: InvoiceData['status']) => {
     switch (status) {
       case 'issued':
         return 'bg-green-100 text-green-800';
@@ -61,7 +66,7 @@ export default function InvoiceHistoryTable({ onInvoiceView }: InvoiceHistoryTab
     }
   };
 
-  const getStatusText = (status: InvoiceHistory['status']) => {
+  const getStatusText = (status: InvoiceData['status']) => {
     switch (status) {
       case 'issued':
         return language === 'de' ? 'Ausgestellt' : 'Issued';
@@ -120,14 +125,14 @@ export default function InvoiceHistoryTable({ onInvoiceView }: InvoiceHistoryTab
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredInvoices.map((invoice) => (
-                  <TableRow key={invoice.id} className="hover:bg-muted/50">
+                {filteredInvoices.map((invoice, index) => (
+                  <TableRow key={`${invoice.invoiceNumber}-${index}`} className="hover:bg-muted/50">
                     <TableCell className="font-medium font-mono">
                       {invoice.invoiceNumber}
                     </TableCell>
-                    <TableCell>{invoice.clientName}</TableCell>
+                    <TableCell>{invoice.clientCompany}</TableCell>
                     <TableCell className="font-medium">
-                      {formatCurrency(invoice.amount, invoice.language)}
+                      {formatCurrency(invoice.total, invoice.language || language)}
                     </TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(invoice.status)}>
@@ -135,7 +140,7 @@ export default function InvoiceHistoryTable({ onInvoiceView }: InvoiceHistoryTab
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {formatGermanDate(invoice.createdAt.split('T')[0])}
+                      {formatGermanDate(invoice.createdAt?.split('T')[0] || invoice.invoiceDate)}
                     </TableCell>
                     <TableCell>
                       {formatGermanDate(invoice.dueDate)}
@@ -215,12 +220,12 @@ export default function InvoiceHistoryTable({ onInvoiceView }: InvoiceHistoryTab
                 </div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-corporate-blue">
-                  {formatCurrency(
-                    filteredInvoices.reduce((sum, invoice) => sum + invoice.amount, 0),
-                    language
-                  )}
-                </div>
+              <div className="text-2xl font-bold text-corporate-blue">
+                {formatCurrency(
+                  filteredInvoices.reduce((sum, invoice) => sum + invoice.total, 0),
+                  language
+                )}
+              </div>
                 <div className="text-sm text-muted-foreground">
                   {language === 'de' ? 'Gesamtwert' : 'Total Value'}
                 </div>

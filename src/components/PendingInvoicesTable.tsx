@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Search, Eye, Check, X, Edit, Trash2 } from 'lucide-react';
-import { InvoiceHistory } from '../types/invoiceHistory';
+import { InvoiceData } from '../types/invoice';
 import { translations } from '../utils/translations';
 import { formatGermanDate, formatCurrency } from '../utils/formatters';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -13,31 +13,36 @@ import { useSupabaseInvoices } from '../hooks/useSupabaseInvoices';
 import { useLanguage } from '../hooks/useLanguage';
 
 interface PendingInvoicesTableProps {
-  onInvoiceView?: (invoice: InvoiceHistory, fromPending?: boolean) => void;
-  onInvoiceEdit?: (invoice: InvoiceHistory) => void;
+  onInvoiceView?: (invoice: InvoiceData, fromPending?: boolean) => void;
+  onInvoiceEdit?: (invoice: InvoiceData) => void;
   onInvoiceViewWithFullData?: (invoiceNumber: string) => void;
 }
 
 export default function PendingInvoicesTable({ onInvoiceView, onInvoiceEdit, onInvoiceViewWithFullData }: PendingInvoicesTableProps) {
   const { language, t, isRTL } = useLanguage();
   
-  const { invoiceHistory, loading, updateInvoiceStatus, deleteInvoice, invoices } = useSupabaseInvoices();
+  const { getPendingInvoices, loading, updateInvoiceStatus, deleteInvoice } = useSupabaseInvoices();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredInvoices = invoiceHistory.filter(invoice =>
+  const pendingInvoices = getPendingInvoices();
+  const filteredInvoices = pendingInvoices.filter(invoice =>
     (invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     invoice.clientName.toLowerCase().includes(searchTerm.toLowerCase()))
+     invoice.clientCompany.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="text-muted-foreground">טוען חשבוניות...</div>
+        <div className="text-muted-foreground">
+          {language === 'de' ? 'Rechnungen werden geladen...' : 
+           language === 'he' ? 'טוען חשבוניות...' : 
+           'Loading invoices...'}
+        </div>
       </div>
     );
   }
 
-  const getStatusColor = (status: InvoiceHistory['status']) => {
+  const getStatusColor = (status: InvoiceData['status']) => {
     switch (status) {
       case 'issued':
         return 'bg-green-100 text-green-800';
@@ -54,7 +59,7 @@ export default function PendingInvoicesTable({ onInvoiceView, onInvoiceEdit, onI
     }
   };
 
-  const getStatusText = (status: InvoiceHistory['status']) => {
+  const getStatusText = (status: InvoiceData['status']) => {
     switch (status) {
       case 'issued':
         return language === 'de' ? 'Ausgestellt' : 'Issued';
@@ -77,7 +82,8 @@ export default function PendingInvoicesTable({ onInvoiceView, onInvoiceEdit, onI
       console.log('Invoice approved successfully');
     } catch (error) {
       console.error('Failed to approve invoice:', error);
-      alert('שגיאה באישור החשבונית. אנא נסה שוב.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(t.errorUpdatingStatus + '\n\n' + errorMessage);
     }
   };
 
@@ -87,12 +93,19 @@ export default function PendingInvoicesTable({ onInvoiceView, onInvoiceEdit, onI
       console.log('Invoice cancelled successfully');
     } catch (error) {
       console.error('Failed to cancel invoice:', error);
-      alert('שגיאה בביטול החשבונית. אנא נסה שוב.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(t.errorUpdatingStatus + '\n\n' + errorMessage);
     }
   };
 
   const handleDeleteInvoice = async (invoiceId: string) => {
-    if (!confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
+    const confirmMessage = language === 'de' 
+      ? 'Sind Sie sicher, dass Sie diese Rechnung löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.'
+      : language === 'he'
+      ? 'האם אתה בטוח שברצונך למחוק חשבונית זו? פעולה זו אינה ניתנת לביטול.'
+      : 'Are you sure you want to delete this invoice? This action cannot be undone.';
+      
+    if (!confirm(confirmMessage)) {
       return;
     }
     
@@ -101,25 +114,26 @@ export default function PendingInvoicesTable({ onInvoiceView, onInvoiceEdit, onI
       console.log('Invoice deleted successfully');
     } catch (error) {
       console.error('Failed to delete invoice:', error);
-      alert(error.message || 'Error deleting invoice. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert(errorMessage);
     }
   };
 
-  const needsApproval = (status: InvoiceHistory['status']) => {
+  const needsApproval = (status: InvoiceData['status']) => {
     return status === 'draft' || status === 'pending_approval';
   };
 
-  const canBeCancelled = (status: InvoiceHistory['status']) => {
+  const canBeCancelled = (status: InvoiceData['status']) => {
     // Can cancel draft and pending_approval, but NEVER approved or issued
     return status === 'draft' || status === 'pending_approval';
   };
 
-  const canBeEdited = (status: InvoiceHistory['status']) => {
+  const canBeEdited = (status: InvoiceData['status']) => {
     // Can only edit draft and pending_approval, NEVER approved or issued
     return status === 'draft' || status === 'pending_approval';
   };
 
-  const canBeDeleted = (status: InvoiceHistory['status']) => {
+  const canBeDeleted = (status: InvoiceData['status']) => {
     // Can only delete draft and pending_approval, NEVER approved or issued
     return status === 'draft' || status === 'pending_approval';
   };
@@ -166,14 +180,14 @@ export default function PendingInvoicesTable({ onInvoiceView, onInvoiceEdit, onI
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredInvoices.map((invoice) => (
-                  <TableRow key={invoice.id} className="hover:bg-muted/50">
+                {filteredInvoices.map((invoice, index) => (
+                  <TableRow key={`${invoice.invoiceNumber}-${index}`} className="hover:bg-muted/50">
                     <TableCell className="font-medium font-mono">
                       {invoice.invoiceNumber}
                     </TableCell>
-                    <TableCell>{invoice.clientName}</TableCell>
+                    <TableCell>{invoice.clientCompany}</TableCell>
                     <TableCell className="font-medium">
-                      {formatCurrency(invoice.amount, invoice.language)}
+                      {formatCurrency(invoice.total, invoice.language || language)}
                     </TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(invoice.status)}>
@@ -181,7 +195,7 @@ export default function PendingInvoicesTable({ onInvoiceView, onInvoiceEdit, onI
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {formatGermanDate(invoice.createdAt.split('T')[0])}
+                      {formatGermanDate(invoice.createdAt?.split('T')[0] || invoice.invoiceDate)}
                     </TableCell>
                     <TableCell>
                       {formatGermanDate(invoice.dueDate)}
