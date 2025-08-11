@@ -239,6 +239,29 @@ export function useSupabaseInvoices() {
       
       const user = session.user;
 
+      // First, check the current status of the invoice
+      const { data: currentInvoice, error: fetchError } = await supabase
+        .from('invoices')
+        .select('status')
+        .eq('invoice_number', invoiceNumber)
+        .eq('user_id', user.id)
+        .single();
+
+      if (fetchError || !currentInvoice) {
+        throw new Error('Invoice not found or access denied.');
+      }
+
+      // Business rule validation
+      if (currentInvoice.status === 'approved' || currentInvoice.status === 'issued') {
+        if (status === 'cancelled') {
+          throw new Error('Cannot cancel approved or issued invoices! This violates business rules.');
+        }
+        // Only allow status progression, not regression
+        if (status !== 'issued' && currentInvoice.status === 'approved') {
+          throw new Error('Approved invoices can only be marked as issued, not edited or cancelled.');
+        }
+      }
+
       const updateData: any = { status };
       
       if (status === 'approved') {

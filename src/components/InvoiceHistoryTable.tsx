@@ -173,7 +173,7 @@ export default function InvoiceHistoryTable({ onInvoiceView }: InvoiceHistoryTab
       {filteredInvoices.length > 0 && (
         <Card>
           <CardContent className="p-4">
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold text-corporate-blue">
                   {filteredInvoices.length}
@@ -188,6 +188,14 @@ export default function InvoiceHistoryTable({ onInvoiceView }: InvoiceHistoryTab
                 </div>
                 <div className="text-sm text-muted-foreground">
                   {getStatusText('issued')}
+                </div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {filteredInvoices.filter(i => i.status === 'approved').length}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {getStatusText('approved')}
                 </div>
               </div>
               <div>

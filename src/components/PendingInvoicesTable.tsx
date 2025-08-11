@@ -91,15 +91,17 @@ export default function PendingInvoicesTable({ onInvoiceView, onInvoiceEdit }: P
   };
 
   const needsApproval = (status: InvoiceHistory['status']) => {
-    return status === 'draft';
+    return status === 'draft' || status === 'pending_approval';
   };
 
   const canBeCancelled = (status: InvoiceHistory['status']) => {
-    return status === 'draft';
+    // Can cancel draft and pending_approval, but NEVER approved or issued
+    return status === 'draft' || status === 'pending_approval';
   };
 
   const canBeEdited = (status: InvoiceHistory['status']) => {
-    return status === 'pending_approval';
+    // Can only edit draft and pending_approval, NEVER approved or issued
+    return status === 'draft' || status === 'pending_approval';
   };
 
   return (
