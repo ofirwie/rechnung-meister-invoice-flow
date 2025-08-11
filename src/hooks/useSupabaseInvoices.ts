@@ -211,33 +211,39 @@ export function useSupabaseInvoices() {
       console.log('👤 User ID:', user.id);
 
       // First, check the current status of the invoice
-      const { data: currentInvoice, error: fetchError } = await supabase
+      // Use .limit(1) instead of .single() to avoid 406 errors with duplicates
+      const { data: currentInvoices, error: fetchError } = await supabase
         .from('invoices')
-        .select('status, invoice_number, user_id')
+        .select('status, invoice_number, user_id, id')
         .eq('invoice_number', invoiceNumber)
         .eq('user_id', user.id)
         .is('deleted_at', null)
-        .single();
+        .limit(1);
 
       if (fetchError) {
         console.error('❌ Error fetching invoice:', fetchError);
         console.error('Invoice number:', invoiceNumber);
         console.error('User ID:', user.id);
-        
+        throw new Error(`Error fetching invoice: ${fetchError.message}`);
+      }
+      
+      if (!currentInvoices || currentInvoices.length === 0) {
         // Try to find invoice without user filter to check if it exists
         const { data: anyInvoice } = await supabase
           .from('invoices')
           .select('invoice_number, user_id')
           .eq('invoice_number', invoiceNumber)
-          .single();
+          .limit(1);
           
-        if (anyInvoice) {
-          console.error('⚠️ Invoice exists but belongs to different user:', anyInvoice.user_id);
+        if (anyInvoice && anyInvoice.length > 0) {
+          console.error('⚠️ Invoice exists but belongs to different user:', anyInvoice[0].user_id);
           throw new Error('Access denied: This invoice belongs to another user.');
         } else {
           throw new Error(`Invoice "${invoiceNumber}" not found in the database.`);
         }
       }
+      
+      const currentInvoice = currentInvoices[0];
       
       if (!currentInvoice) {
         throw new Error(`Invoice "${invoiceNumber}" not found or has been deleted.`);
@@ -295,34 +301,39 @@ export function useSupabaseInvoices() {
       console.log('👤 User ID:', user.id);
 
       // First, get the invoice to check its status
-      const { data: invoiceData, error: fetchError } = await supabase
+      // Use .limit(1) instead of .single() to avoid 406 errors with duplicates
+      const { data: invoiceDataArray, error: fetchError } = await supabase
         .from('invoices')
-        .select('status, invoice_number, user_id')
+        .select('status, invoice_number, user_id, id')
         .eq('invoice_number', invoiceNumber)
         .eq('user_id', user.id)
         .is('deleted_at', null)
-        .single();
+        .limit(1);
 
       if (fetchError) {
         console.error('❌ Error fetching invoice for deletion:', fetchError);
         console.error('Invoice number:', invoiceNumber);
         console.error('User ID:', user.id);
-        
+        throw new Error(`Error fetching invoice: ${fetchError.message}`);
+      }
+      
+      if (!invoiceDataArray || invoiceDataArray.length === 0) {
         // Try to find invoice without user filter to check if it exists
         const { data: anyInvoice } = await supabase
           .from('invoices')
           .select('invoice_number, user_id')
           .eq('invoice_number', invoiceNumber)
-          .single();
+          .limit(1);
           
-        if (anyInvoice) {
-          console.error('⚠️ Invoice exists but belongs to different user:', anyInvoice.user_id);
+        if (anyInvoice && anyInvoice.length > 0) {
+          console.error('⚠️ Invoice exists but belongs to different user:', anyInvoice[0].user_id);
           throw new Error('Access denied: This invoice belongs to another user.');
         } else {
           throw new Error(`Invoice "${invoiceNumber}" not found in the database.`);
         }
       }
       
+      const invoiceData = invoiceDataArray[0];
       console.log('✅ Found invoice with status:', invoiceData.status);
 
       // Prevent deletion of approved or issued invoices

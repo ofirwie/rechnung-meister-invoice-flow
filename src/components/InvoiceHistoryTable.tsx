@@ -28,11 +28,15 @@ export default function InvoiceHistoryTable({ onInvoiceView }: InvoiceHistoryTab
     );
   }
   
-  const { getApprovedInvoices, loading } = useSupabaseInvoices();
+  const { invoices, loading } = useSupabaseInvoices();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const approvedInvoices = getApprovedInvoices();
-  const filteredInvoices = approvedInvoices.filter(invoice =>
+  // Get all non-draft invoices for history (include cancelled)
+  const historyInvoices = invoices.filter(invoice => 
+    invoice.status !== 'draft'
+  );
+  
+  const filteredInvoices = historyInvoices.filter(invoice =>
     invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
     invoice.clientCompany.toLowerCase().includes(searchTerm.toLowerCase())
   );
