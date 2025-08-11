@@ -114,6 +114,7 @@ const QuickInvoice: React.FC<QuickInvoiceProps> = ({ onInvoiceGenerated }) => {
         currency: 'EUR', // Always EUR
         
         // Client information
+        clientId: selectedClient.id, // Add client ID to invoice data
         clientCompany: selectedClient.company_name,
         clientName: selectedClient.contact_name,
         clientEmail: selectedClient.email,

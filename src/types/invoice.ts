@@ -8,6 +8,7 @@ export interface InvoiceData {
   currency: 'EUR' | 'USD' | 'ILS';
   
   // Client information
+  clientId?: string; // Add client ID
   clientCompany: string;
   clientName?: string;
   clientEmail?: string;

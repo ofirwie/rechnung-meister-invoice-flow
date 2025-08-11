@@ -21,6 +21,7 @@ import MinimalDebug from "./pages/MinimalDebug";
 import SimpleDebug from "./pages/SimpleDebug";
 import ClientSelectionFlowDebug from "./pages/ClientSelectionFlowDebug";
 import ManualInvoice from "./pages/ManualInvoice";
+import InvoiceMaintenancePage from "./pages/InvoiceMaintenancePage";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => {
               <Route path="/simple-debug" element={<SimpleDebug />} />
               <Route path="/debug-client-flow" element={<ClientSelectionFlowDebug />} />
               <Route path="/manual-invoice" element={<ManualInvoice />} />
+              <Route path="/invoice-maintenance" element={<InvoiceMaintenancePage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

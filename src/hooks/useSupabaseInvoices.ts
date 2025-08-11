@@ -54,6 +54,7 @@ export function useSupabaseInvoices() {
         dueDate: invoice.due_date,
         language: invoice.language as 'de' | 'en',
         currency: 'EUR',
+        clientId: invoice.client_id, // ADD THIS LINE - Critical fix!
         clientCompany: invoice.client_company,
         clientAddress: invoice.client_address,
         clientCity: invoice.client_city,
@@ -120,6 +121,7 @@ export function useSupabaseInvoices() {
         due_date: invoice.dueDate,
         language: invoice.language,
         currency: invoice.currency,
+        client_id: invoice.clientId || null, // Add client_id to fix the issue
         client_company: invoice.clientCompany,
         client_address: invoice.clientAddress,
         client_city: invoice.clientCity || 'Unknown', // Provide fallback for required field
@@ -136,7 +138,8 @@ export function useSupabaseInvoices() {
         approved_at: invoice.approvedAt || null,
         approved_by: invoice.approvedBy || null,
         issued_at: invoice.issuedAt || null,
-        user_id: user.id
+        user_id: user.id,
+        company_id: selectedCompany.id // Add company_id to fix the issue
       };
       
       console.log('💾 Database payload:', dbData);
