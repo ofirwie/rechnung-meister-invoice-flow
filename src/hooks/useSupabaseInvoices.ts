@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { InvoiceData } from '../types/invoice';
+import { useCompany } from '@/contexts/CompanyContext';
 
 export function useSupabaseInvoices() {
   const [invoices, setInvoices] = useState<InvoiceData[]>([]);
   const [loading, setLoading] = useState(true);
+  const { selectedCompany } = useCompany();
 
   // Load invoices from Supabase
   const loadInvoices = async () => {
@@ -25,6 +27,15 @@ export function useSupabaseInvoices() {
       }
       
       console.log('🔍 Loading invoices for user:', session.user.email);
+      console.log('🏢 Current company ID:', selectedCompany?.id);
+      
+      // If no company selected, return empty
+      if (!selectedCompany?.id) {
+        console.log('⚠️ No company selected - returning empty invoice list');
+        setInvoices([]);
+        setLoading(false);
+        return;
+      }
       
       const { data, error } = await supabase
         .from('invoices')
@@ -94,6 +105,11 @@ export function useSupabaseInvoices() {
       
       const user = session.user;
       console.log('✅ User authenticated:', user.id);
+      
+      // Ensure we have a company selected
+      if (!selectedCompany?.id) {
+        throw new Error('No company selected. Please select a company before creating invoices.');
+      }
 
       // Prepare the data for database insertion
       const dbData = {
@@ -334,7 +350,7 @@ export function useSupabaseInvoices() {
 
   const getApprovedInvoices = () => {
     return invoices.filter(invoice => 
-      invoice.status === 'approved' || invoice.status === 'issued'
+      invoice.status === 'approved' || invoice.status === 'issued' || invoice.status === 'cancelled'
     );
   };
 
