@@ -212,6 +212,35 @@ export function useSupabaseInvoices() {
       
       console.log('✅ Invoice saved successfully:', data);
       
+      // Also save to invoice_history table for the history view
+      const historyData = {
+        invoice_number: invoice.invoiceNumber,
+        client_id: '', // Not used but might be required
+        client_name: invoice.clientCompany,
+        amount: invoice.total,
+        currency: invoice.currency,
+        status: invoice.status,
+        created_at: new Date().toISOString(),
+        due_date: invoice.dueDate,
+        service_period_from: invoice.servicePeriodStart,
+        service_period_to: invoice.servicePeriodEnd,
+        language: invoice.language,
+        user_id: user.id
+      };
+      
+      console.log('💾 Syncing to invoice_history table...');
+      
+      const { error: historyError } = await supabase
+        .from('invoice_history')
+        .upsert(historyData, { onConflict: 'invoice_number,user_id' });
+        
+      if (historyError) {
+        console.error('⚠️ Warning: Failed to sync to invoice_history:', historyError);
+        // Don't throw error here - invoice is saved, just history sync failed
+      } else {
+        console.log('✅ Invoice synced to history table');
+      }
+      
       await loadInvoices();
       await loadInvoiceHistory();
       

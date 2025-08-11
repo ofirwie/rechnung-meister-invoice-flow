@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Search, Eye, Check, X, Edit } from 'lucide-react';
+import { Search, Eye, Check, X, Edit, Trash2 } from 'lucide-react';
 import { InvoiceHistory } from '../types/invoiceHistory';
 import { translations } from '../utils/translations';
 import { formatGermanDate, formatCurrency } from '../utils/formatters';
@@ -15,12 +15,13 @@ import { useLanguage } from '../hooks/useLanguage';
 interface PendingInvoicesTableProps {
   onInvoiceView?: (invoice: InvoiceHistory, fromPending?: boolean) => void;
   onInvoiceEdit?: (invoice: InvoiceHistory) => void;
+  onInvoiceViewWithFullData?: (invoiceNumber: string) => void;
 }
 
-export default function PendingInvoicesTable({ onInvoiceView, onInvoiceEdit }: PendingInvoicesTableProps) {
+export default function PendingInvoicesTable({ onInvoiceView, onInvoiceEdit, onInvoiceViewWithFullData }: PendingInvoicesTableProps) {
   const { language, t, isRTL } = useLanguage();
   
-  const { invoiceHistory, loading, updateInvoiceStatus } = useSupabaseInvoices();
+  const { invoiceHistory, loading, updateInvoiceStatus, deleteInvoice, invoices } = useSupabaseInvoices();
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredInvoices = invoiceHistory.filter(invoice =>
@@ -90,6 +91,20 @@ export default function PendingInvoicesTable({ onInvoiceView, onInvoiceEdit }: P
     }
   };
 
+  const handleDeleteInvoice = async (invoiceId: string) => {
+    if (!confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      await deleteInvoice(invoiceId);
+      console.log('Invoice deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete invoice:', error);
+      alert(error.message || 'Error deleting invoice. Please try again.');
+    }
+  };
+
   const needsApproval = (status: InvoiceHistory['status']) => {
     return status === 'draft' || status === 'pending_approval';
   };
@@ -101,6 +116,11 @@ export default function PendingInvoicesTable({ onInvoiceView, onInvoiceEdit }: P
 
   const canBeEdited = (status: InvoiceHistory['status']) => {
     // Can only edit draft and pending_approval, NEVER approved or issued
+    return status === 'draft' || status === 'pending_approval';
+  };
+
+  const canBeDeleted = (status: InvoiceHistory['status']) => {
+    // Can only delete draft and pending_approval, NEVER approved or issued
     return status === 'draft' || status === 'pending_approval';
   };
 
@@ -171,7 +191,14 @@ export default function PendingInvoicesTable({ onInvoiceView, onInvoiceEdit }: P
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => onInvoiceView?.(invoice, true)}
+                          onClick={() => {
+                            // Try to use the full data viewer if available
+                            if (onInvoiceViewWithFullData) {
+                              onInvoiceViewWithFullData(invoice.invoiceNumber);
+                            } else {
+                              onInvoiceView?.(invoice, true);
+                            }
+                          }}
                         >
                           <Eye className="w-4 h-4 mr-1" />
                           {t.viewInvoice}
@@ -206,6 +233,17 @@ export default function PendingInvoicesTable({ onInvoiceView, onInvoiceEdit }: P
                           >
                             <X className="w-4 h-4 mr-1" />
                             {t.cancelInvoice}
+                          </Button>
+                        )}
+                        {canBeDeleted(invoice.status) && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteInvoice(invoice.invoiceNumber)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            {language === 'de' ? 'Löschen' : 'Delete'}
                           </Button>
                         )}
                       </div>

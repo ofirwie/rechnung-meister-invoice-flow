@@ -62,7 +62,7 @@ const Index = () => {
     };
   });
 
-  const { updateInvoiceStatus, saveInvoice } = useSupabaseInvoices();
+  const { updateInvoiceStatus, saveInvoice, invoices } = useSupabaseInvoices();
   const { 
     isMigrating, 
     migrationStatus, 
@@ -294,8 +294,19 @@ const Index = () => {
         )}
         {currentView === 'pending' && (
           <PendingInvoicesTable 
+            onInvoiceViewWithFullData={async (invoiceNumber: string) => {
+              // Load the complete invoice data from the database
+              const fullInvoice = invoices.find(inv => inv.invoiceNumber === invoiceNumber);
+              
+              if (fullInvoice) {
+                setCurrentInvoice(fullInvoice);
+              } else {
+                console.error('Invoice not found:', invoiceNumber);
+                alert('Unable to load invoice details. Please try again.');
+              }
+            }}
             onInvoiceView={(invoice: InvoiceHistory) => {
-              // Convert InvoiceHistory back to InvoiceData for viewing
+              // Fallback: Convert InvoiceHistory back to InvoiceData for viewing
               const invoiceData: InvoiceData = {
                 invoiceNumber: invoice.invoiceNumber,
                 invoiceDate: invoice.createdAt.split('T')[0],
