@@ -126,6 +126,7 @@ export async function checkInvoiceNumberExists(invoiceNumber: string): Promise<b
       .select('invoice_number')
       .eq('user_id', user.id)
       .eq('invoice_number', invoiceNumber)
+      .is('deleted_at', null) // 🔧 FIX: Only check non-deleted invoices
       .limit(1);
 
     if (error) {
