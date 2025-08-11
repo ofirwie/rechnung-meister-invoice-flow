@@ -26,7 +26,6 @@ const QuickInvoice: React.FC<QuickInvoiceProps> = ({ onInvoiceGenerated }) => {
   const [selectedServiceId, setSelectedServiceId] = useState<string>('');
   const [hours, setHours] = useState<number>(0);
   const [exchangeRate, setExchangeRate] = useState<number>(3.8); // Default EUR/ILS rate
-  const [invoiceNumber, setInvoiceNumber] = useState<string>('');
   const [isCreating, setIsCreating] = useState(false);
   
   // Date controls
@@ -62,23 +61,10 @@ const QuickInvoice: React.FC<QuickInvoiceProps> = ({ onInvoiceGenerated }) => {
 
   const totals = calculateTotals();
 
-  // Generate invoice number when client is selected
-  useEffect(() => {
-    if (selectedClient) {
-      generateAutoInvoiceNumber(selectedClient.company_name)
-        .then(number => {
-          console.log('Generated invoice number:', number);
-          setInvoiceNumber(number);
-        })
-        .catch(error => {
-          console.error('Error generating invoice number:', error);
-          setInvoiceNumber('ERROR-GENERATING-NUMBER');
-        });
-    }
-  }, [selectedClient]);
+  // Remove automatic generation - will generate on save instead
 
   const handleCreateInvoice = async () => {
-    if (!selectedClient || !selectedService || hours <= 0 || !invoiceNumber) {
+    if (!selectedClient || !selectedService || hours <= 0) {
       alert('Please fill in all required fields');
       return;
     }
@@ -86,6 +72,27 @@ const QuickInvoice: React.FC<QuickInvoiceProps> = ({ onInvoiceGenerated }) => {
     setIsCreating(true);
 
     try {
+      // Generate invoice number at save time to prevent duplicates
+      let invoiceNumber: string;
+      let retryCount = 0;
+      const maxRetries = 3;
+      
+      while (retryCount < maxRetries) {
+        try {
+          invoiceNumber = await generateAutoInvoiceNumber(selectedClient.company_name);
+          console.log('Generated invoice number:', invoiceNumber);
+          break; // Success, exit loop
+        } catch (error) {
+          console.error(`Error generating invoice number (attempt ${retryCount + 1}):`, error);
+          retryCount++;
+          if (retryCount >= maxRetries) {
+            throw new Error('Failed to generate invoice number after multiple attempts');
+          }
+          // Wait a bit before retry
+          await new Promise(resolve => setTimeout(resolve, 100 * retryCount));
+        }
+      }
+
       const now = new Date();
       const dueDate = new Date(new Date(invoiceDate).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // 30 days from invoice date
 
@@ -141,13 +148,30 @@ const QuickInvoice: React.FC<QuickInvoiceProps> = ({ onInvoiceGenerated }) => {
         createdAt: now.toISOString(),
       };
 
-      // Save to database
-      await saveInvoice(invoiceData);
-      
-      // Call the callback to navigate to preview
-      onInvoiceGenerated(invoiceData);
+      // Save to database with duplicate handling
+      try {
+        await saveInvoice(invoiceData);
+        
+        // Call the callback to navigate to preview
+        onInvoiceGenerated(invoiceData);
 
-      console.log('Invoice created successfully:', invoiceNumber);
+        console.log('Invoice created successfully:', invoiceNumber);
+      } catch (saveError: any) {
+        // Check if it's a duplicate error
+        if (saveError.message === 'DUPLICATE_INVOICE_NUMBER') {
+          console.error('Duplicate invoice detected, regenerating number...');
+          // If duplicate, try again with a new number
+          const newNumber = await generateAutoInvoiceNumber(selectedClient.company_name);
+          invoiceData.invoiceNumber = newNumber;
+          
+          // Try once more with the new number
+          await saveInvoice(invoiceData);
+          onInvoiceGenerated(invoiceData);
+          console.log('Invoice created successfully with new number:', newNumber);
+        } else {
+          throw saveError; // Re-throw other errors
+        }
+      }
       
     } catch (error) {
       console.error('Error creating invoice:', error);
@@ -191,13 +215,10 @@ const QuickInvoice: React.FC<QuickInvoiceProps> = ({ onInvoiceGenerated }) => {
               </Select>
             </div>
 
-            {/* Invoice Number - Auto-generated */}
-            {invoiceNumber && (
-              <div>
-                <Label>Invoice Number</Label>
-                <Input value={invoiceNumber} disabled className="bg-gray-50" />
-              </div>
-            )}
+            {/* Invoice Number will be generated on save */}
+            <div className="text-sm text-gray-500">
+              Invoice number will be generated automatically when you create the invoice
+            </div>
 
             {/* Date Controls */}
             <div>

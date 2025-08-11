@@ -155,7 +155,7 @@ export function useSupabaseInvoices() {
 
       const { data, error } = await supabase
         .from('invoices')
-        .upsert(dbData)
+        .insert(dbData) // 🔧 FIX: Use insert instead of upsert to prevent overwriting
         .select(); // Add select to get the inserted data back
 
       if (error) {
@@ -170,7 +170,8 @@ export function useSupabaseInvoices() {
         if (error.code === '23502') {
           throw new Error(`Database constraint violation: ${error.message}. Please check all required fields are filled.`);
         } else if (error.code === '23505') {
-          throw new Error(`Duplicate entry: ${error.message}. This invoice number may already exist.`);
+          // Duplicate entry - this is now expected behavior to prevent duplicates
+          throw new Error(`DUPLICATE_INVOICE_NUMBER`); // Special error for the UI to handle
         } else if (error.code === '42703') {
           throw new Error(`Database column error: ${error.message}. There may be a field mapping issue.`);
         } else {

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>דיבוג כפילות חשבונית</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f4f4f4;
+            direction: rtl;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .result {
+            background: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .error {
+            background: #fee;
+            border-color: #fcc;
+            color: #c00;
+        }
+        .warning {
+            background: #ffe;
+            border-color: #ffc;
+            color: #880;
+        }
+        .success {
+            background: #efe;
+            border-color: #cfc;
+            color: #080;
+        }
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 דיבוג כפילות חשבונית: 2025-08-AMYL-002</h1>
+        
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button onclick="checkDuplicates()">בדוק כפילויות</button>
+            <button onclick="checkInvoiceGeneration()">בדוק יצירת מספרים</button>
+            <button onclick="fixDuplicates()">תקן כפילויות</button>
+            <button onclick="clearResults()">נקה תוצאות</button>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        
+        // Initialize Supabase
+        const supabaseUrl = 'https://bphilnfifbdofojrqrcc.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwaGlsbmZpZmJkb2ZvanJxcmNjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU4MDkzMzUsImV4cCI6MjA0MTM4NTMzNX0.VgVCHEL-fqE2wUXa_L2sSdp_VdbJmkZxGJELq9J3Gwg';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        window.supabase = supabase;
+        
+        function addResult(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+        
+        window.clearResults = function() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        window.checkDuplicates = async function() {
+            clearResults();
+            addResult('<h3>📋 בודק כפילויות...</h3>');
+            
+            try {
+                // Get current session
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    addResult('❌ אתה לא מחובר! התחבר קודם למערכת.', 'error');
+                    return;
+                }
+                
+                // Check all instances of this invoice
+                const { data: allInstances, error: allError } = await supabase
+                    .from('invoices')
+                    .select('*')
+                    .eq('invoice_number', '2025-08-AMYL-002');
+                
+                if (allError) throw allError;
+                
+                addResult(`<strong>נמצאו ${allInstances.length} מופעים של החשבונית:</strong>`);
+                
+                allInstances.forEach((inv, index) => {
+                    const isDeleted = inv.deleted_at ? ' <span style="color: red;">[נמחק]</span>' : '';
+                    const isYours = inv.user_id === session.user.id ? ' <span style="color: green;">✓ שלך</span>' : ' <span style="color: orange;">⚠️ משתמש אחר</span>';
+                    
+                    addResult(`
+                        <strong>מופע ${index + 1}:</strong><br>
+                        - ID: ${inv.id}<br>
+                        - נוצר: ${new Date(inv.created_at).toLocaleString('he-IL')}<br>
+                        - משתמש: ${inv.user_id}${isYours}<br>
+                        - חברה: ${inv.company_id || 'לא מוגדר'}<br>
+                        - לקוח: ${inv.client_company}<br>
+                        - סטטוס: ${inv.status}${isDeleted}
+                    `, allInstances.length > 1 ? 'warning' : 'info');
+                });
+                
+                // Check all invoices with similar prefix
+                const { data: similarInvoices } = await supabase
+                    .from('invoices')
+                    .select('invoice_number, created_at, status, deleted_at, user_id')
+                    .like('invoice_number', '2025-08-AMYL-%')
+                    .order('invoice_number');
+                
+                if (similarInvoices && similarInvoices.length > 0) {
+                    addResult(`<strong>כל החשבוניות עם prefix 2025-08-AMYL:</strong>`);
+                    const groupedByNumber = {};
+                    
+                    similarInvoices.forEach(inv => {
+                        if (!groupedByNumber[inv.invoice_number]) {
+                            groupedByNumber[inv.invoice_number] = [];
+                        }
+                        groupedByNumber[inv.invoice_number].push(inv);
+                    });
+                    
+                    Object.entries(groupedByNumber).forEach(([number, invs]) => {
+                        const hasDuplicates = invs.length > 1;
+                        const status = hasDuplicates ? 'warning' : 'info';
+                        
+                        let message = `<strong>${number}</strong> - ${invs.length} מופעים`;
+                        if (hasDuplicates) {
+                            message += '<br>';
+                            invs.forEach(inv => {
+                                const isDeleted = inv.deleted_at ? '[נמחק]' : '[פעיל]';
+                                const isYours = inv.user_id === session.user.id ? '✓' : '⚠️';
+                                message += `&nbsp;&nbsp;• ${isDeleted} ${isYours} (${inv.status})<br>`;
+                            });
+                        }
+                        
+                        addResult(message, status);
+                    });
+                }
+                
+                // Check for race conditions
+                if (allInstances.length > 1) {
+                    addResult('<strong>⏱️ בדיקת הפרשי זמן (race condition):</strong>');
+                    for (let i = 0; i < allInstances.length - 1; i++) {
+                        const time1 = new Date(allInstances[i].created_at);
+                        const time2 = new Date(allInstances[i + 1].created_at);
+                        const diffSeconds = Math.abs(time2 - time1) / 1000;
+                        
+                        const status = diffSeconds < 5 ? 'error' : 'info';
+                        addResult(`מופע ${i + 1} למופע ${i + 2}: ${diffSeconds.toFixed(2)} שניות${diffSeconds < 5 ? ' - חשד ל-Race Condition!' : ''}`, status);
+                    }
+                }
+                
+            } catch (error) {
+                addResult(`❌ שגיאה: ${error.message}`, 'error');
+            }
+        }
+        
+        window.checkInvoiceGeneration = async function() {
+            clearResults();
+            addResult('<h3>🔢 בודק יצירת מספרי חשבוניות...</h3>');
+            
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    addResult('❌ אתה לא מחובר!', 'error');
+                    return;
+                }
+                
+                // Simulate the invoice number generation query
+                addResult('<strong>מדמה את החיפוש של generateAutoInvoiceNumber:</strong>');
+                
+                // Without deleted_at filter (current implementation)
+                const { data: withoutFilter } = await supabase
+                    .from('invoices')
+                    .select('invoice_number')
+                    .eq('user_id', session.user.id)
+                    .like('invoice_number', '2025-08-AMYL-%')
+                    .order('invoice_number', { ascending: false })
+                    .limit(1);
+                
+                // With deleted_at filter (recommended)
+                const { data: withFilter } = await supabase
+                    .from('invoices')
+                    .select('invoice_number')
+                    .eq('user_id', session.user.id)
+                    .like('invoice_number', '2025-08-AMYL-%')
+                    .is('deleted_at', null)
+                    .order('invoice_number', { ascending: false })
+                    .limit(1);
+                
+                addResult(`
+                    <strong>תוצאות:</strong><br>
+                    ללא סינון deleted_at: ${withoutFilter?.[0]?.invoice_number || 'לא נמצא'}<br>
+                    עם סינון deleted_at: ${withFilter?.[0]?.invoice_number || 'לא נמצא'}
+                `, withoutFilter?.[0]?.invoice_number !== withFilter?.[0]?.invoice_number ? 'warning' : 'info');
+                
+                // Check what would be the next number
+                const lastNumber = withFilter?.[0]?.invoice_number || '2025-08-AMYL-000';
+                const match = lastNumber.match(/^(\d{4}-\d{2}-[A-Z]{4}-)(\d{3})$/);
+                if (match) {
+                    const nextNum = parseInt(match[2]) + 1;
+                    const nextNumber = `${match[1]}${String(nextNum).padStart(3, '0')}`;
+                    addResult(`<strong>המספר הבא צריך להיות: ${nextNumber}</strong>`, 'success');
+                }
+                
+            } catch (error) {
+                addResult(`❌ שגיאה: ${error.message}`, 'error');
+            }
+        }
+        
+        window.fixDuplicates = async function() {
+            clearResults();
+            addResult('<h3>🔧 מתקן כפילויות...</h3>');
+            
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    addResult('❌ אתה לא מחובר!', 'error');
+                    return;
+                }
+                
+                // Get all active duplicates for this user
+                const { data: duplicates } = await supabase
+                    .from('invoices')
+                    .select('*')
+                    .eq('invoice_number', '2025-08-AMYL-002')
+                    .eq('user_id', session.user.id)
+                    .is('deleted_at', null);
+                
+                if (!duplicates || duplicates.length <= 1) {
+                    addResult('✅ אין כפילויות פעילות למשתמש שלך', 'success');
+                    return;
+                }
+                
+                addResult(`נמצאו ${duplicates.length} כפילויות פעילות. משאיר רק את הראשונה...`, 'warning');
+                
+                // Sort by created_at to keep the oldest
+                duplicates.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                
+                // Mark all except the first as deleted
+                for (let i = 1; i < duplicates.length; i++) {
+                    const { error } = await supabase
+                        .from('invoices')
+                        .update({ deleted_at: new Date().toISOString() })
+                        .eq('id', duplicates[i].id);
+                    
+                    if (error) {
+                        addResult(`❌ שגיאה במחיקת כפילות ${duplicates[i].id}: ${error.message}`, 'error');
+                    } else {
+                        addResult(`✓ כפילות ${duplicates[i].id} סומנה כמחוקה`, 'success');
+                    }
+                }
+                
+                addResult('<strong>✅ התיקון הושלם!</strong>', 'success');
+                
+            } catch (error) {
+                addResult(`❌ שגיאה: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

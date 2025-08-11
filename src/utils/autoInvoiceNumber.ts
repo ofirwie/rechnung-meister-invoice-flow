@@ -74,6 +74,7 @@ export async function generateAutoInvoiceNumber(clientCompanyName?: string): Pro
       .select('invoice_number')
       .eq('user_id', user.id)
       .like('invoice_number', `${monthYearCompanyPrefix}-%`)
+      .is('deleted_at', null) // 🔧 FIX: Only consider non-deleted invoices
       .order('invoice_number', { ascending: false })
       .limit(1);
 
