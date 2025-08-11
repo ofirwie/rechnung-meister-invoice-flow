@@ -178,6 +178,8 @@ export function useSupabaseInvoices() {
 
   const updateInvoiceStatus = async (invoiceNumber: string, status: InvoiceData['status']) => {
     try {
+      console.log('🔄 Updating invoice status:', { invoiceNumber, newStatus: status });
+      
       // Get current user from session
       const { data: { session }, error: authError } = await supabase.auth.getSession();
       
@@ -186,18 +188,42 @@ export function useSupabaseInvoices() {
       }
       
       const user = session.user;
+      console.log('👤 User ID:', user.id);
 
       // First, check the current status of the invoice
       const { data: currentInvoice, error: fetchError } = await supabase
         .from('invoices')
-        .select('status')
+        .select('status, invoice_number, user_id')
         .eq('invoice_number', invoiceNumber)
         .eq('user_id', user.id)
+        .is('deleted_at', null)
         .single();
 
-      if (fetchError || !currentInvoice) {
-        throw new Error('Invoice not found or access denied.');
+      if (fetchError) {
+        console.error('❌ Error fetching invoice:', fetchError);
+        console.error('Invoice number:', invoiceNumber);
+        console.error('User ID:', user.id);
+        
+        // Try to find invoice without user filter to check if it exists
+        const { data: anyInvoice } = await supabase
+          .from('invoices')
+          .select('invoice_number, user_id')
+          .eq('invoice_number', invoiceNumber)
+          .single();
+          
+        if (anyInvoice) {
+          console.error('⚠️ Invoice exists but belongs to different user:', anyInvoice.user_id);
+          throw new Error('Access denied: This invoice belongs to another user.');
+        } else {
+          throw new Error(`Invoice "${invoiceNumber}" not found in the database.`);
+        }
       }
+      
+      if (!currentInvoice) {
+        throw new Error(`Invoice "${invoiceNumber}" not found or has been deleted.`);
+      }
+      
+      console.log('✅ Found invoice with status:', currentInvoice.status);
 
       // Business rule validation
       if (currentInvoice.status === 'approved' || currentInvoice.status === 'issued') {
@@ -236,6 +262,8 @@ export function useSupabaseInvoices() {
 
   const deleteInvoice = async (invoiceNumber: string) => {
     try {
+      console.log('🗑️ Attempting to delete invoice:', invoiceNumber);
+      
       // Get current user from session
       const { data: { session }, error: authError } = await supabase.auth.getSession();
       
@@ -244,18 +272,38 @@ export function useSupabaseInvoices() {
       }
       
       const user = session.user;
+      console.log('👤 User ID:', user.id);
 
       // First, get the invoice to check its status
       const { data: invoiceData, error: fetchError } = await supabase
         .from('invoices')
-        .select('status')
+        .select('status, invoice_number, user_id')
         .eq('invoice_number', invoiceNumber)
         .eq('user_id', user.id)
+        .is('deleted_at', null)
         .single();
 
       if (fetchError) {
-        throw new Error('Invoice not found or access denied.');
+        console.error('❌ Error fetching invoice for deletion:', fetchError);
+        console.error('Invoice number:', invoiceNumber);
+        console.error('User ID:', user.id);
+        
+        // Try to find invoice without user filter to check if it exists
+        const { data: anyInvoice } = await supabase
+          .from('invoices')
+          .select('invoice_number, user_id')
+          .eq('invoice_number', invoiceNumber)
+          .single();
+          
+        if (anyInvoice) {
+          console.error('⚠️ Invoice exists but belongs to different user:', anyInvoice.user_id);
+          throw new Error('Access denied: This invoice belongs to another user.');
+        } else {
+          throw new Error(`Invoice "${invoiceNumber}" not found in the database.`);
+        }
       }
+      
+      console.log('✅ Found invoice with status:', invoiceData.status);
 
       // Prevent deletion of approved or issued invoices
       if (invoiceData.status === 'approved' || invoiceData.status === 'issued') {
