@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import QuickInvoice from '../components/QuickInvoice';
+import QuickInvoice from '../components/QuickInvoiceDebug';
 import InvoicePreview from '../components/InvoicePreview';
 import ClientManagement from '../components/ClientManagement';
 import ServiceManagement from '../components/ServiceManagement';
@@ -136,15 +136,11 @@ const Index = () => {
   }, [migrateToSupabase]);
 
   const handleInvoiceGenerated = useCallback(async (invoice: InvoiceData) => {
-    try {
-      await saveInvoice(invoice);
-      setCurrentInvoice(invoice);
-      console.log('Invoice saved successfully to Supabase');
-    } catch (error) {
-      console.error('Failed to save invoice:', error);
-      alert(t.errorSavingInvoice);
-    }
-  }, [saveInvoice, t.errorSavingInvoice]);
+    // The invoice has already been saved by QuickInvoice component
+    // We just need to set it as the current invoice to display the preview
+    setCurrentInvoice(invoice);
+    console.log('Invoice ready for preview:', invoice.invoiceNumber);
+  }, []);
 
   const handleInvoiceStatusChange = useCallback(async (newStatus: InvoiceData['status']) => {
     if (currentInvoice) {
