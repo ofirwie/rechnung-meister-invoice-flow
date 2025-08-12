@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import QuickInvoice from '../components/QuickInvoiceDebug';
+import QuickInvoice from '../components/QuickInvoice';
 import InvoicePreview from '../components/InvoicePreview';
 import ClientManagement from '../components/ClientManagement';
 import ServiceManagement from '../components/ServiceManagement';
